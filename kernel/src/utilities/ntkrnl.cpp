@@ -78,6 +78,11 @@ uint64_t ntkrnl::get_thread_process_id(uint64_t ethread)
 	return *reinterpret_cast<uint64_t*>(ethread + offsets::ethread::cid);
 }
 
+uint8_t ntkrnl::get_current_processor_number()
+{
+	return __readgsbyte(0x184);
+}
+
 uint64_t ntkrnl::get_current_process()
 {
 	uint64_t current_thread = get_current_thread();

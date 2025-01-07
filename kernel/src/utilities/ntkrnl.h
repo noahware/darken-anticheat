@@ -18,6 +18,8 @@ namespace ntkrnl
 	uint64_t get_thread_win32_start_address(uint64_t ethread);
 	uint64_t get_thread_process_id(uint64_t ethread);
 
+	uint8_t get_current_processor_number();
+
 	uint64_t get_current_process();
 	uint64_t get_current_thread();
 
