@@ -14,6 +14,10 @@ Open source solution for protecting your software against tampering and reverse 
 - Sending non maskable interrupts and analyzing the rip to detect execution outside of valid kernel modules.
 - Resolving all driver imports manually.
 
+# Windows Versions Supported
+
+I have tested on Windows 10 22H2 and Windows 11 24H2, but I have implemented offsets for each build from Windows 10 1507 -> Windows 11 24H2, so should in theory work for all the Windows 10 and Windows 11 versions currently released to the public.
+
 # Credits
 - [papstuc](https://github.com/papstuc) for the [nocrt portable executable library used](https://github.com/papstuc/nocrt_portable_executable).
 - [jonomango](https://github.com/jonomango), [Satoshi Tanda](https://github.com/tandasat), and [Petr Beneš](https://github.com/wbenny) for their contributions to the [ia32-doc](https://github.com/tandasat/ia32-doc) project.
