@@ -11,6 +11,7 @@ Open source solution for protecting your software against tampering and reverse 
 - Force-triggering PatchGuard (KPP) checks to run (causes bugcheck to occur if there are any violations of PatchGuard's checks).
 - Causing bugcheck if PatchGuard (KPP) is disabled / has an invalid context.
 - Checking usage of reserved MSRs (model specific registers).
+- Sending non maskable interrupts and analyzing the rip to detect execution outside of valid kernel modules.
 - Resolving all driver imports manually.
 
 # Credits

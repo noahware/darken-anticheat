@@ -1,5 +1,5 @@
 #include "process_thread.h"
-#include "../../utilities/ntkrnl.h"
+#include "../../os/ntkrnl/ntkrnl.h"
 #include "../../offsets/offsets.h"
 #include "../../memory/memory.h"
 #include "../../memory/page_tables.h"

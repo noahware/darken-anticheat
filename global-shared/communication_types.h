@@ -26,7 +26,8 @@ namespace communication
 		is_suspicious_system_thread_present,
 		is_suspicious_process_thread_present,
 		check_reserved_msr_usage,
-		trigger_patchguard_bugcheck
+		trigger_patchguard_bugcheck,
+		send_and_analyze_non_maskable_interrupts
 	};
 
 	enum class e_detection_status : uint8_t

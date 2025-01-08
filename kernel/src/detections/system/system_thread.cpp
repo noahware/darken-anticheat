@@ -1,30 +1,11 @@
 #include "system_thread.h"
 #include "../../context/context.h"
-#include "../../utilities/ntkrnl.h"
+#include "../../os/ntkrnl/ntkrnl.h"
 #include "../../offsets/offsets.h"
 #include "../../structures/kldr_data_table_entry.h"
 #include "../../log.h"
 
 #include <ntifs.h>
-
-bool check_thread_address_in_module_callback(uint64_t current_module_info, void* context)
-{
-	_KLDR_DATA_TABLE_ENTRY* current_module = reinterpret_cast<_KLDR_DATA_TABLE_ENTRY*>(current_module_info);
-
-	uint64_t win32_thread_start_address = *reinterpret_cast<uint64_t*>(context);
-
-	uint64_t current_module_base_address = reinterpret_cast<uint64_t>(current_module->DllBase);
-	uint64_t current_module_end_address = current_module_base_address + current_module->SizeOfImage;
-
-	if (current_module_base_address < win32_thread_start_address && win32_thread_start_address <= current_module_end_address)
-	{
-		*reinterpret_cast<uint64_t*>(context) = 1337;
-
-		return true;
-	}
-
-	return false;
-}
 
 bool is_thread_attached_to_process(uint64_t ethread, uint64_t eprocess)
 {
@@ -107,12 +88,7 @@ communication::e_detection_status system::system_thread::is_suspicious_thread_pr
 			return communication::e_detection_status::flagged;
 		}
 
-		uint64_t enumerate_system_modules_callback_context = current_thread_win32_start_address;
-
-		ntkrnl::enumerate_system_modules(context, check_thread_address_in_module_callback, &enumerate_system_modules_callback_context);
-
-		// will be set to 1337 if in a legimate module
-		if (enumerate_system_modules_callback_context != 1337)
+		if (ntkrnl::is_address_within_system_module(context, current_thread_win32_start_address) == false)
 		{
 			d_log("[darken-anticheat] thread id: %llx has a Win32StartAddress (0x%llx) which resides outside of a valid kernel module.\n", current_thread_id, current_thread_win32_start_address);
 

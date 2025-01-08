@@ -1,6 +1,6 @@
 #include "context.h"
 #include "../crypto/crypto.h"
-#include "../utilities/ntkrnl.h"
+#include "../os/ntkrnl/ntkrnl.h"
 #include <portable_executable/image.hpp>
 #include <string_encryption.h>
 #include <ntifs.h>

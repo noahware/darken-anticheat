@@ -31,6 +31,11 @@ namespace offsets
 		inline uint64_t process = 0x20; // doesn't change at all (last checked: Windows 11 24H2)
 	}
 
+	namespace kpcr
+	{
+		inline uint64_t tss_base = 0x8; // never changes
+	}
+
 	namespace eprocess
 	{
 		inline uint64_t directory_table_base = 0x28;
