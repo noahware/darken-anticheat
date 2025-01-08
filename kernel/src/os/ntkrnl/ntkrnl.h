@@ -1,5 +1,5 @@
 #pragma once
-#include "../context/context.h"
+#include "../../context/context.h"
 
 namespace ntkrnl
 {
@@ -19,6 +19,9 @@ namespace ntkrnl
 	uint64_t get_thread_process_id(uint64_t ethread);
 
 	uint8_t get_current_processor_number();
+	uint64_t get_current_pcr();
+	uint64_t get_tss_base_from_pcr(uint64_t pcr);
+	uint64_t get_current_tss_base();
 
 	uint64_t get_current_process();
 	uint64_t get_current_thread();
@@ -28,6 +31,8 @@ namespace ntkrnl
 	typedef bool(*t_enumerate_modules_callback)(uint64_t current_module_info, void* ctx);
 
 	void enumerate_system_modules(context::s_context* context, t_enumerate_modules_callback callback, void* ctx);
+
+	bool is_address_within_system_module(context::s_context* context, uint64_t address);
 
 	namespace pre_initialization
 	{

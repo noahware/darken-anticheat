@@ -1,6 +1,6 @@
 #include "imports.h"
 #include "../context/context.h"
-#include "../utilities/ntkrnl.h"
+#include "../os/ntkrnl/ntkrnl.h"
 #include <portable_executable/image.hpp>
 #include <string_encryption.h>
 
@@ -28,6 +28,13 @@ bool imports::load(context::s_context* context)
 	context->imports.ke_unstack_detach_process = reinterpret_cast<t_ke_unstack_detach_process>(ntoskrnl_image->find_export(d_encrypt_string("KeUnstackDetachProcess")));
 	context->imports.mm_get_physical_address = reinterpret_cast<t_mm_get_physical_address>(ntoskrnl_image->find_export(d_encrypt_string("MmGetPhysicalAddress")));
 	context->imports.mm_get_virtual_for_physical = reinterpret_cast<t_mm_get_virtual_for_physical>(ntoskrnl_image->find_export(d_encrypt_string("MmGetVirtualForPhysical")));
+	context->imports.ke_query_active_processor_count = reinterpret_cast<t_ke_query_active_processor_count>(ntoskrnl_image->find_export(d_encrypt_string("KeQueryActiveProcessorCount")));
+	context->imports.hal_send_nmi = reinterpret_cast<t_hal_send_nmi>(ntoskrnl_image->find_export(d_encrypt_string("HalSendNMI")));
+	context->imports.ke_initialize_affinity_ex = reinterpret_cast<t_ke_initialize_affinity_ex>(ntoskrnl_image->find_export(d_encrypt_string("KeInitializeAffinityEx")));
+	context->imports.ke_add_processor_affinity_ex = reinterpret_cast<t_ke_add_processor_affinity_ex>(ntoskrnl_image->find_export(d_encrypt_string("KeAddProcessorAffinityEx")));
+	context->imports.ke_register_nmi_callback = reinterpret_cast<t_ke_register_nmi_callback>(ntoskrnl_image->find_export(d_encrypt_string("KeRegisterNmiCallback")));
+	context->imports.ke_deregister_nmi_callback = reinterpret_cast<t_ke_deregister_nmi_callback>(ntoskrnl_image->find_export(d_encrypt_string("KeDeregisterNmiCallback")));
+	context->imports.ke_delay_execution_thread = reinterpret_cast<t_ke_delay_execution_thread>(ntoskrnl_image->find_export(d_encrypt_string("KeDelayExecutionThread")));
 
 	return true;
 }

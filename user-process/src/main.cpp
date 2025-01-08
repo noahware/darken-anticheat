@@ -35,6 +35,7 @@ int main()
 		d_check_detection(detections::anti_debug::is_peb_debug_flag_present);
 		d_check_detection(detections::modules::local_process::is_unsigned_module_present);
 		d_check_detection(detections::threads::is_suspicious_system_thread_present);
+		d_check_detection(detections::threads::non_maskable_interrupts::send_and_analyze);
 		d_check_detection(detections::process::is_suspicious_thread_present, static_cast<std::uint64_t>(GetCurrentProcessId()));
 		d_check_detection(detections::process::is_suspicious_thread_present, protected_process::process_id);
 		d_check_detection(detections::hypervisor::check_reserved_msr_usage);

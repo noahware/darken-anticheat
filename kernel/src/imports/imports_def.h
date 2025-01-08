@@ -16,6 +16,13 @@ typedef void(__stdcall* t_ke_stack_attach_process)(uint64_t eprocess, void* apc_
 typedef void(__stdcall* t_ke_unstack_detach_process)(void* apc_state);
 typedef uint64_t(__stdcall* t_mm_get_physical_address)(uint64_t virtual_address);
 typedef uint64_t(__stdcall* t_mm_get_virtual_for_physical)(uint64_t physical_address);
+typedef void(__stdcall* t_hal_send_nmi)(void* affinity);
+typedef uint32_t(__stdcall* t_ke_query_active_processor_count)(void* active_processors_affinity);
+typedef void(__stdcall* t_ke_initialize_affinity_ex)(void* affinity);
+typedef void(__stdcall* t_ke_add_processor_affinity_ex)(void* affinity, uint32_t index);
+typedef uint64_t(__stdcall* t_ke_register_nmi_callback)(void* handler_function, void* context);
+typedef uint32_t(__stdcall* t_ke_deregister_nmi_callback)(uint64_t callback_handle);
+typedef uint32_t(__stdcall* t_ke_delay_execution_thread)(int8_t wait_mode, uint8_t alertable, void* interval);
 
 namespace imports
 {
@@ -40,5 +47,12 @@ namespace imports
 		t_ke_unstack_detach_process ke_unstack_detach_process;
 		t_mm_get_physical_address mm_get_physical_address;
 		t_mm_get_virtual_for_physical mm_get_virtual_for_physical;
+		t_ke_query_active_processor_count ke_query_active_processor_count;
+		t_ke_initialize_affinity_ex ke_initialize_affinity_ex;
+		t_ke_add_processor_affinity_ex ke_add_processor_affinity_ex;
+		t_hal_send_nmi hal_send_nmi;
+		t_ke_register_nmi_callback ke_register_nmi_callback;
+		t_ke_deregister_nmi_callback ke_deregister_nmi_callback;
+		t_ke_delay_execution_thread ke_delay_execution_thread;
 	};
 }

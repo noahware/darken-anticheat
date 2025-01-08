@@ -33,7 +33,7 @@
     <ClCompile Include="src\detections\system\system_thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\utilities\ntkrnl.cpp">
+    <ClCompile Include="src\os\ntkrnl\ntkrnl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\offsets\offsets.cpp">
@@ -90,6 +90,9 @@
     <ClCompile Include="src\memory\memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\detections\system\non_maskable_interrupts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\detections\handles\permission_stripping.h">
@@ -101,7 +104,7 @@
     <ClInclude Include="src\detections\system\system_thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\utilities\ntkrnl.h">
+    <ClInclude Include="src\os\ntkrnl\ntkrnl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\offsets\offsets.h">
@@ -195,6 +198,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\structures\virtual_address.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\detections\system\non_maskable_interrupts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\structures\kaffinity_ex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\structures\machine_frame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

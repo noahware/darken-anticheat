@@ -1,5 +1,5 @@
 #include "permission_stripping.h"
-#include "../../utilities/ntkrnl.h"
+#include "../../os/ntkrnl/ntkrnl.h"
 #include "../../context/context.h"
 #include "../../log.h"
 #include <ntifs.h>

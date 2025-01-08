@@ -1,10 +1,11 @@
 #include "detections/handles/permission_stripping.h"
 #include "detections/hypervisor/reserved_msr_usage.h"
+#include "detections/system/non_maskable_interrupts.h"
 #include "detections/system/system_thread.h"
 #include "detections/process/process_thread.h"
 #include "context/context.h"
 #include "detections/patchguard/patchguard.h"
-#include "utilities/ntkrnl.h"
+#include "os/ntkrnl/ntkrnl.h"
 #include "imports/imports.h"
 #include "memory/page_tables.h"
 #include "offsets/offsets.h"
@@ -93,6 +94,12 @@ NTSTATUS ioctl_call_processor(PDEVICE_OBJECT device_object, PIRP irp)
 		patchguard::trigger_bugcheck();
 
 		call_info->detection_status = communication::e_detection_status::clean;
+
+		break;
+	}
+	case d_control_code(communication::e_control_code::send_and_analyze_non_maskable_interrupts):
+	{
+		call_info->detection_status = system::non_maskable_interrupts::send_and_analyze(context);
 
 		break;
 	}

@@ -1,5 +1,5 @@
 #include "page_tables.h"
-#include "../utilities/ntkrnl.h"
+#include "../os/ntkrnl/ntkrnl.h"
 #include <ntifs.h>
 
 bool page_tables::load(context::s_context* context)

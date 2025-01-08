@@ -1,7 +1,6 @@
 #include "ntkrnl.h"
-#include "../context/context.h"
-#include "../offsets/offsets.h"
-#include "../structures/kldr_data_table_entry.h"
+#include "../../offsets/offsets.h"
+#include "../../structures/kldr_data_table_entry.h"
 
 #include <ntifs.h>
 #include <intrin.h>
@@ -83,6 +82,24 @@ uint8_t ntkrnl::get_current_processor_number()
 	return __readgsbyte(0x184);
 }
 
+uint64_t ntkrnl::get_current_pcr()
+{
+	// evaluates to reading qword from gs:18h
+	return __readgsqword(FIELD_OFFSET(KPCR, Self));
+}
+
+uint64_t ntkrnl::get_tss_base_from_pcr(uint64_t pcr)
+{
+	return *reinterpret_cast<uint64_t*>(pcr + offsets::kpcr::tss_base);
+}
+
+uint64_t ntkrnl::get_current_tss_base()
+{
+	uint64_t current_pcr = get_current_pcr();
+
+	return get_tss_base_from_pcr(current_pcr);
+}
+
 uint64_t ntkrnl::get_current_process()
 {
 	uint64_t current_thread = get_current_thread();
@@ -113,6 +130,42 @@ void ntkrnl::enumerate_system_modules(context::s_context* context, t_enumerate_m
 			return;
 		}
 	}
+}
+
+struct s_thread_in_module_callback_ctx
+{
+	uint64_t address;
+	bool is_in_module;
+};
+
+bool check_address_in_module_callback(uint64_t current_module_info, void* context)
+{
+	_KLDR_DATA_TABLE_ENTRY* current_module = reinterpret_cast<_KLDR_DATA_TABLE_ENTRY*>(current_module_info);
+
+	uint64_t win32_thread_start_address = *reinterpret_cast<uint64_t*>(context);
+
+	uint64_t current_module_base_address = reinterpret_cast<uint64_t>(current_module->DllBase);
+	uint64_t current_module_end_address = current_module_base_address + current_module->SizeOfImage;
+
+	if (current_module_base_address < win32_thread_start_address && win32_thread_start_address <= current_module_end_address)
+	{
+		reinterpret_cast<s_thread_in_module_callback_ctx*>(context)->is_in_module = true;
+
+		return true;
+	}
+
+	return false;
+}
+
+bool ntkrnl::is_address_within_system_module(context::s_context* context, uint64_t address)
+{
+	s_thread_in_module_callback_ctx callback_ctx = { };
+
+	callback_ctx.address = address;
+
+	ntkrnl::enumerate_system_modules(context, check_address_in_module_callback, &callback_ctx);
+
+	return callback_ctx.is_in_module;
 }
 
 uint64_t ntkrnl::pre_initialization::find_ntoskrnl_base()
