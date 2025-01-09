@@ -134,12 +134,14 @@ communication::e_detection_status system::non_maskable_interrupts::send_and_anal
 			d_log("[darken-anticheat] interrupted processor: %u was interrupted in kernel code which had a rip outside of a valid module (0x%llx).\n", i, current_core_info.rip);
 
 			context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(processor_affinity), d_pool_tag);
+			context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(nmi_per_core_info), d_pool_tag);
 
 			return communication::e_detection_status::flagged;
 		}
 	}
 
 	context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(processor_affinity), d_pool_tag);
+	context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(nmi_per_core_info), d_pool_tag);
 
 	return communication::e_detection_status::clean;
 }
