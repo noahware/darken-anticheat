@@ -1,5 +1,5 @@
 # Darken Anticheat
-Open source solution for protecting your software against tampering and reverse engineering.
+Open source anticheat for protecting your software against tampering and reverse engineering.
 
 # Current Features
 - Detects dlls which not digitally signed or have a PDB in microsoft's symbol server.
@@ -16,11 +16,11 @@ Open source solution for protecting your software against tampering and reverse 
 
 # Windows Versions Supported
 
-I have tested on Windows 10 22H2 and Windows 11 24H2, but I have implemented offsets for each build from Windows 10 1507 -> Windows 11 24H2, so should in theory work for all the Windows 10 and Windows 11 versions currently released to the public.
+I have tested the anticheat on Windows 10 22H2 and Windows 11 24H2, but I have implemented offsets for each build from Windows 10 1507 -> Windows 11 24H2, so the anticheat should in theory function for all the Windows 10 and Windows 11 versions currently released to the public.
 
 # Credits
 - [papstuc](https://github.com/papstuc) for the [nocrt portable executable library used](https://github.com/papstuc/nocrt_portable_executable).
 - [jonomango](https://github.com/jonomango), [Satoshi Tanda](https://github.com/tandasat), and [Petr Beneš](https://github.com/wbenny) for their contributions to the [ia32-doc](https://github.com/tandasat/ia32-doc) project.
 
 # Licensing
-This project has been placed under the [GNU General Public License](LICENSE), if there are any specific enquiries regarding usage, please contact the founder of the project (noahswtf).
+This project has been placed under the [GNU General Public License](LICENSE), if there are any specific enquiries regarding usage, please contact the founder of the project [noahware](https://github.com/noahware).
