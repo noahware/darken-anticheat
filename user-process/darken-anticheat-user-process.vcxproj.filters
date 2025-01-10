@@ -30,12 +30,6 @@
     <ClCompile Include="..\user-shared\utilities\datatype\datatype.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\user-shared\utilities\http\http.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\user-shared\utilities\pdb\pdb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\user-shared\utilities\filesystem\filesystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

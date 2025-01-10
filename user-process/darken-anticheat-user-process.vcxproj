@@ -171,8 +171,6 @@
     <ClCompile Include="..\user-shared\driver\driver.cpp" />
     <ClCompile Include="..\user-shared\utilities\datatype\datatype.cpp" />
     <ClCompile Include="..\user-shared\utilities\filesystem\filesystem.cpp" />
-    <ClCompile Include="..\user-shared\utilities\http\http.cpp" />
-    <ClCompile Include="..\user-shared\utilities\pdb\pdb.cpp" />
     <ClCompile Include="..\user-shared\utilities\pe\pe.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\protected_process\protected_process.cpp" />
