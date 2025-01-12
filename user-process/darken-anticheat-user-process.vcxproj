@@ -136,7 +136,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>wintrust.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wintrust.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>
@@ -157,7 +157,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>wintrust.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wintrust.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>
@@ -172,6 +172,7 @@
     <ClCompile Include="..\user-shared\utilities\datatype\datatype.cpp" />
     <ClCompile Include="..\user-shared\utilities\filesystem\filesystem.cpp" />
     <ClCompile Include="..\user-shared\utilities\pe\pe.cpp" />
+    <ClCompile Include="..\user-shared\utilities\system\system.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\protected_process\protected_process.cpp" />
   </ItemGroup>

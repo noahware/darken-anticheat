@@ -2,7 +2,8 @@
 Open source anticheat for protecting your software against tampering and reverse engineering.
 
 # Current Features
-- Detects dlls which not digitally signed or have a PDB in microsoft's symbol server.
+- Detects loaded dlls which not digitally signed.
+- Detects loaded kernel modules which are not digitally signed.
 - Strips permissions of handles that are attempted to be opened to any of our protected processes.
 - Detects system threads which have a start address outside of any legitimate kernel module.
 - Detects system threads which are attached to any of our protected processes.

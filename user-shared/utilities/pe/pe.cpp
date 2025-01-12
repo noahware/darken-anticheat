@@ -1,13 +1,11 @@
 #include "pe.h"
+#include "../filesystem/filesystem.h"
 #include <imports.h>
 
 #include <Windows.h>
 #include <Softpub.h>
-#include <wincrypt.h>
 #include <mscat.h>
 #include <wintrust.h>
-
-#include <vector>
 
 struct s_catalog_and_hash_info
 {
@@ -16,6 +14,7 @@ struct s_catalog_and_hash_info
 };
 
 s_catalog_and_hash_info get_catalog_and_hash_info(HANDLE file_handle);
+
 bool win_verify_trust(uint32_t trust_info_choice, void* trust_info_data);
 
 bool utilities::pe::has_embedded_signature(std::wstring_view binary_path)
@@ -123,16 +122,17 @@ s_catalog_and_hash_info get_catalog_and_hash_info(HANDLE file_handle)
 
 bool win_verify_trust(uint32_t trust_info_choice, void* trust_info_data)
 {
-	GUID wvt_policy_guid = WINTRUST_ACTION_GENERIC_VERIFY_V2;
 	WINTRUST_DATA win_trust_data = { };
 
 	win_trust_data.cbStruct = sizeof(win_trust_data);
 	win_trust_data.dwUIChoice = WTD_UI_NONE;
 	win_trust_data.fdwRevocationChecks = WTD_REVOKE_WHOLECHAIN;
-	win_trust_data.dwProvFlags = WTD_CACHE_ONLY_URL_RETRIEVAL;
+	win_trust_data.dwProvFlags = WTD_REVOCATION_CHECK_CHAIN;
 	win_trust_data.dwUnionChoice = trust_info_choice;
 	win_trust_data.dwStateAction = WTD_STATEACTION_VERIFY;
 	win_trust_data.pFile = reinterpret_cast<WINTRUST_FILE_INFO*>(trust_info_data); // (file, catalog, cert, etc) infos pointers are all within a union, so this is ambiguous
+
+	GUID wvt_policy_guid = WINTRUST_ACTION_GENERIC_VERIFY_V2;
 
 	bool is_digitally_signed = d_import(WinVerifyTrust)(nullptr, &wvt_policy_guid, &win_trust_data) == ERROR_SUCCESS;
 

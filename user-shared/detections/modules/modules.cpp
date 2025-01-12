@@ -1,9 +1,12 @@
 #include "modules.h"
 #include <utilities/pe/pe.h>
+#include <utilities/system/system.h>
+#include <utilities/datatype/datatype.h>
 
 #include <Windows.h>
 #include <winternl.h>
 
+#include <filesystem>
 #include <vector>
 
 namespace detections
@@ -12,7 +15,12 @@ namespace detections
 	{
 		namespace local_process
 		{
-			std::vector<std::wstring_view> modules_checked_already = { };
+			std::vector<std::wstring> modules_checked_already = { };
+		}
+
+		namespace kernel
+		{
+			std::vector<std::string> modules_checked_already = { };
 		}
 	}
 }
@@ -30,7 +38,7 @@ communication::e_detection_status detections::modules::local_process::is_unsigne
 	{
 		PLDR_DATA_TABLE_ENTRY module_entry = CONTAINING_RECORD(current_module, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
 
-		std::wstring_view module_path = std::wstring_view(module_entry->FullDllName.Buffer);
+		std::wstring module_path = std::wstring(module_entry->FullDllName.Buffer, module_entry->FullDllName.Length / 2);
 
 		if (std::find(modules_checked_already.begin(), modules_checked_already.end(), module_path) != modules_checked_already.end())
 		{
@@ -44,6 +52,36 @@ communication::e_detection_status detections::modules::local_process::is_unsigne
 
 		modules_checked_already.push_back(module_path);
 	}
+
+	return communication::e_detection_status::clean;
+}
+
+communication::e_detection_status detections::modules::kernel::is_unsigned_module_present()
+{
+	std::vector<std::string> loaded_kernel_modules = utilities::system::query_loaded_kernel_modules();
+
+	if (loaded_kernel_modules.empty() == true)
+	{
+		return communication::e_detection_status::runtime_error;
+	}
+
+	for (std::string& module_path : loaded_kernel_modules)
+	{
+		if (std::find(modules_checked_already.begin(), modules_checked_already.end(), module_path) != modules_checked_already.end())
+		{
+			continue;
+		}
+
+		// check if it exists due to dump drivers sometimes not being on disk
+		// todo: find a better way to identify dump drivers
+		if (std::filesystem::exists(module_path) == true && utilities::pe::is_digitally_signed(utilities::datatype::ascii_string::to_unicode(module_path)) == false)
+		{
+			return communication::e_detection_status::flagged;
+		}
+
+		modules_checked_already.push_back(module_path);
+	}
+
 
 	return communication::e_detection_status::clean;
 }

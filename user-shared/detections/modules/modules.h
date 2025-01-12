@@ -9,5 +9,10 @@ namespace detections
 		{
 			communication::e_detection_status is_unsigned_module_present();
 		}
+
+		namespace kernel
+		{
+			communication::e_detection_status is_unsigned_module_present();
+		}
 	}
 }

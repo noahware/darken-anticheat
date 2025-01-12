@@ -15,5 +15,10 @@ namespace utilities
 		{
 			std::string to_hexadecimal_string(std::uint32_t integral_number);
 		}
+
+		namespace ascii_string
+		{
+			std::wstring to_unicode(std::string_view string_to_convert);
+		}
 	}
 }
