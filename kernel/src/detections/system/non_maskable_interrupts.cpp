@@ -18,12 +18,17 @@ uint8_t nmi_callback_handler(s_nmi_per_core_info* context, uint8_t handled)
 {
 	UNREFERENCED_PARAMETER(handled);
 
-	task_state_segment_64* current_task_state_segment = reinterpret_cast<task_state_segment_64*>(ntkrnl::get_current_tss_base());
-	s_machine_frame* machine_frame = reinterpret_cast<s_machine_frame*>(current_task_state_segment->ist3 - sizeof(s_machine_frame));
-
 	uint8_t current_processor_number = ntkrnl::get_current_processor_number();
 
 	s_nmi_per_core_info* current_core_info = &context[current_processor_number];
+
+	if (current_core_info->processed == true)
+	{
+		return TRUE;
+	}
+
+	task_state_segment_64* current_task_state_segment = reinterpret_cast<task_state_segment_64*>(ntkrnl::get_current_tss_base());
+	s_machine_frame* machine_frame = reinterpret_cast<s_machine_frame*>(current_task_state_segment->ist3 - sizeof(s_machine_frame));
 
 	current_core_info->rip = machine_frame->rip;
 	current_core_info->processed = true;
