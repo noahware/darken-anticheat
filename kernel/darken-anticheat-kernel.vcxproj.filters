@@ -39,9 +39,6 @@
     <ClCompile Include="src\offsets\offsets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\detections\patchguard\patchguard.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\detections\process\process_thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

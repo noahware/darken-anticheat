@@ -72,6 +72,8 @@ communication::e_detection_status detections::modules::kernel::is_unsigned_modul
 			continue;
 		}
 
+		// todo: exclude the anticheat driver
+
 		// check if it exists due to dump drivers sometimes not being on disk
 		// todo: find a better way to identify dump drivers
 		if (std::filesystem::exists(module_path) == true && utilities::pe::is_digitally_signed(utilities::datatype::ascii_string::to_unicode(module_path)) == false)

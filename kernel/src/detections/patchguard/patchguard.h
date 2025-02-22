@@ -1,6 +1,3 @@
 #pragma once
 
-namespace patchguard
-{
-	void trigger_bugcheck();
-}
+extern "C" void _trigger_patchguard_bugcheck();

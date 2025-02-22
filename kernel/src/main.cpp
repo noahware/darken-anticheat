@@ -91,7 +91,7 @@ NTSTATUS ioctl_call_processor(PDEVICE_OBJECT device_object, PIRP irp)
 	}
 	case d_control_code(communication::e_control_code::trigger_patchguard_bugcheck):
 	{
-		patchguard::trigger_bugcheck();
+		_trigger_patchguard_bugcheck();
 
 		call_info->detection_status = communication::e_detection_status::clean;
 

@@ -169,7 +169,6 @@
     <ClCompile Include="src\memory\memory.cpp" />
     <ClCompile Include="src\memory\page_tables.cpp" />
     <ClCompile Include="src\offsets\offsets.cpp" />
-    <ClCompile Include="src\detections\patchguard\patchguard.cpp" />
     <ClCompile Include="src\detections\process\process_thread.cpp" />
     <ClCompile Include="src\detections\system\system_thread.cpp" />
     <ClCompile Include="src\os\ntkrnl\ntkrnl.cpp" />
