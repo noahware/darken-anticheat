@@ -31,6 +31,7 @@ namespace imports
 		uint16_t* nt_build_number;
 		uint64_t ps_loaded_module_list;
 		uint64_t ps_process_type;
+		uint32_t* hvl_enlightenments;
 
 		t_ex_allocate_pool_2 ex_allocate_pool_2;
 		t_ex_free_pool_with_tag ex_free_pool_with_tag;

@@ -90,6 +90,9 @@
     <ClCompile Include="src\detections\system\non_maskable_interrupts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\os\hvl\enlightenments.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\detections\handles\permission_stripping.h">
@@ -204,6 +207,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\structures\machine_frame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\os\hvl\enlightenments.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

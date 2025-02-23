@@ -1,8 +1,27 @@
 #include "imports.h"
 #include "../context/context.h"
 #include "../os/ntkrnl/ntkrnl.h"
+
+#include <wdm.h>
+#include "../log.h"
+
 #include <portable_executable/image.hpp>
 #include <string_encryption.h>
+
+uint32_t* find_hvl_enlightenments(const portable_executable::image_t* ntoskrnl_image)
+{
+	// reference is to HvlEnlightenments in subroutine HvlRescindEnlightenments
+	uint8_t* code_reference = ntoskrnl_image->signature_scan(d_encrypt_string("F0 83 25 ? ? ? ? ? F0 83 25"));
+
+	if (code_reference == nullptr)
+	{
+		d_log("[darken-anticheat] failed to find reference to HvlEnlightenments.\n");
+
+		return nullptr;
+	}
+
+	return reinterpret_cast<uint32_t*>((code_reference + 8) + *reinterpret_cast<uint32_t*>(code_reference + 3));
+}
 
 bool imports::load(context::s_context* context)
 {
@@ -11,6 +30,7 @@ bool imports::load(context::s_context* context)
 	context->imports.nt_build_number = reinterpret_cast<uint16_t*>(ntoskrnl_image->find_export(d_encrypt_string("NtBuildNumber")));
 	context->imports.ps_loaded_module_list = reinterpret_cast<uint64_t>(ntoskrnl_image->find_export(d_encrypt_string("PsLoadedModuleList")));
 	context->imports.ps_process_type = reinterpret_cast<uint64_t>(ntoskrnl_image->find_export(d_encrypt_string("PsProcessType")));
+	context->imports.hvl_enlightenments = find_hvl_enlightenments(ntoskrnl_image);
 	
 	// ex_allocate_pool_2 set in context::load
 
