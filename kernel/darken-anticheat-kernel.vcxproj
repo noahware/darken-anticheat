@@ -200,6 +200,7 @@
     <ClInclude Include="src\log.h" />
     <ClInclude Include="src\memory\memory.h" />
     <ClInclude Include="src\memory\page_tables.h" />
+    <ClInclude Include="src\memory\page_tables_def.h" />
     <ClInclude Include="src\offsets\offsets.h" />
     <ClInclude Include="src\detections\patchguard\patchguard.h" />
     <ClInclude Include="src\detections\process\process_thread.h" />

@@ -1,10 +1,11 @@
 #include "page_tables.h"
+#include "page_tables_def.h"
 #include "../os/ntkrnl/ntkrnl.h"
 #include <ntifs.h>
 
 bool page_tables::load(context::s_context* context)
 {
-	page_tables = reinterpret_cast<s_page_table*>(context->imports.ex_allocate_pool_2(POOL_FLAG_NON_PAGED, sizeof(s_page_table), d_pool_tag));
+	s_page_table* page_tables = reinterpret_cast<s_page_table*>(context->imports.ex_allocate_pool_2(POOL_FLAG_NON_PAGED, sizeof(s_page_table), d_pool_tag));
 
 	if (page_tables == nullptr)
 	{
@@ -50,13 +51,16 @@ bool page_tables::load(context::s_context* context)
 
 	memcpy(&page_tables->pml4[256], &system_directory_table_base_virtual[256], sizeof(pml4e_64) * 256);
 
-	pt_cr3.address_of_page_directory = context->imports.mm_get_physical_address(reinterpret_cast<uint64_t>(&page_tables->pml4)) >> 12;
+	context->memory.pt_cr3.address_of_page_directory = context->imports.mm_get_physical_address(reinterpret_cast<uint64_t>(&page_tables->pml4)) >> 12;
+	context->memory.page_tables = page_tables;
 
 	return true;
 }
 
 void page_tables::unload(context::s_context* context)
 {
+	s_page_table* page_tables = context->memory.page_tables;
+
 	if (page_tables != nullptr)
 	{
 		context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(page_tables), d_pool_tag);

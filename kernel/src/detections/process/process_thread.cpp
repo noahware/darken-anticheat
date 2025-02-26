@@ -2,7 +2,6 @@
 #include "../../os/ntkrnl/ntkrnl.h"
 #include "../../offsets/offsets.h"
 #include "../../memory/memory.h"
-#include "../../memory/page_tables.h"
 #include "../../log.h"
 
 #include "../../structures/ldr_data_table_entry.h"
@@ -33,7 +32,7 @@ communication::e_detection_status process::process_thread::is_suspicious_thread_
 
 	cr3 original_cr3 = memory::current_context::read_cr3();
 
-	memory::current_context::write_cr3(page_tables::pt_cr3);
+	memory::current_context::write_cr3(context->memory.pt_cr3);
 
 	bool is_process_peb_virtual_address_valid = memory::is_address_valid(reinterpret_cast<uint64_t>(protected_process_peb), ntkrnl::get_process_directory_table_base(protected_eprocess));
 
