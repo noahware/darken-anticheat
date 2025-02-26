@@ -23,6 +23,11 @@ uint32_t* find_hvl_enlightenments(const portable_executable::image_t* ntoskrnl_i
 	return reinterpret_cast<uint32_t*>((code_reference + 8) + *reinterpret_cast<uint32_t*>(code_reference + 3));
 }
 
+uint8_t* find_hvl_switch_virtual_address_space(const portable_executable::image_t* ntoskrnl_image)
+{
+	return ntoskrnl_image->signature_scan(d_encrypt_string("48 83 EC ? 48 C7 44 24 ? ? ? ? ? 48 8B D1"));
+}
+
 bool imports::load(context::s_context* context)
 {
 	const portable_executable::image_t* ntoskrnl_image = reinterpret_cast<const portable_executable::image_t*>(context->ntoskrnl_base_address);
@@ -55,6 +60,7 @@ bool imports::load(context::s_context* context)
 	context->imports.ke_register_nmi_callback = reinterpret_cast<t_ke_register_nmi_callback>(ntoskrnl_image->find_export(d_encrypt_string("KeRegisterNmiCallback")));
 	context->imports.ke_deregister_nmi_callback = reinterpret_cast<t_ke_deregister_nmi_callback>(ntoskrnl_image->find_export(d_encrypt_string("KeDeregisterNmiCallback")));
 	context->imports.ke_delay_execution_thread = reinterpret_cast<t_ke_delay_execution_thread>(ntoskrnl_image->find_export(d_encrypt_string("KeDelayExecutionThread")));
+	context->imports.hvl_switch_virtual_address_space = reinterpret_cast<t_hvl_switch_virtual_address_space>(find_hvl_switch_virtual_address_space(ntoskrnl_image));
 
 	return true;
 }

@@ -8,4 +8,11 @@ namespace memory
 	uint64_t translate_virtual_address(s_virtual_address virtual_address, cr3 directory_table_base);
 
 	bool is_address_valid(uint64_t virtual_address, uint64_t directory_table_base);
+
+	namespace current_context
+	{
+		void write_cr3(cr3 value);
+
+		cr3 read_cr3();
+	}
 }

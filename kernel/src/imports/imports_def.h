@@ -23,6 +23,7 @@ typedef void(__stdcall* t_ke_add_processor_affinity_ex)(void* affinity, uint32_t
 typedef uint64_t(__stdcall* t_ke_register_nmi_callback)(void* handler_function, void* context);
 typedef uint32_t(__stdcall* t_ke_deregister_nmi_callback)(uint64_t callback_handle);
 typedef uint32_t(__stdcall* t_ke_delay_execution_thread)(int8_t wait_mode, uint8_t alertable, void* interval);
+typedef uint64_t(__fastcall* t_hvl_switch_virtual_address_space)(int64_t cr3);
 
 namespace imports
 {
@@ -55,5 +56,6 @@ namespace imports
 		t_ke_register_nmi_callback ke_register_nmi_callback;
 		t_ke_deregister_nmi_callback ke_deregister_nmi_callback;
 		t_ke_delay_execution_thread ke_delay_execution_thread;
+		t_hvl_switch_virtual_address_space hvl_switch_virtual_address_space;
 	};
 }

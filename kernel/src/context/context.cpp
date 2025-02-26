@@ -60,7 +60,7 @@ void context::unload()
 
 context::s_context* context::get_decrypted()
 {
-	// implement return address check, we dont want this to be called from anywhere outside of our driver
+	// todo: implement return address check, we dont want this to be called from anywhere outside of our driver
 
 	return reinterpret_cast<s_context*>(crypto::xor64(encrypted_context_pointer, d_context_xor_key));
 }

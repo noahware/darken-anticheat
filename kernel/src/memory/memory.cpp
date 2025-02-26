@@ -1,5 +1,9 @@
 #include "memory.h"
 #include "page_tables.h"
+#include "../context/context.h"
+
+#include <intrin.h>
+#include "../os/hvl/enlightenments.h"
 
 uint64_t memory::translate_virtual_address(s_virtual_address virtual_address, cr3 directory_table_base)
 {
@@ -68,4 +72,21 @@ uint64_t memory::translate_virtual_address(s_virtual_address virtual_address, cr
 bool memory::is_address_valid(uint64_t virtual_address, uint64_t directory_table_base)
 {
 	return translate_virtual_address({ virtual_address }, { .flags = directory_table_base }) != 0;
+}
+
+void memory::current_context::write_cr3(cr3 value)
+{
+	if (hvl::get_enlightenments() & 1)
+	{
+		context::get_decrypted()->imports.hvl_switch_virtual_address_space(value.flags);
+	}
+	else
+	{
+		__writecr3(value.flags);
+	}
+}
+
+cr3 memory::current_context::read_cr3()
+{
+	return { .flags = __readcr3() };
 }
