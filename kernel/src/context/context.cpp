@@ -1,5 +1,6 @@
 #include "context.h"
 #include "../crypto/crypto.h"
+#include "../memory/memory.h"
 #include "../os/ntkrnl/ntkrnl.h"
 #include <portable_executable/image.hpp>
 #include <string_encryption.h>
@@ -53,7 +54,7 @@ void context::unload()
 
 	context::s_context* context = get_decrypted();
 
-	context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(context), 'drac');
+	memory::free_pool(context, reinterpret_cast<uint64_t>(context));
 
 	encrypted_context_pointer = 0;
 }

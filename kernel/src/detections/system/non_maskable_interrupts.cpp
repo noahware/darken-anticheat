@@ -1,5 +1,6 @@
 #include "non_maskable_interrupts.h"
 #include "../../os/ntkrnl/ntkrnl.h"
+#include "../../memory/memory.h"
 #include "../../log.h"
 #include <ntifs.h>
 #include <intrin.h>
@@ -74,7 +75,7 @@ bool dispatch_nmi_on_all_cores(context::s_context* context, s_nmi_per_core_info*
 
 communication::e_detection_status system::non_maskable_interrupts::send_and_analyze(context::s_context* context)
 {
-	_KAFFINITY_EX* processor_affinity = reinterpret_cast<_KAFFINITY_EX*>(context->imports.ex_allocate_pool_2(POOL_FLAG_NON_PAGED, sizeof(_KAFFINITY_EX), d_pool_tag));
+	_KAFFINITY_EX* processor_affinity = reinterpret_cast<_KAFFINITY_EX*>(memory::allocate_pool(context, sizeof(_KAFFINITY_EX), POOL_FLAG_NON_PAGED));
 
 	if (processor_affinity == nullptr)
 	{
@@ -84,11 +85,11 @@ communication::e_detection_status system::non_maskable_interrupts::send_and_anal
 	uint32_t processor_count = context->imports.ke_query_active_processor_count(nullptr);
 
 	// todo: allocate 1 less core info (due to us not launching on our current core obviously)
-	s_nmi_per_core_info* nmi_per_core_info = reinterpret_cast<s_nmi_per_core_info*>(context->imports.ex_allocate_pool_2(POOL_FLAG_NON_PAGED, sizeof(s_nmi_per_core_info) * processor_count, d_pool_tag));
+	s_nmi_per_core_info* nmi_per_core_info = reinterpret_cast<s_nmi_per_core_info*>(memory::allocate_pool(context, sizeof(s_nmi_per_core_info), POOL_FLAG_NON_PAGED));
 
 	if (nmi_per_core_info == nullptr)
 	{
-		context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(processor_affinity), d_pool_tag);
+		memory::free_pool(context, reinterpret_cast<uint64_t>(processor_affinity));
 
 		return communication::e_detection_status::runtime_error;
 	}
@@ -103,8 +104,8 @@ communication::e_detection_status system::non_maskable_interrupts::send_and_anal
 
 	if (were_nmis_dispatch_successfully == false)
 	{
-		context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(processor_affinity), d_pool_tag);
-		context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(nmi_per_core_info), d_pool_tag);
+		memory::free_pool(context, reinterpret_cast<uint64_t>(processor_affinity));
+		memory::free_pool(context, reinterpret_cast<uint64_t>(nmi_per_core_info));
 
 		return communication::e_detection_status::runtime_error;
 	}
@@ -138,15 +139,15 @@ communication::e_detection_status system::non_maskable_interrupts::send_and_anal
 		{
 			d_log("[darken-anticheat] interrupted processor: %u was interrupted in kernel code which had a rip outside of a valid module (0x%llx).\n", i, current_core_info.rip);
 
-			context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(processor_affinity), d_pool_tag);
-			context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(nmi_per_core_info), d_pool_tag);
+			memory::free_pool(context, reinterpret_cast<uint64_t>(processor_affinity));
+			memory::free_pool(context, reinterpret_cast<uint64_t>(nmi_per_core_info));
 
 			return communication::e_detection_status::flagged;
 		}
 	}
 
-	context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(processor_affinity), d_pool_tag);
-	context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(nmi_per_core_info), d_pool_tag);
+	memory::free_pool(context, reinterpret_cast<uint64_t>(processor_affinity));
+	memory::free_pool(context, reinterpret_cast<uint64_t>(nmi_per_core_info));
 
 	return communication::e_detection_status::clean;
 }

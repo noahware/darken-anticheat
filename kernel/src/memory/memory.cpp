@@ -74,6 +74,16 @@ bool memory::is_address_valid(uint64_t virtual_address, uint64_t directory_table
 	return translate_virtual_address({ virtual_address }, { .flags = directory_table_base }) != 0;
 }
 
+uint64_t memory::allocate_pool(context::s_context* context, uint64_t size, uint64_t flags, uint32_t tag)
+{
+	return context->imports.ex_allocate_pool_2(flags, size, tag);
+}
+
+void memory::free_pool(context::s_context* context, uint64_t pool_address, uint32_t tag)
+{
+	context->imports.ex_free_pool_with_tag(pool_address, tag);
+}
+
 void memory::current_context::write_cr3(cr3 value)
 {
 	if (hvl::get_enlightenments() & 1)

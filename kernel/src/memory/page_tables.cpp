@@ -1,11 +1,12 @@
 #include "page_tables.h"
 #include "page_tables_def.h"
 #include "../os/ntkrnl/ntkrnl.h"
+#include "../memory/memory.h"
 #include <ntifs.h>
 
 bool page_tables::load(context::s_context* context)
 {
-	s_page_table* page_tables = reinterpret_cast<s_page_table*>(context->imports.ex_allocate_pool_2(POOL_FLAG_NON_PAGED, sizeof(s_page_table), d_pool_tag));
+	s_page_table* page_tables = reinterpret_cast<s_page_table*>(memory::allocate_pool(context, sizeof(s_page_table), POOL_FLAG_NON_PAGED));
 
 	if (page_tables == nullptr)
 	{
@@ -63,6 +64,6 @@ void page_tables::unload(context::s_context* context)
 
 	if (page_tables != nullptr)
 	{
-		context->imports.ex_free_pool_with_tag(reinterpret_cast<uint64_t>(page_tables), d_pool_tag);
+		memory::free_pool(context, reinterpret_cast<uint64_t>(page_tables));
 	}
 }
