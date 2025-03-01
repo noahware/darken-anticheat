@@ -14,4 +14,6 @@ namespace portable_executable::pe_crt
 
 	using size_t = unsigned __int64;
 	using uintptr_t = unsigned __int64;
+
+	using wchar_t = unsigned __int16;
 }

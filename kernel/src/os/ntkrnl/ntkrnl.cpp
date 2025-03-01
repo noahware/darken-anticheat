@@ -1,6 +1,7 @@
 #include "ntkrnl.h"
 #include "../../offsets/offsets.h"
 #include "../../structures/kldr_data_table_entry.h"
+#include <portable_executable/pe_crt/crt_string.hpp>
 
 #include <ntifs.h>
 #include <intrin.h>
@@ -144,7 +145,7 @@ bool check_module_has_certain_name_callback(uint64_t current_module_info, void* 
 
 	s_module_name_search_callback_ctx* module_name_search_context = reinterpret_cast<s_module_name_search_callback_ctx*>(context_in);
 
-	if (wcsstr(current_module->BaseDllName.Buffer, module_name_search_context->name) != nullptr)
+	if (portable_executable::pe_crt::wcsstr(current_module->BaseDllName.Buffer, module_name_search_context->name) != nullptr)
 	{
 		module_name_search_context->module_ldr_info = current_module_info;
 
