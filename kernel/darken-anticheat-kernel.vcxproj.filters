@@ -215,6 +215,9 @@
     <ClInclude Include="src\memory\page_tables_def.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\crypto\crypto_def.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\detections\patchguard\patchguard_assembler.asm">

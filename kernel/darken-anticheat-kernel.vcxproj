@@ -192,6 +192,7 @@
     <ClInclude Include="ext\portable_executable\section_header.hpp" />
     <ClInclude Include="src\context\context.h" />
     <ClInclude Include="src\crypto\crypto.h" />
+    <ClInclude Include="src\crypto\crypto_def.h" />
     <ClInclude Include="src\detections\handles\permission_stripping.h" />
     <ClInclude Include="src\detections\hypervisor\reserved_msr_usage.h" />
     <ClInclude Include="src\detections\system\non_maskable_interrupts.h" />
