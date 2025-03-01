@@ -1,6 +1,7 @@
 #pragma once
 #include "generic_types.h"
 
+// ntoskrnl.exe
 typedef void(__stdcall* t_iof_complete_request)(void* irp, int8_t priority_boost);
 typedef uint64_t(__stdcall* t_ex_allocate_pool_2)(uint64_t pool_flags, uint64_t number_of_bytes, uint32_t tag);
 typedef void(__stdcall* t_ex_free_pool_with_tag)(uint64_t pool, uint32_t tag);
@@ -25,10 +26,20 @@ typedef uint32_t(__stdcall* t_ke_deregister_nmi_callback)(uint64_t callback_hand
 typedef uint32_t(__stdcall* t_ke_delay_execution_thread)(int8_t wait_mode, uint8_t alertable, void* interval);
 typedef uint64_t(__fastcall* t_hvl_switch_virtual_address_space)(int64_t cr3);
 
+// cng.sys
+typedef uint32_t(__stdcall* t_bcrypt_open_algorithm_provider)(void** algorithm_handle_ptr, const wchar_t* algorithm_id, const wchar_t* implementation, uint32_t flags);
+typedef uint32_t(__stdcall* t_bcrypt_get_property)(void* algorithm_handle, const wchar_t* property, uint8_t* output_buffer, uint32_t size_of_output_buffer, uint32_t* bytes_returned, uint32_t flags);
+typedef uint32_t(__stdcall* t_bcrypt_close_algorithm_provider)(void* algorithm_handle, uint32_t flags);
+typedef uint32_t(__stdcall* t_bcrypt_create_hash)(void* algorithm_handle, void** hash_handle_ptr, uint8_t* hash_object_buffer, uint32_t hash_object_buffer_size, uint8_t* secret_buffer, uint32_t secret_size, uint32_t size);
+typedef uint32_t(__stdcall* t_bcrypt_destroy_hash)(void* hash_handle);
+typedef uint32_t(__stdcall* t_bcrypt_hash_data)(void* hash_handle, uint8_t* data_to_hash_buffer, uint32_t data_to_hash_buffer_size, uint32_t flags);
+typedef uint32_t(__stdcall* t_bcrypt_finish_hash)(void* hash_handle, uint8_t* hash_out_buffer, uint32_t hash_out_buffer_size, uint32_t flags);
+
 namespace imports
 {
 	struct s_imports
 	{
+		// ntoskrnl.exe
 		uint16_t* nt_build_number;
 		uint64_t ps_loaded_module_list;
 		uint64_t ps_process_type;
@@ -57,5 +68,14 @@ namespace imports
 		t_ke_deregister_nmi_callback ke_deregister_nmi_callback;
 		t_ke_delay_execution_thread ke_delay_execution_thread;
 		t_hvl_switch_virtual_address_space hvl_switch_virtual_address_space;
+
+		// cng.sys
+		t_bcrypt_open_algorithm_provider bcrypt_open_algorithm_provider;
+		t_bcrypt_get_property bcrypt_get_property;
+		t_bcrypt_close_algorithm_provider bcrypt_close_algorithm_provider;
+		t_bcrypt_create_hash bcrypt_create_hash;
+		t_bcrypt_destroy_hash bcrypt_destroy_hash;
+		t_bcrypt_hash_data bcrypt_hash_data;
+		t_bcrypt_finish_hash bcrypt_finish_hash;
 	};
 }
