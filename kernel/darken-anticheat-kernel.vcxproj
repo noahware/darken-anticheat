@@ -163,6 +163,7 @@
     <ClCompile Include="src\crypto\crypto.cpp" />
     <ClCompile Include="src\detections\handles\permission_stripping.cpp" />
     <ClCompile Include="src\detections\hypervisor\reserved_msr_usage.cpp" />
+    <ClCompile Include="src\detections\integrity\integrity.cpp" />
     <ClCompile Include="src\detections\system\non_maskable_interrupts.cpp" />
     <ClCompile Include="src\imports\imports.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="src\crypto\crypto_def.h" />
     <ClInclude Include="src\detections\handles\permission_stripping.h" />
     <ClInclude Include="src\detections\hypervisor\reserved_msr_usage.h" />
+    <ClInclude Include="src\detections\integrity\integrity.h" />
     <ClInclude Include="src\detections\system\non_maskable_interrupts.h" />
     <ClInclude Include="src\imports\imports.h" />
     <ClInclude Include="src\imports\imports_def.h" />
