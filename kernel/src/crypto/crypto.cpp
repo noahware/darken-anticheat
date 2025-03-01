@@ -1,10 +1,22 @@
 #include "crypto.h"
 #include "../memory/memory.h"
 
+#include <string_encryption.h>
+
 #include <ntifs.h>
 #include <bcrypt.h>
 
 #include "../log.h"
+
+void crypto::s_hash::free(context::s_context* context)
+{
+	if (this->buffer != nullptr)
+	{
+		memory::free_pool(context, reinterpret_cast<uint64_t>(this->buffer));
+
+		this->buffer = nullptr;
+	}
+}
 
 uint64_t crypto::xor64(uint64_t input, uint64_t key)
 {
@@ -46,14 +58,14 @@ int32_t crypto_set_up_algorithm(context::s_context* context, BCRYPT_ALG_HANDLE* 
 		return status;
 	}
 
-	status = crypto_set_up_algorithm_property(context, *algorithm_handle, BCRYPT_OBJECT_LENGTH, reinterpret_cast<uint8_t**>(hash_object_buffer), hash_object_size);
+	status = crypto_set_up_algorithm_property(context, *algorithm_handle, d_encrypt_string(BCRYPT_OBJECT_LENGTH), reinterpret_cast<uint8_t**>(hash_object_buffer), hash_object_size);
 
 	if (NT_SUCCESS(status) == false)
 	{
 		return status;
 	}
 
-	return crypto_set_up_algorithm_property(context, *algorithm_handle, BCRYPT_HASH_LENGTH, reinterpret_cast<uint8_t**>(hash_buffer), hash_size);
+	return crypto_set_up_algorithm_property(context, *algorithm_handle, d_encrypt_string(BCRYPT_HASH_LENGTH), reinterpret_cast<uint8_t**>(hash_buffer), hash_size);
 }
 
 int32_t crypto_close_algorithm(context::s_context* context, BCRYPT_ALG_HANDLE algorithm_handle)
@@ -124,5 +136,19 @@ int32_t crypto_algorithm_hash_buffer(context::s_context* context, LPCWSTR algori
 
 int32_t crypto::sha256(context::s_context* context, uint8_t* buffer, uint32_t buffer_size, uint8_t** hash_buffer, uint32_t* hash_size)
 {
-	return crypto_algorithm_hash_buffer(context, BCRYPT_SHA256_ALGORITHM, buffer, buffer_size, hash_buffer, hash_size);
+	return crypto_algorithm_hash_buffer(context, d_encrypt_string(BCRYPT_SHA256_ALGORITHM), buffer, buffer_size, hash_buffer, hash_size);
+}
+
+crypto::s_hash crypto::sha256(context::s_context* context, uint8_t* buffer, uint32_t buffer_size)
+{
+	s_hash hash = { };
+
+	int32_t sha256_hash_status = sha256(context, buffer, buffer_size, &hash.buffer, &hash.buffer_size);
+
+	if (NT_SUCCESS(sha256_hash_status) == false)
+	{
+		return { };
+	}
+
+	return hash;
 }
