@@ -132,6 +132,39 @@ void ntkrnl::enumerate_system_modules(context::s_context* context, t_enumerate_m
 	}
 }
 
+struct s_module_name_search_callback_ctx
+{
+	const wchar_t* name;
+	uint64_t module_ldr_info;
+};
+
+bool check_module_has_certain_name_callback(uint64_t current_module_info, void* context_in)
+{
+	_KLDR_DATA_TABLE_ENTRY* current_module = reinterpret_cast<_KLDR_DATA_TABLE_ENTRY*>(current_module_info);
+
+	s_module_name_search_callback_ctx* module_name_search_context = reinterpret_cast<s_module_name_search_callback_ctx*>(context_in);
+
+	if (wcsstr(current_module->BaseDllName.Buffer, module_name_search_context->name) != nullptr)
+	{
+		module_name_search_context->module_ldr_info = current_module_info;
+
+		return true;
+	}
+
+	return false;
+}
+
+uint64_t ntkrnl::get_system_module_ldr_info(context::s_context* context, const wchar_t* name)
+{
+	s_module_name_search_callback_ctx callback_ctx = { };
+
+	callback_ctx.name = name;
+
+	ntkrnl::enumerate_system_modules(context, check_module_has_certain_name_callback, &callback_ctx);
+
+	return callback_ctx.module_ldr_info;
+}
+
 struct s_thread_in_module_callback_ctx
 {
 	uint64_t address;

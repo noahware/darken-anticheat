@@ -32,6 +32,7 @@ namespace ntkrnl
 
 	void enumerate_system_modules(context::s_context* context, t_enumerate_modules_callback callback, void* ctx);
 
+	uint64_t get_system_module_ldr_info(context::s_context* context, const wchar_t* name);
 	bool is_address_within_system_module(context::s_context* context, uint64_t address);
 
 	namespace pre_initialization
