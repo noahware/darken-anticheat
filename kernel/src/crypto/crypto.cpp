@@ -8,6 +8,16 @@
 
 #include "../log.h"
 
+bool crypto::s_hash::is_same(s_hash& other)
+{
+	if (this->buffer == nullptr || other.buffer == nullptr || this->buffer_size != other.buffer_size)
+	{
+		return false;
+	}
+
+	return (memcmp(this->buffer, other.buffer, other.buffer_size) == 0);
+}
+
 void crypto::s_hash::free(context::s_context* context)
 {
 	if (this->buffer != nullptr)
