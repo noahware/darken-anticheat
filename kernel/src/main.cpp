@@ -3,6 +3,7 @@
 #include "detections/system/non_maskable_interrupts.h"
 #include "detections/system/system_thread.h"
 #include "detections/process/process_thread.h"
+#include "detections/integrity/integrity.h"
 #include "context/context.h"
 #include "detections/patchguard/patchguard.h"
 #include "os/ntkrnl/ntkrnl.h"
@@ -11,6 +12,7 @@
 #include "offsets/offsets.h"
 #include "log.h"
 
+#include <string_encryption.h>
 #include <ntifs.h>
 
 #define d_control_code(code) CTL_CODE(FILE_DEVICE_UNKNOWN, code, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
@@ -103,6 +105,12 @@ NTSTATUS ioctl_call_processor(PDEVICE_OBJECT device_object, PIRP irp)
 
 		break;
 	}
+	case d_control_code(communication::e_control_code::validate_ntoskrnl_integrity):
+	{
+		call_info->detection_status = integrity::validate_ntoskrnl_integrity(context);
+
+		break;
+	}
 	default:
 	{
 		d_log("[darken-anticheat] ioctl code is invalid, received %lu.\n", code);
@@ -125,6 +133,8 @@ void driver_unload(PDRIVER_OBJECT driver_object)
 
 	t_io_delete_device io_delete_device = context->imports.io_delete_device;
 	t_io_delete_symbolic_link io_delete_symbolic_link = context->imports.io_delete_symbolic_link;
+
+	context->integrity.ntoskrnl_text_hash.free(context);
 
 	handles::permission_stripping::unload(context);
 	page_tables::unload(context);
@@ -180,6 +190,15 @@ NTSTATUS driver_entry(PDRIVER_OBJECT driver_object, PUNICODE_STRING registry_pat
 		return STATUS_ABANDONED;
 	}
 
+	int32_t ntoskrnl_hash_status = integrity::calculate_image_section_hash(context, context->ntoskrnl_base_address, d_encrypt_string(".text"), &context->integrity.ntoskrnl_text_hash);
+
+	if (NT_SUCCESS(ntoskrnl_hash_status) == false)
+	{
+		d_log("[darken-anticheat] failed to calculate initial 'ntoskrnl.exe' hash.\n");
+
+		return STATUS_ABANDONED;
+	}
+
 	driver_object->MajorFunction[IRP_MJ_CREATE] = ioctl_manage_call;
 	driver_object->MajorFunction[IRP_MJ_CLOSE] = ioctl_manage_call;
 	driver_object->MajorFunction[IRP_MJ_DEVICE_CONTROL] = ioctl_call_processor;
@@ -204,6 +223,8 @@ NTSTATUS driver_entry(PDRIVER_OBJECT driver_object, PUNICODE_STRING registry_pat
 
 	// NOTE: if you are testing on a system with patchguard disabled, uncommenting this next line WILL crash your system
 	//patchguard::trigger_bugcheck(); // im not sure about this line yet, control over the idt could lead them straight to this routine
+
+	d_log("[darken-anticheat] loaded successfully.\n");
 
 	return STATUS_SUCCESS;
 }

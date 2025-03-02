@@ -149,16 +149,7 @@ int32_t crypto::sha256(context::s_context* context, uint8_t* buffer, uint32_t bu
 	return crypto_algorithm_hash_buffer(context, d_encrypt_string(BCRYPT_SHA256_ALGORITHM), buffer, buffer_size, hash_buffer, hash_size);
 }
 
-crypto::s_hash crypto::sha256(context::s_context* context, uint8_t* buffer, uint32_t buffer_size)
+int32_t crypto::sha256(context::s_context* context, uint8_t* buffer, uint32_t buffer_size, crypto::s_hash* hash_out)
 {
-	s_hash hash = { };
-
-	int32_t sha256_hash_status = sha256(context, buffer, buffer_size, &hash.buffer, &hash.buffer_size);
-
-	if (NT_SUCCESS(sha256_hash_status) == false)
-	{
-		return { };
-	}
-
-	return hash;
+	return sha256(context, buffer, buffer_size, &hash_out->buffer, &hash_out->buffer_size);
 }

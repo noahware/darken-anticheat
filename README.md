@@ -14,6 +14,7 @@ Open source anticheat for protecting your software against tampering and reverse
 - Checking usage of reserved MSRs (model specific registers).
 - Sending non maskable interrupts and analyzing the rip to detect execution outside of valid kernel modules.
 - Resolving all driver imports manually.
+- Integrity check of ntoskrnl's .text section.
 
 # Windows Versions Supported
 

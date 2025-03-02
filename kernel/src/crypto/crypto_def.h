@@ -1,6 +1,7 @@
 #pragma once
 #include "generic_types.h"
-#include "../context/context.h"
+
+namespace context { struct s_context; }
 
 namespace crypto
 {

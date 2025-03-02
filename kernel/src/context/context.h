@@ -1,6 +1,7 @@
 #pragma once
 #include <communication_types.h>
 #include "../memory/page_tables_def.h"
+#include "../crypto/crypto_def.h"
 #include "../imports/imports_def.h"
 
 #define d_pool_tag 'drac'
@@ -22,6 +23,11 @@ namespace context
 			page_tables::s_page_table* page_tables = nullptr;
 			cr3 pt_cr3 = { };
 		} memory;
+
+		struct
+		{
+			crypto::s_hash ntoskrnl_text_hash = { };
+		} integrity;
 
 		uint64_t ntoskrnl_base_address = 0;
 		uint64_t initial_system_process = 0;

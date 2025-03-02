@@ -1,4 +1,5 @@
 #include "modules.h"
+#include <driver/driver.h>
 #include <utilities/pe/pe.h>
 #include <utilities/system/system.h>
 #include <utilities/datatype/datatype.h>
@@ -86,4 +87,9 @@ communication::e_detection_status detections::modules::kernel::is_unsigned_modul
 
 
 	return communication::e_detection_status::clean;
+}
+
+communication::e_detection_status detections::modules::kernel::validate_ntoskrnl_integrity()
+{
+	return driver::send_call(communication::e_control_code::validate_ntoskrnl_integrity, { }).detection_status;
 }

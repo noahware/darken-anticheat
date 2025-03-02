@@ -85,7 +85,7 @@ communication::e_detection_status system::non_maskable_interrupts::send_and_anal
 	uint32_t processor_count = context->imports.ke_query_active_processor_count(nullptr);
 
 	// todo: allocate 1 less core info (due to us not launching on our current core obviously)
-	s_nmi_per_core_info* nmi_per_core_info = reinterpret_cast<s_nmi_per_core_info*>(memory::allocate_pool(context, sizeof(s_nmi_per_core_info), POOL_FLAG_NON_PAGED));
+	s_nmi_per_core_info* nmi_per_core_info = reinterpret_cast<s_nmi_per_core_info*>(memory::allocate_pool(context, sizeof(s_nmi_per_core_info) * processor_count, POOL_FLAG_NON_PAGED));
 
 	if (nmi_per_core_info == nullptr)
 	{
