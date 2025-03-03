@@ -172,6 +172,7 @@
     <ClCompile Include="src\offsets\offsets.cpp" />
     <ClCompile Include="src\detections\process\process_thread.cpp" />
     <ClCompile Include="src\detections\system\system_thread.cpp" />
+    <ClCompile Include="src\os\callbacks\handles\handles.cpp" />
     <ClCompile Include="src\os\hvl\enlightenments.cpp" />
     <ClCompile Include="src\os\ntkrnl\ntkrnl.cpp" />
   </ItemGroup>
@@ -207,6 +208,7 @@
     <ClInclude Include="src\offsets\offsets.h" />
     <ClInclude Include="src\detections\patchguard\patchguard.h" />
     <ClInclude Include="src\detections\process\process_thread.h" />
+    <ClInclude Include="src\os\callbacks\handles\handles.h" />
     <ClInclude Include="src\os\hvl\enlightenments.h" />
     <ClInclude Include="src\structures\kaffinity_ex.h" />
     <ClInclude Include="src\structures\kldr_data_table_entry.h" />
