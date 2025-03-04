@@ -93,3 +93,8 @@ communication::e_detection_status detections::modules::kernel::validate_ntoskrnl
 {
 	return driver::send_call(communication::e_control_code::validate_ntoskrnl_integrity, { }).detection_status;
 }
+
+communication::e_detection_status detections::modules::kernel::validate_kernel_drivers_integrity()
+{
+	return driver::send_call(communication::e_control_code::validate_kernel_drivers_integrity, { }).detection_status;
+}

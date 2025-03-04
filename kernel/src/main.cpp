@@ -1,4 +1,3 @@
-#include "detections/handles/permission_stripping.h"
 #include "detections/hypervisor/reserved_msr_usage.h"
 #include "detections/system/non_maskable_interrupts.h"
 #include "detections/system/system_thread.h"
@@ -7,6 +6,7 @@
 #include "context/context.h"
 #include "detections/patchguard/patchguard.h"
 #include "os/ntkrnl/ntkrnl.h"
+#include "os/callbacks/handles/handles.h"
 #include "imports/imports.h"
 #include "memory/page_tables.h"
 #include "offsets/offsets.h"
@@ -111,6 +111,12 @@ NTSTATUS ioctl_call_processor(PDEVICE_OBJECT device_object, PIRP irp)
 
 		break;
 	}
+	case d_control_code(communication::e_control_code::validate_kernel_drivers_integrity):
+	{
+		call_info->detection_status = integrity::validate_kernel_drivers_integrity(context);
+
+		break;
+	}
 	default:
 	{
 		d_log("[darken-anticheat] ioctl code is invalid, received %lu.\n", code);
@@ -134,9 +140,9 @@ void driver_unload(PDRIVER_OBJECT driver_object)
 	t_io_delete_device io_delete_device = context->imports.io_delete_device;
 	t_io_delete_symbolic_link io_delete_symbolic_link = context->imports.io_delete_symbolic_link;
 
-	context->integrity.ntoskrnl_text_hash.free(context);
+	context->integrity.ntoskrnl_text_hash.free_hash_buffer(context);
 
-	handles::permission_stripping::unload(context);
+	callbacks::handles::unload(context);
 	page_tables::unload(context);
 
 	context = nullptr;
@@ -183,7 +189,7 @@ NTSTATUS driver_entry(PDRIVER_OBJECT driver_object, PUNICODE_STRING registry_pat
 		return STATUS_ABANDONED;
 	}
 
-	if (handles::permission_stripping::load(context) == false)
+	if (callbacks::handles::load(context) == false)
 	{
 		d_log("[darken-anticheat] failed to load process handle permission stripping.\n");
 

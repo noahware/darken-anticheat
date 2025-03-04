@@ -118,17 +118,22 @@ uint64_t ntkrnl::get_current_thread()
 	return __readgsqword(0x188);
 }
 
-void ntkrnl::enumerate_system_modules(context::s_context* context, t_enumerate_modules_callback callback, void* ctx)
+void ntkrnl::enumerate_system_modules(context::s_context* context, t_enumerate_modules_callback callback, void* ctx, int64_t start_index)
 {
 	PLIST_ENTRY ps_loaded_module_list = reinterpret_cast<PLIST_ENTRY>(context->imports.ps_loaded_module_list);
 
-	for (PLIST_ENTRY current_list_entry = ps_loaded_module_list->Flink; current_list_entry != ps_loaded_module_list; current_list_entry = current_list_entry->Flink)
-	{
-		_KLDR_DATA_TABLE_ENTRY* current_module_info = CONTAINING_RECORD(current_list_entry, _KLDR_DATA_TABLE_ENTRY, InLoadOrderLinks);
+	int64_t current_index = 0;
 
-		if (callback(reinterpret_cast<uint64_t>(current_module_info), ctx) == true)
+	for (PLIST_ENTRY current_list_entry = ps_loaded_module_list->Flink; current_list_entry != ps_loaded_module_list; current_list_entry = current_list_entry->Flink, current_index++)
+	{
+		if (start_index <= current_index)
 		{
-			return;
+			_KLDR_DATA_TABLE_ENTRY* current_module_info = CONTAINING_RECORD(current_list_entry, _KLDR_DATA_TABLE_ENTRY, InLoadOrderLinks);
+
+			if (callback(reinterpret_cast<uint64_t>(current_module_info), ctx) == true)
+			{
+				return;
+			}
 		}
 	}
 }

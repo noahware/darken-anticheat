@@ -28,7 +28,8 @@ namespace communication
 		check_reserved_msr_usage,
 		trigger_patchguard_bugcheck,
 		send_and_analyze_non_maskable_interrupts,
-		validate_ntoskrnl_integrity
+		validate_ntoskrnl_integrity,
+		validate_kernel_drivers_integrity
 	};
 
 	enum class e_detection_status : uint8_t

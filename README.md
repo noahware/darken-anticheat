@@ -8,13 +8,14 @@ Open source anticheat for protecting your software against tampering and reverse
 - Detects system threads which have a start address outside of any legitimate kernel module.
 - Detects system threads which are attached to any of our protected processes.
 - Detects process threads which have a start address outside of any legitimate module in the respective protected process.
-- Detects debugged attached via the PEB's `BeingDebugged` byte.
+- Detects debugger being attached via the PEB's `BeingDebugged` byte.
 - Force-triggering PatchGuard (KPP) checks to run (causes bugcheck to occur if there are any violations of PatchGuard's checks).
 - Causing bugcheck if PatchGuard (KPP) is disabled / has an invalid context.
 - Checking usage of reserved MSRs (model specific registers).
 - Sending non maskable interrupts and analyzing the rip to detect execution outside of valid kernel modules.
-- Resolving all driver imports manually.
+- Resolving all of our driver imports manually.
 - Integrity check of ntoskrnl's .text section.
+- Integrity check of rest of kernel drivers' .text section.
 
 # Windows Versions Supported
 

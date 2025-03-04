@@ -18,7 +18,7 @@ bool crypto::s_hash::is_same(s_hash& other)
 	return (memcmp(this->buffer, other.buffer, other.buffer_size) == 0);
 }
 
-void crypto::s_hash::free(context::s_context* context)
+void crypto::s_hash::free_hash_buffer(context::s_context* context)
 {
 	if (this->buffer != nullptr)
 	{
@@ -26,6 +26,109 @@ void crypto::s_hash::free(context::s_context* context)
 
 		this->buffer = nullptr;
 	}
+}
+
+crypto::s_hash_list_entry* crypto::s_hash_list_entry::allocate_memory_for_entry(context::s_context* context)
+{
+	return reinterpret_cast<crypto::s_hash_list_entry*>(memory::allocate_pool(context, sizeof(s_hash_list_entry), POOL_FLAG_NON_PAGED));
+}
+
+crypto::s_hash_list_entry* crypto::s_hash_list_entry::create_first_entry(context::s_context* context)
+{
+	crypto::s_hash_list_entry* first_entry = allocate_memory_for_entry(context);
+
+	if (first_entry == nullptr)
+	{
+		return nullptr;
+	}
+
+	first_entry->set_previous(nullptr);
+	first_entry->set_next(nullptr);
+
+	return first_entry;
+}
+
+crypto::s_hash_list_entry* crypto::s_hash_list_entry::add_entry(context::s_context* context)
+{
+	if (this->get_next() != nullptr)
+	{
+		return nullptr;
+	}
+
+	crypto::s_hash_list_entry* new_entry = this->allocate_memory_for_entry(context);
+
+	if (new_entry == nullptr)
+	{
+		return nullptr;
+	}
+
+	this->set_next(new_entry);
+	new_entry->set_previous(this);
+
+	return new_entry;
+}
+
+crypto::s_hash_list_entry* crypto::s_hash_list_entry::add_entry(context::s_context* context, s_hash hash)
+{
+	crypto::s_hash_list_entry* new_entry = this->add_entry(context);
+
+	if (new_entry != nullptr)
+	{
+		new_entry->buffer = hash.buffer;
+		new_entry->buffer_size = hash.buffer_size;
+	}
+
+	return new_entry;
+}
+
+void crypto::s_hash_list_entry::delete_self(context::s_context* context)
+{
+	this->free_hash_buffer(context);
+
+	s_hash_list_entry* next_entry = this->get_next();
+	s_hash_list_entry* previous_entry = this->get_previous();
+
+	if (next_entry != nullptr)
+	{
+		next_entry->set_previous(previous_entry);
+	}
+
+	if (previous_entry != nullptr)
+	{
+		previous_entry->set_next(next_entry);
+	}
+
+	memory::free_pool(context, reinterpret_cast<uint64_t>(this));
+}
+
+crypto::s_hash_list_entry* crypto::s_hash_list_entry::get_next()
+{
+	return this->next;
+}
+
+void crypto::s_hash_list_entry::set_next(s_hash_list_entry* new_next)
+{
+	this->next = new_next;
+}
+
+crypto::s_hash_list_entry* crypto::s_hash_list_entry::get_previous()
+{
+	return this->previous;
+}
+
+void crypto::s_hash_list_entry::set_previous(s_hash_list_entry* new_previous)
+{
+	this->previous = new_previous;
+}
+
+uint64_t crypto::s_hash_list_entry::get_identifier()
+{
+	return this->identifier;
+}
+
+void crypto::s_hash_list_entry::set_identifier(uint64_t new_identifier)
+{
+	this->identifier = new_identifier;
 }
 
 uint64_t crypto::xor64(uint64_t input, uint64_t key)

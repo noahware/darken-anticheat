@@ -30,7 +30,7 @@ namespace ntkrnl
 	// current_module_info will contain a pointer to: _KLDR_DATA_TABLE_ENTRY
 	typedef bool(*t_enumerate_modules_callback)(uint64_t current_module_info, void* ctx);
 
-	void enumerate_system_modules(context::s_context* context, t_enumerate_modules_callback callback, void* ctx);
+	void enumerate_system_modules(context::s_context* context, t_enumerate_modules_callback callback, void* ctx, int64_t start_index = 0);
 
 	uint64_t get_system_module_ldr_info(context::s_context* context, const wchar_t* name);
 	bool is_address_within_system_module(context::s_context* context, uint64_t address);
