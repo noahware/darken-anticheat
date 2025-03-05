@@ -58,23 +58,22 @@ communication::e_detection_status integrity::validate_ntoskrnl_integrity(context
 
 struct s_hash_callback_ctx
 {
-	crypto::s_hash_list_entry** list_head;
-	context::s_context* context;
+	context::s_context* global_context;
 
 	communication::e_detection_status status = communication::e_detection_status::clean;
 };
 
-void add_system_module_to_list(s_hash_callback_ctx* context, uint64_t module_base_address, crypto::s_hash& current_module_hash, crypto::s_hash_list_entry* last_valid_list_entry)
+void add_system_module_to_list(context::s_context* context, uint64_t module_base_address, crypto::s_hash& current_module_hash, crypto::s_hash_list_entry* last_valid_list_entry)
 {
 	crypto::s_hash_list_entry* new_entry = nullptr;
 
-	if (*context->list_head == nullptr)
+	if (context->integrity.kernel_module_hash_list_head == nullptr)
 	{
-		*context->list_head = new_entry = crypto::s_hash_list_entry::create_first_entry(context->context);
+		context->integrity.kernel_module_hash_list_head = new_entry = crypto::s_hash_list_entry::create_first_entry(context);
 	}
 	else
 	{
-		new_entry = last_valid_list_entry->add_entry(context->context);
+		new_entry = last_valid_list_entry->add_entry(context);
 	}
 
 	if (new_entry != nullptr)
@@ -95,7 +94,7 @@ bool hash_kernel_module_callback(uint64_t current_module_info, void* context_in)
 
 	crypto::s_hash current_module_hash = { };
 
-	int32_t hash_status = integrity::calculate_image_section_hash(context->context, module_base_address, d_encrypt_string(".text"), &current_module_hash);
+	int32_t hash_status = integrity::calculate_image_section_hash(context->global_context, module_base_address, d_encrypt_string(".text"), &current_module_hash);
 
 	if (NT_SUCCESS(hash_status) == false)
 	{
@@ -104,7 +103,7 @@ bool hash_kernel_module_callback(uint64_t current_module_info, void* context_in)
 		return true;
 	}
 
-	crypto::s_hash_list_entry* list_entry = *context->list_head;
+	crypto::s_hash_list_entry* list_entry = context->global_context->integrity.kernel_module_hash_list_head;
 	crypto::s_hash_list_entry* last_valid_list_entry = list_entry;
 
 	bool current_module_in_list = false;
@@ -133,7 +132,7 @@ bool hash_kernel_module_callback(uint64_t current_module_info, void* context_in)
 
 	if (current_module_in_list == false)
 	{
-		add_system_module_to_list(context, module_base_address, current_module_hash, last_valid_list_entry);
+		add_system_module_to_list(context->global_context, module_base_address, current_module_hash, last_valid_list_entry);
 	}
 
 	return false;
@@ -143,8 +142,7 @@ communication::e_detection_status integrity::validate_kernel_drivers_integrity(c
 {
 	s_hash_callback_ctx ctx = { };
 
-	ctx.context = context;
-	ctx.list_head = &integrity::kernel_module_hash_list_head;
+	ctx.global_context = context;
 	ctx.status = communication::e_detection_status::clean;
 
 	ntkrnl::enumerate_system_modules(context, hash_kernel_module_callback, &ctx, 2);

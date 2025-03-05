@@ -27,6 +27,8 @@ namespace context
 		struct
 		{
 			crypto::s_hash ntoskrnl_text_hash = { };
+
+			crypto::s_hash_list_entry* kernel_module_hash_list_head = nullptr;
 		} integrity;
 
 		uint64_t ntoskrnl_base_address = 0;

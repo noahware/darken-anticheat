@@ -8,6 +8,4 @@ namespace integrity
 
 	communication::e_detection_status validate_ntoskrnl_integrity(context::s_context* context);
 	communication::e_detection_status validate_kernel_drivers_integrity(context::s_context* context);
-
-	inline crypto::s_hash_list_entry* kernel_module_hash_list_head = nullptr;
 }

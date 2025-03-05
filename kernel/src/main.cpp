@@ -133,6 +133,20 @@ NTSTATUS ioctl_call_processor(PDEVICE_OBJECT device_object, PIRP irp)
 	return STATUS_SUCCESS;
 }
 
+void free_context_integrity_data(context::s_context* context)
+{
+	context->integrity.ntoskrnl_text_hash.free_hash_buffer(context);
+
+	crypto::s_hash_list_entry* kernel_module_hash_list_entry = context->integrity.kernel_module_hash_list_head;
+
+	while (kernel_module_hash_list_entry != nullptr)
+	{
+		kernel_module_hash_list_entry->delete_self(context);
+
+		kernel_module_hash_list_entry = kernel_module_hash_list_entry->get_next();
+	}
+}
+
 void driver_unload(PDRIVER_OBJECT driver_object)
 {
 	context::s_context* context = context::get_decrypted();
@@ -140,7 +154,7 @@ void driver_unload(PDRIVER_OBJECT driver_object)
 	t_io_delete_device io_delete_device = context->imports.io_delete_device;
 	t_io_delete_symbolic_link io_delete_symbolic_link = context->imports.io_delete_symbolic_link;
 
-	context->integrity.ntoskrnl_text_hash.free_hash_buffer(context);
+	free_context_integrity_data(context);
 
 	callbacks::handles::unload(context);
 	page_tables::unload(context);
