@@ -1,7 +1,11 @@
 # Darken Anticheat
 Open source anticheat for protecting your software against tampering and reverse engineering.
 
-# Current Features
+# What does the anti-cheat do?
+
+The anti-cheat monitors both the operating system's kernel as well as the protected usermode processes to find any illegitimate code execution or tampering. The ways in which the anti-cheat does so are described below.
+
+# Current features
 - Detects loaded dlls which are not digitally signed.
 - Detects loaded kernel modules which are not digitally signed.
 - Strips permissions of handles that are attempted to be opened to any of our protected processes.
@@ -17,7 +21,7 @@ Open source anticheat for protecting your software against tampering and reverse
 - Integrity check of ntoskrnl's .text section.
 - Integrity check of rest of kernel drivers' .text section.
 
-# Windows Versions Supported
+# Windows versions supported
 
 I have tested the anticheat on Windows 10 22H2 and Windows 11 24H2, but I have implemented offsets for each build from Windows 10 1507 -> Windows 11 24H2, so the anticheat should in theory function for all the Windows 10 and Windows 11 versions currently released to the public.
 
