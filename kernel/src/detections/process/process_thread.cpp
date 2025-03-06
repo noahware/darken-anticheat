@@ -30,6 +30,8 @@ communication::e_detection_status process::process_thread::is_suspicious_thread_
 
 	PPEB protected_process_peb = reinterpret_cast<PPEB>(ntkrnl::get_process_peb(protected_eprocess));
 
+	_disable();
+
 	cr3 original_cr3 = memory::current_context::read_cr3();
 
 	memory::current_context::write_cr3(context->memory.pt_cr3);
@@ -37,6 +39,8 @@ communication::e_detection_status process::process_thread::is_suspicious_thread_
 	bool is_process_peb_virtual_address_valid = memory::is_address_valid(reinterpret_cast<uint64_t>(protected_process_peb), ntkrnl::get_process_directory_table_base(protected_eprocess));
 
 	memory::current_context::write_cr3(original_cr3);
+
+	_enable();
 
 	if (is_process_peb_virtual_address_valid == false)
 	{

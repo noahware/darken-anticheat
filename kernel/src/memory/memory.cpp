@@ -5,7 +5,28 @@
 #include <intrin.h>
 #include "../os/hvl/enlightenments.h"
 
-uint64_t memory::translate_virtual_address(s_virtual_address virtual_address, cr3 directory_table_base)
+struct s_pte
+{
+	uint64_t physical_address;
+	uint32_t size;
+
+	uint8_t is_executable;
+};
+
+void process_translation_pte_info(uint64_t* size_left_of_page, bool* is_executable, uint64_t page_size, uint64_t page_offset, uint64_t execute_disable)
+{
+	if (size_left_of_page)
+	{
+		*size_left_of_page = page_size - page_offset;
+	}
+
+	if (is_executable)
+	{
+		*is_executable = (execute_disable == 0);
+	}
+}
+
+uint64_t memory::translate_virtual_address(s_virtual_address virtual_address, cr3 directory_table_base, uint64_t* size_left_of_page, bool* is_executable)
 {
 	if (virtual_address.address == 0 || directory_table_base.flags == 0)
 	{
@@ -32,11 +53,13 @@ uint64_t memory::translate_virtual_address(s_virtual_address virtual_address, cr
 
 	if (pdpte.large_page == 1)
 	{
-		pdpte_1gb_64 pdpte_1gb = { };
+		pdpte_1gb_64 pdpte_1gb = { .flags = pdpte.flags };
 
-		pdpte_1gb.flags = pdpte.flags;
+		uint64_t page_offset = virtual_address.offset + (virtual_address.pt_idx << 12) + (virtual_address.pd_idx << 21);
 
-		return virtual_address.offset + (virtual_address.pt_idx << 12) + (virtual_address.pd_idx << 21) + (pdpte_1gb.page_frame_number << 30);
+		process_translation_pte_info(size_left_of_page, is_executable, 0x40000000, page_offset, pml4e.execute_disable | pdpte_1gb.execute_disable);
+
+		return page_offset + (pdpte_1gb.page_frame_number << 30);
 	}
 
 	pde_64* pd = reinterpret_cast<pde_64*>(page_tables::pt_access_virtual_address + (pdpte.page_frame_number << 12));
@@ -50,11 +73,13 @@ uint64_t memory::translate_virtual_address(s_virtual_address virtual_address, cr
 
 	if (pde.large_page == 1)
 	{
-		pde_2mb_64 pde_2mb = { };
+		pde_2mb_64 pde_2mb = { .flags = pde.flags };
 
-		pde_2mb.flags = pde.flags;
+		uint64_t page_offset = virtual_address.offset + (virtual_address.pt_idx << 12);
 
-		return virtual_address.offset + (virtual_address.pt_idx << 12) + (pde_2mb.page_frame_number << 21);
+		process_translation_pte_info(size_left_of_page, is_executable, 0x200000, page_offset, pde_2mb.execute_disable | pml4e.execute_disable | pdpte.execute_disable);
+
+		return page_offset + (pde_2mb.page_frame_number << 21);
 	}
 
 	pte_64* pt = reinterpret_cast<pte_64*>(page_tables::pt_access_virtual_address + (pde.page_frame_number << 12));
@@ -65,6 +90,8 @@ uint64_t memory::translate_virtual_address(s_virtual_address virtual_address, cr
 	{
 		return 0;
 	}
+
+	process_translation_pte_info(size_left_of_page, is_executable, 0x1000, virtual_address.offset, pte.execute_disable | pde.execute_disable | pml4e.execute_disable | pdpte.execute_disable);
 
 	return virtual_address.offset + (pte.page_frame_number << 12);
 }

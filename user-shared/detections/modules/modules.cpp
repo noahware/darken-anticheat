@@ -98,3 +98,8 @@ communication::e_detection_status detections::modules::kernel::validate_kernel_d
 {
 	return driver::send_call(communication::e_control_code::validate_kernel_drivers_integrity, { }).detection_status;
 }
+
+communication::e_detection_status detections::modules::kernel::is_any_driver_data_section_executable()
+{
+	return driver::send_call(communication::e_control_code::is_any_driver_data_section_executable, { }).detection_status;
+}

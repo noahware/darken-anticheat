@@ -20,6 +20,7 @@ The anti-cheat monitors both the operating system's kernel as well as the protec
 - Resolving all of our driver imports manually.
 - Integrity check of ntoskrnl's .text section.
 - Integrity check of rest of kernel drivers' .text section.
+- Detects all kernel modules' data sections' PTEs being set to executable.
 
 # Windows versions supported
 

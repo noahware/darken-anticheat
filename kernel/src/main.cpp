@@ -3,6 +3,7 @@
 #include "detections/system/system_thread.h"
 #include "detections/process/process_thread.h"
 #include "detections/integrity/integrity.h"
+#include "detections/integrity/data_section_integrity.h"
 #include "context/context.h"
 #include "detections/patchguard/patchguard.h"
 #include "os/ntkrnl/ntkrnl.h"
@@ -114,6 +115,12 @@ NTSTATUS ioctl_call_processor(PDEVICE_OBJECT device_object, PIRP irp)
 	case d_control_code(communication::e_control_code::validate_kernel_drivers_integrity):
 	{
 		call_info->detection_status = integrity::validate_kernel_drivers_integrity(context);
+
+		break;
+	}
+	case d_control_code(communication::e_control_code::is_any_driver_data_section_executable):
+	{
+		call_info->detection_status = integrity::data_section::is_any_driver_data_section_executable(context);
 
 		break;
 	}

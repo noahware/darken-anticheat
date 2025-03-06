@@ -99,6 +99,9 @@
     <ClCompile Include="src\os\callbacks\handles\handles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\detections\integrity\data_section_integrity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\detections\handles\permission_stripping.h">
@@ -228,6 +231,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\os\callbacks\handles\handles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\detections\integrity\data_section_integrity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

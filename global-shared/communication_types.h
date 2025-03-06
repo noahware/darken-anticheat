@@ -29,7 +29,8 @@ namespace communication
 		trigger_patchguard_bugcheck,
 		send_and_analyze_non_maskable_interrupts,
 		validate_ntoskrnl_integrity,
-		validate_kernel_drivers_integrity
+		validate_kernel_drivers_integrity,
+		is_any_driver_data_section_executable
 	};
 
 	enum class e_detection_status : uint8_t
