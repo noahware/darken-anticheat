@@ -186,7 +186,7 @@ bool check_address_in_module_callback(uint64_t current_module_info, void* contex
 	uint64_t current_module_base_address = reinterpret_cast<uint64_t>(current_module->DllBase);
 	uint64_t current_module_end_address = current_module_base_address + current_module->SizeOfImage;
 
-	if (current_module_base_address < win32_thread_start_address && win32_thread_start_address <= current_module_end_address)
+	if (current_module_base_address <= win32_thread_start_address && win32_thread_start_address <= current_module_end_address)
 	{
 		reinterpret_cast<s_thread_in_module_callback_ctx*>(context)->is_in_module = true;
 
