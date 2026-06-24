@@ -1,0 +1,9 @@
+namespace Anticheat;
+
+enum RequestId : uint8 {
+    Ping = 0
+}
+
+table PingRequest {
+    timestamp: uint64;
+}

@@ -1,0 +1,3 @@
+[submodule "vendor/socketsl"]
+	path = vendor/socketsl
+	url = https://github.com/noahware/SocketSL.git

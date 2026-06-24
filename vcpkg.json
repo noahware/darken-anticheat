@@ -1,0 +1,11 @@
+{
+    "name": "anticheat",
+    "version": "0.1.0",
+    "dependencies": [
+        "boost-asio",
+        "boost-endian",
+        "flatbuffers",
+        "openssl",
+        "spdlog"
+    ]
+}

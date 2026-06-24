@@ -1,0 +1,10 @@
+namespace Anticheat;
+
+enum ResponseId : uint8 {
+    Pong = 0
+}
+
+table PongResponse {
+    client_timestamp: uint64;
+    server_timestamp: uint64;
+}
