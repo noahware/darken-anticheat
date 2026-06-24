@@ -1,8 +1,8 @@
 #pragma once
-#include <ntdef.h>
+#include "types.hpp"
 #include <cstdint>
 
-namespace kernel
+namespace krnl
 {
     template <class T, LIST_ENTRY T::* Field>
     class list_entry
@@ -109,4 +109,6 @@ namespace kernel
     protected:
         entry_type head_;
     };
+
+    using loaded_module_list_entry_t = list_entry<_KLDR_DATA_TABLE_ENTRY, &_KLDR_DATA_TABLE_ENTRY::InLoadOrderLinks>;
 }

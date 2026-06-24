@@ -87,7 +87,7 @@
     </DriverSign>
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)vendor\cstd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vendor\cstd;$(SolutionDir)vendor\portable_executable\nocrt_portable_executable;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/wd4005 /wd4083 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -101,7 +101,7 @@
     </DriverSign>
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)vendor\cstd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vendor\cstd;$(SolutionDir)vendor\portable_executable\nocrt_portable_executable;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/wd4005 /wd4083 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -115,7 +115,7 @@
     </DriverSign>
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)vendor\cstd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vendor\cstd;$(SolutionDir)vendor\portable_executable\nocrt_portable_executable;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/wd4005 /wd4083 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -129,7 +129,7 @@
     </DriverSign>
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)vendor\cstd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vendor\cstd;$(SolutionDir)vendor\portable_executable\nocrt_portable_executable;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/wd4005 /wd4083 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -150,6 +150,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\emu\emu.hpp" />
+    <ClInclude Include="src\krnl\list.hpp" />
+    <ClInclude Include="src\krnl\types.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

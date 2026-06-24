@@ -38,5 +38,11 @@
     <ClInclude Include="src\emu\emu.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\krnl\types.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\krnl\list.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
