@@ -144,8 +144,12 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\emu\emu.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\crt.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\emu\emu.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
