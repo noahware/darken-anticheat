@@ -6,6 +6,8 @@
 
 #include <ntddk.h>
 
+extern "C" NTSTATUS NTAPI NtSystemDebugControl(ULONG Command, PVOID InputBuffer, ULONG InputBufferLength, PVOID OutputBuffer, ULONG OutputBufferLength, PULONG ReturnLength);
+
 [[nodiscard]] static bool check_dbgprompt()
 {
 	__try
@@ -50,7 +52,12 @@
 	return KdDebuggerEnabled || !KdDebuggerNotPresent;
 }
 
+[[nodiscard]] static bool check_debugger_status_funcs()
+{
+	return NtSystemDebugControl(0, nullptr, 0, nullptr, 0, nullptr) != STATUS_DEBUGGER_INACTIVE;
+}
+
 bool emu::is_emulated()
 {
-	return check_dbgprompt() || check_dbgctl_unchanged() || check_user_shared_data() || check_nt_debugger_fields();
+	return check_dbgprompt() || check_dbgctl_unchanged() || check_user_shared_data() || check_nt_debugger_fields() || check_debugger_status_funcs();
 }
