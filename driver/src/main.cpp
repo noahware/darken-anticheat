@@ -41,7 +41,7 @@
 NTSTATUS driver_entry([[maybe_unused]] const PDRIVER_OBJECT driver_object, [[maybe_unused]] const PUNICODE_STRING registry_path)
 {
 	krnl::nt = get_ntoskrnl(driver_object);
-	krnl::mm_pfn_database = get_mm_pfn_database();
+	krnl::mm_pfn_database = reinterpret_cast<_MMPFN*>(get_mm_pfn_database());
 
 	if (emu::is_emulated())
 	{
