@@ -1,3 +1,6 @@
 [submodule "vendor/socketsl"]
 	path = vendor/socketsl
 	url = https://github.com/noahware/SocketSL.git
+[submodule "vendor/portable_executable"]
+	path = vendor/portable_executable
+	url = https://github.com/papstuc/nocrt_portable_executable.git
