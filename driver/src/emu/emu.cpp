@@ -40,7 +40,17 @@
 	return written_value == original_value;
 }
 
+[[nodiscard]] static bool check_user_shared_data()
+{
+	return SharedUserData->KdDebuggerEnabled;
+}
+
+[[nodiscard]] static bool check_nt_debugger_fields()
+{
+	return KdDebuggerEnabled || !KdDebuggerNotPresent;
+}
+
 bool emu::is_emulated()
 {
-	return check_dbgprompt() || check_dbgctl_unchanged();
+	return check_dbgprompt() || check_dbgctl_unchanged() || check_user_shared_data() || check_nt_debugger_fields();
 }
