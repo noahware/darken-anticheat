@@ -1,4 +1,7 @@
 #include "emu.hpp"
+
+#include <intrin.h>
+
 #include "array.hpp"
 
 #include <ntddk.h>
@@ -19,7 +22,25 @@
 	return true;
 }
 
+[[nodiscard]] static bool check_dbgctl_unchanged()
+{
+	_disable();
+
+	constexpr uint32_t dbgctl_msr_id = 0x1D9;
+	const uint64_t original_value = __readmsr(dbgctl_msr_id);
+
+	__writemsr(dbgctl_msr_id, original_value ^ 3);
+
+	const uint64_t written_value = __readmsr(dbgctl_msr_id);
+	__writemsr(dbgctl_msr_id, original_value);
+
+	_enable();
+
+	// was the write shadowed? this happens in certain environments like WHP
+	return written_value == original_value;
+}
+
 bool emu::is_emulated()
 {
-	return check_dbgprompt();
+	return check_dbgprompt() || check_dbgctl_unchanged();
 }
