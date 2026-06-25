@@ -88,7 +88,7 @@
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)vendor\cstd;$(SolutionDir)vendor\portable_executable\nocrt_portable_executable;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/wd4005 /wd4083 /wd4201 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -162,6 +162,7 @@
     <ClInclude Include="src\krnl\krnl.hpp" />
     <ClInclude Include="src\krnl\list.hpp" />
     <ClInclude Include="src\krnl\types.hpp" />
+    <ClInclude Include="src\log.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

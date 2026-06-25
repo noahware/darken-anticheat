@@ -1,6 +1,8 @@
 #include <ntifs.h>
 #include <string.hpp>
 #include <portable_executable/image.hpp>
+
+#include "log.hpp"
 #include "emu/emu.hpp"
 #include "krnl/krnl.hpp"
 #include "krnl/list.hpp"
@@ -44,6 +46,8 @@ NTSTATUS driver_entry([[maybe_unused]] const PDRIVER_OBJECT driver_object, [[may
 	krnl::nt = get_ntoskrnl(driver_object);
 	krnl::mm_pfn_database = reinterpret_cast<_MMPFN*>(get_mm_pfn_database());
 
+	DBG_LOG("pfn db: %p\n", krnl::mm_pfn_database);
+
 	if (emu::is_emulated())
 	{
 		return STATUS_ABANDONED;
@@ -53,7 +57,7 @@ NTSTATUS driver_entry([[maybe_unused]] const PDRIVER_OBJECT driver_object, [[may
 
 	message = message + " loaded";
 
-	DbgPrint("%s\n", message.c_str());
+	DBG_LOG("%s\n", message.c_str());
 
 	return STATUS_SUCCESS;
 }
