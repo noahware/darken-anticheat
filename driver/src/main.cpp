@@ -15,6 +15,7 @@
 	);
 
 	++it;
+	++it;
 
 	return static_cast<portable_executable::image_t*>(it->DllBase);
 }
