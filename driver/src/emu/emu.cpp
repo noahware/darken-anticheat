@@ -9,8 +9,7 @@
 #include "../krnl/krnl.hpp"
 #include "../krnl/types.hpp"
 
-// todo: import properly this is placeholder
-extern "C" NTSTATUS NTAPI NtSystemDebugControl(ULONG Command, PVOID InputBuffer, ULONG InputBufferLength, PVOID OutputBuffer, ULONG OutputBufferLength, PULONG ReturnLength);
+using nt_system_debug_control_t = NTSTATUS(NTAPI*)(ULONG, PVOID, ULONG, PVOID, ULONG, PULONG);
 
 [[nodiscard]] static bool check_dbgprompt()
 {
@@ -58,6 +57,13 @@ extern "C" NTSTATUS NTAPI NtSystemDebugControl(ULONG Command, PVOID InputBuffer,
 
 [[nodiscard]] static bool check_debugger_status_funcs()
 {
+	UNICODE_STRING name = { };
+	RtlInitUnicodeString(&name, L"NtSystemDebugControl");
+
+	const auto NtSystemDebugControl = static_cast<nt_system_debug_control_t>(
+		MmGetSystemRoutineAddress(&name)
+	);
+
 	return NtSystemDebugControl(0, nullptr, 0, nullptr, 0, nullptr) != STATUS_DEBUGGER_INACTIVE;
 }
 
