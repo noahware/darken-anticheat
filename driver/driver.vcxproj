@@ -147,6 +147,15 @@
     <ClCompile Include="src\emu\emu.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\crt.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\data_directory.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\dos_header.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\export_directory.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\image.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\imports_directory.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\nt_headers.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\relocations_directory.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\pe_crt\crt_memory.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\pe_crt\crt_string.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\emu\emu.hpp" />
