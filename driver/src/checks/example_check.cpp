@@ -5,7 +5,7 @@
 
 cstd::vector<uint8_t> checks::example_check()
 {
-	flatbuffers::FlatBufferBuilder fbb(128);
+	flatbuffers::FlatBufferBuilder fbb(48);
 
 	auto result = Anticheat::CreateExampleCheckResult(fbb, 0x123, 0);
 

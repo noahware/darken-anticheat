@@ -8,6 +8,7 @@
 #include "krnl/list.hpp"
 #include "krnl/types.hpp"
 #include "ioctl/ioctl.hpp"
+#include "events/events.hpp"
 #include <driver/ioctl.h>
 
 static PDEVICE_OBJECT g_device_object = nullptr;
@@ -48,6 +49,8 @@ static NTSTATUS dispatch_create_close([[maybe_unused]] PDEVICE_OBJECT device, PI
 
 static void driver_unload(PDRIVER_OBJECT driver_object)
 {
+	events::cleanup();
+
 	UNICODE_STRING symlink_name = RTL_CONSTANT_STRING(DARKEN_SYMLINK_NAME);
 	IoDeleteSymbolicLink(&symlink_name);
 
@@ -106,6 +109,16 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 	driver_object->MajorFunction[IRP_MJ_CLOSE] = dispatch_create_close;
 	driver_object->MajorFunction[IRP_MJ_DEVICE_CONTROL] = ioctl::dispatch;
 	driver_object->DriverUnload = driver_unload;
+
+	status = events::init();
+
+	if (!NT_SUCCESS(status))
+	{
+		DBG_LOG("failed to initialize event system: 0x%x\n", status);
+		IoDeleteSymbolicLink(&symlink_name);
+		IoDeleteDevice(g_device_object);
+		return status;
+	}
 
 	DBG_LOG("darken anticheat loaded\n");
 	return STATUS_SUCCESS;

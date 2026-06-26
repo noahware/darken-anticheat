@@ -36,4 +36,73 @@ namespace analysis
 
         LOG_INFO("client timestamp: {}ms", result->timestamp());
     }
+
+    void process_kernel_module_list(std::vector<module_entry>& modules, const Anticheat::KernelModuleList* list)
+    {
+        if (!list)
+        {
+            LOG_ERR("null KernelModuleList");
+            return;
+        }
+
+        modules.clear();
+
+        if (const auto* fb_modules = list->modules())
+        {
+            modules.reserve(fb_modules->size());
+
+            for (const auto* mod : *fb_modules)
+            {
+                modules.push_back({
+                    mod->base_address(),
+                    mod->size(),
+                    mod->name() ? mod->name()->str() : ""
+                });
+            }
+        }
+
+        LOG_INFO("kernel module list updated: {} modules", modules.size());
+    }
+
+    void process_event_batch(std::vector<module_entry>& modules, const Anticheat::EventBatch* batch)
+    {
+        if (!batch)
+        {
+            LOG_ERR("null EventBatch");
+            return;
+        }
+
+        const auto* events = batch->events();
+
+        if (!events)
+        {
+            return;
+        }
+
+        for (const auto* event : *events)
+        {
+            if (event->body_type() != Anticheat::EventBody_KernelModuleLoad)
+            {
+                LOG_WARN("unknown event body type: {}", static_cast<int>(event->body_type()));
+                continue;
+            }
+
+            const auto* load = event->body_as_KernelModuleLoad();
+
+            if (!load)
+            {
+                continue;
+            }
+
+            modules.push_back({
+                load->base_address(),
+                load->size(),
+                load->name() ? load->name()->str() : ""
+            });
+
+            LOG_INFO("module loaded: {} @ 0x{:x} (size: 0x{:x})",
+                load->name() ? load->name()->c_str() : "unknown",
+                load->base_address(), load->size());
+        }
+    }
 }

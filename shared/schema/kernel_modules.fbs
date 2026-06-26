@@ -1,0 +1,11 @@
+namespace Anticheat;
+
+table KernelModule {
+    base_address: uint64;
+    size: uint32;
+    name: string;
+}
+
+table KernelModuleList {
+    modules: [KernelModule];
+}

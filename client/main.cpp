@@ -1,12 +1,16 @@
 #include <network/socket.hpp>
 #include <message/message.hpp>
 #include <schema/request_generated.h>
+#include <schema/kernel_modules_generated.h>
+#include <schema/event_generated.h>
 
 #include "log.hpp"
 #include "driver.hpp"
 #include "client_session.hpp"
 
 #include <chrono>
+#include <thread>
+#include <atomic>
 
 namespace
 {
@@ -30,6 +34,81 @@ namespace
 
         sl::msg::send<Anticheat::CreatePingRequest>(sock, Anticheat::RequestId_Ping, timestamp);
         LOG_INFO("sent ping (timestamp: {})", timestamp);
+    }
+
+    HANDLE shutdown_event = nullptr;
+
+    void driver_thread(const std::shared_ptr<sl::session>& session)
+    {
+        auto module_list = driver::get_module_list();
+
+        if (!module_list)
+        {
+            LOG_ERR("failed to get initial module list from driver");
+            return;
+        }
+
+        auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*module_list));
+
+        sl::msg::async_send_view(
+            session->socket(), Anticheat::RequestId_KernelModuleListResult,
+            [data](bool) {},
+            std::span<const std::uint8_t>{data->data(), data->size()}
+        );
+
+        LOG_INFO("sent initial kernel module list ({} bytes)", data->size());
+
+        auto handle_opt = driver::get_event_handle();
+
+        if (!handle_opt)
+        {
+            LOG_ERR("failed to get event handle from driver");
+            return;
+        }
+
+        const auto event_handle = *handle_opt;
+        LOG_INFO("event listener started");
+
+        const HANDLE wait_handles[] = { event_handle, shutdown_event };
+
+        while (true)
+        {
+            const auto wait_result = WaitForMultipleObjects(2, wait_handles, FALSE, INFINITE);
+
+            if (wait_result == WAIT_OBJECT_0 + 1)
+            {
+                break;
+            }
+
+            if (wait_result == WAIT_OBJECT_0)
+            {
+                auto events = driver::drain_events();
+
+                if (!events)
+                {
+                    LOG_ERR("failed to drain events");
+                    break;
+                }
+
+                auto event_data = std::make_shared<std::vector<std::uint8_t>>(std::move(*events));
+
+                sl::msg::async_send_view(
+                    session->socket(), Anticheat::RequestId_EventBatchResult,
+                    [event_data](bool) {},
+                    std::span<const std::uint8_t>{event_data->data(), event_data->size()}
+                );
+
+                LOG_INFO("sent event batch (size: {})", event_data->size());
+            }
+            else
+            {
+                LOG_ERR("event wait failed (result: {})", wait_result);
+                break;
+            }
+        }
+
+        CloseHandle(event_handle);
+        LOG_INFO("event listener stopped");
     }
 }
 
@@ -70,15 +149,36 @@ std::int32_t main()
         send_ping(session->socket());
         session->start();
 
+        shutdown_event = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+
+        std::thread event_thread;
+
+        if (driver::is_open())
+        {
+            event_thread = std::thread(driver_thread, session);
+        }
+
         boost::asio::signal_set signals(io_context.get_executor(), SIGINT, SIGTERM);
         signals.async_wait([&](const boost::system::error_code&, int)
         {
             LOG_INFO("shutting down");
             session->stop();
-            driver::close();
+            driver::cancel_io();
+            SetEvent(shutdown_event);
         });
 
         io_context.run();
+
+        driver::cancel_io();
+        SetEvent(shutdown_event);
+
+        if (event_thread.joinable())
+        {
+            event_thread.join();
+        }
+
+        driver::close();
+        CloseHandle(shutdown_event);
     }
     catch (const std::exception& e)
     {

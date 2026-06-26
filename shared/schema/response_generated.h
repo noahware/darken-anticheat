@@ -24,35 +24,41 @@ struct ExampleCheckRequestBuilder;
 struct ClientTimestampRequest;
 struct ClientTimestampRequestBuilder;
 
+struct KernelModuleListRequest;
+struct KernelModuleListRequestBuilder;
+
 enum ResponseId : uint8_t {
   ResponseId_Pong = 0,
   ResponseId_ExampleCheck = 1,
   ResponseId_ClientTimestamp = 2,
+  ResponseId_KernelModuleList = 3,
   ResponseId_MIN = ResponseId_Pong,
-  ResponseId_MAX = ResponseId_ClientTimestamp
+  ResponseId_MAX = ResponseId_KernelModuleList
 };
 
-inline const ResponseId (&EnumValuesResponseId())[3] {
+inline const ResponseId (&EnumValuesResponseId())[4] {
   static const ResponseId values[] = {
     ResponseId_Pong,
     ResponseId_ExampleCheck,
-    ResponseId_ClientTimestamp
+    ResponseId_ClientTimestamp,
+    ResponseId_KernelModuleList
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseId() {
-  static const char * const names[4] = {
+  static const char * const names[5] = {
     "Pong",
     "ExampleCheck",
     "ClientTimestamp",
+    "KernelModuleList",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameResponseId(ResponseId e) {
-  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_ClientTimestamp)) return "";
+  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_KernelModuleList)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseId()[index];
 }
@@ -166,6 +172,36 @@ struct ClientTimestampRequestBuilder {
 inline ::flatbuffers::Offset<ClientTimestampRequest> CreateClientTimestampRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb) {
   ClientTimestampRequestBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct KernelModuleListRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef KernelModuleListRequestBuilder Builder;
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct KernelModuleListRequestBuilder {
+  typedef KernelModuleListRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit KernelModuleListRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<KernelModuleListRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<KernelModuleListRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<KernelModuleListRequest> CreateKernelModuleListRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  KernelModuleListRequestBuilder builder_(_fbb);
   return builder_.Finish();
 }
 

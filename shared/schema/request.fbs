@@ -3,7 +3,9 @@ namespace Anticheat;
 enum RequestId : uint8 {
     Ping = 0,
     ExampleCheckResult = 1,
-    ClientTimestampResult = 2
+    ClientTimestampResult = 2,
+    KernelModuleListResult = 3,
+    EventBatchResult = 4
 }
 
 table PingRequest {

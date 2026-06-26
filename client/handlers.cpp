@@ -5,8 +5,10 @@
 #include <message/message.hpp>
 #include <schema/request_generated.h>
 #include <schema/client_timestamp_generated.h>
+#include <schema/response_generated.h>
 
 #include <chrono>
+#include <thread>
 
 namespace handlers
 {
@@ -23,23 +25,27 @@ namespace handlers
     {
         LOG_INFO("received example check request");
 
-        auto driver_result = driver::run_check(Anticheat::ResponseId_ExampleCheck);
-
-        if (!driver_result)
+        auto session = sess;
+        std::thread([session]()
         {
-            LOG_ERR("driver request failed for ExampleCheck");
-            return;
-        }
+            auto driver_result = driver::run_check(Anticheat::ResponseId_ExampleCheck);
 
-        auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*driver_result));
+            if (!driver_result)
+            {
+                LOG_ERR("driver request failed for ExampleCheck");
+                return;
+            }
 
-        sl::msg::async_send_view(
-            sess->socket(), Anticheat::RequestId_ExampleCheckResult,
-            [data](bool) {},
-            std::span<const std::uint8_t>{data->data(), data->size()}
-        );
+            auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*driver_result));
 
-        LOG_INFO("sent example check result (size: {})", data->size());
+            sl::msg::async_send_view(
+                session->socket(), Anticheat::RequestId_ExampleCheckResult,
+                [data](bool) {},
+                std::span<const std::uint8_t>{data->data(), data->size()}
+            );
+
+            LOG_INFO("sent example check result (size: {})", data->size());
+        }).detach();
     }
 
     void handle_client_timestamp(
@@ -61,4 +67,5 @@ namespace handlers
 
         LOG_INFO("sent client timestamp: {}ms", now);
     }
+
 }

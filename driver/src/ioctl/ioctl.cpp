@@ -1,6 +1,8 @@
 #include "ioctl.hpp"
 
 #include "../checks/example_check.hpp"
+#include "../events/events.hpp"
+#include "../krnl/modules.hpp"
 #include "../log.hpp"
 #include <driver/ioctl.h>
 #include "response_generated.h"
@@ -17,6 +19,16 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 {
     const auto* stack = IoGetCurrentIrpStackLocation(irp);
     const auto io_control_code = stack->Parameters.DeviceIoControl.IoControlCode;
+
+    if (io_control_code == IOCTL_DARKEN_EVENT_HANDLE)
+    {
+        return events::get_event_handle(irp);
+    }
+
+    if (io_control_code == IOCTL_DARKEN_EVENT_DRAIN)
+    {
+        return events::drain(irp);
+    }
 
     if (io_control_code != IOCTL_DARKEN_FBS_REQUEST)
     {
@@ -39,6 +51,10 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
     {
     case Anticheat::ResponseId_ExampleCheck:
         response_bytes = checks::example_check();
+        break;
+
+    case Anticheat::ResponseId_KernelModuleList:
+        response_bytes = krnl::get_module_list();
         break;
 
     default:

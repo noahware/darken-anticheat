@@ -3,7 +3,8 @@ namespace Anticheat;
 enum ResponseId : uint8 {
     Pong = 0,
     ExampleCheck = 1,
-    ClientTimestamp = 2
+    ClientTimestamp = 2,
+    KernelModuleList = 3
 }
 
 table PongResponse {
@@ -14,3 +15,5 @@ table PongResponse {
 table ExampleCheckRequest {}
 
 table ClientTimestampRequest {}
+
+table KernelModuleListRequest {}

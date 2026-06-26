@@ -7,9 +7,13 @@
 #include <schema/response_generated.h>
 #include <schema/example_check_generated.h>
 #include <schema/client_timestamp_generated.h>
+#include <schema/kernel_modules_generated.h>
+#include <schema/event_generated.h>
 
 #include "log.hpp"
 #include "analysis.hpp"
+
+#include <mutex>
 
 namespace
 {
@@ -53,6 +57,11 @@ namespace
         analysis::process_client_timestamp(result);
     }
 
+    class client_connection;
+
+    void handle_kernel_module_list_result(const std::shared_ptr<client_connection>& conn, const Anticheat::KernelModuleList* result);
+    void handle_event_batch_result(const std::shared_ptr<client_connection>& conn, const Anticheat::EventBatch* result);
+
     constexpr sl::message_info<Anticheat::PingRequest, sl::session> ping_request{
         Anticheat::RequestId_Ping, handle_ping
     };
@@ -65,22 +74,51 @@ namespace
         Anticheat::RequestId_ClientTimestampResult, handle_client_timestamp_result
     };
 
-    using request_router = sl::message_router<ping_request, example_check_result, client_timestamp_result>;
+    constexpr sl::message_info<Anticheat::KernelModuleList, client_connection> kernel_module_list_result{
+        Anticheat::RequestId_KernelModuleListResult, handle_kernel_module_list_result
+    };
+
+    constexpr sl::message_info<Anticheat::EventBatch, client_connection> event_batch_result{
+        Anticheat::RequestId_EventBatchResult, handle_event_batch_result
+    };
+
+    using request_router = sl::message_router<ping_request, example_check_result, client_timestamp_result, kernel_module_list_result, event_batch_result>;
 
     class client_connection final : public sl::session
     {
     public:
         using session::session;
 
+        std::vector<analysis::module_entry> kernel_modules_;
+        std::mutex modules_mutex_;
+
     protected:
         void handle_message(const message_id_t id, const body_buffer_t body) override
         {
-            if (!request_router::dispatch(id, shared_as<sl::session>(), *body))
+            if (!request_router::dispatch(id, shared_as<client_connection>(), *body))
             {
                 LOG_ERR("unknown request type: {}", id);
             }
         }
     };
+
+    void handle_kernel_module_list_result(const std::shared_ptr<client_connection>& conn, const Anticheat::KernelModuleList* result)
+    {
+        LOG_INFO("kernel module list from {}:{}",
+            conn->socket().remote_address(), conn->socket().port());
+
+        std::lock_guard<std::mutex> lock(conn->modules_mutex_);
+        analysis::process_kernel_module_list(conn->kernel_modules_, result);
+    }
+
+    void handle_event_batch_result(const std::shared_ptr<client_connection>& conn, const Anticheat::EventBatch* result)
+    {
+        LOG_INFO("event batch from {}:{}",
+            conn->socket().remote_address(), conn->socket().port());
+
+        std::lock_guard<std::mutex> lock(conn->modules_mutex_);
+        analysis::process_event_batch(conn->kernel_modules_, result);
+    }
 
     void broadcast_check_requests(
         boost::asio::steady_timer& timer,

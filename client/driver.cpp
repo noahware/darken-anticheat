@@ -1,7 +1,7 @@
 #include "driver.hpp"
 #include "log.hpp"
 #include <driver/ioctl.h>
-#include <Windows.h>
+#include <schema/response_generated.h>
 
 namespace
 {
@@ -37,6 +37,14 @@ namespace driver
         return device_handle != INVALID_HANDLE_VALUE;
     }
 
+    void cancel_io()
+    {
+        if (device_handle != INVALID_HANDLE_VALUE)
+        {
+            CancelIoEx(device_handle, nullptr);
+        }
+    }
+
     void close()
     {
         if (device_handle != INVALID_HANDLE_VALUE)
@@ -53,7 +61,7 @@ namespace driver
             return std::nullopt;
         }
 
-        constexpr DWORD output_buffer_size = 4096;
+        constexpr DWORD output_buffer_size = 65536;
         std::vector<std::uint8_t> output(output_buffer_size);
         DWORD bytes_returned = 0;
 
@@ -73,6 +81,73 @@ namespace driver
         if (!success)
         {
             LOG_ERR("DeviceIoControl failed (error: {})", GetLastError());
+            return std::nullopt;
+        }
+
+        output.resize(bytes_returned);
+        return output;
+    }
+
+    std::optional<std::vector<std::uint8_t>> get_module_list()
+    {
+        return run_check(Anticheat::ResponseId_KernelModuleList);
+    }
+
+    std::optional<HANDLE> get_event_handle()
+    {
+        if (!is_open())
+        {
+            return std::nullopt;
+        }
+
+        HANDLE event_handle = nullptr;
+        DWORD bytes_returned = 0;
+
+        const BOOL success = DeviceIoControl(
+            device_handle,
+            IOCTL_DARKEN_EVENT_HANDLE,
+            nullptr,
+            0,
+            &event_handle,
+            sizeof(event_handle),
+            &bytes_returned,
+            nullptr
+        );
+
+        if (!success)
+        {
+            LOG_ERR("get_event_handle failed (error: {})", GetLastError());
+            return std::nullopt;
+        }
+
+        return event_handle;
+    }
+
+    std::optional<std::vector<std::uint8_t>> drain_events()
+    {
+        if (!is_open())
+        {
+            return std::nullopt;
+        }
+
+        constexpr DWORD output_buffer_size = 65536;
+        std::vector<std::uint8_t> output(output_buffer_size);
+        DWORD bytes_returned = 0;
+
+        const BOOL success = DeviceIoControl(
+            device_handle,
+            IOCTL_DARKEN_EVENT_DRAIN,
+            nullptr,
+            0,
+            output.data(),
+            output_buffer_size,
+            &bytes_returned,
+            nullptr
+        );
+
+        if (!success)
+        {
+            LOG_ERR("drain_events failed (error: {})", GetLastError());
             return std::nullopt;
         }
 

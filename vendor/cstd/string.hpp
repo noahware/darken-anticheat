@@ -579,4 +579,30 @@ namespace cstd
 
 		return result;
 	}
+
+	[[nodiscard]] inline string to_string(const wstring_view wide)
+	{
+		string result;
+		result.resize(wide.size());
+
+		for (size_t i = 0; i < wide.size(); ++i)
+		{
+			result[i] = static_cast<char>(wide[i]);
+		}
+
+		return result;
+	}
+
+	[[nodiscard]] inline wstring to_wstring(const string_view narrow)
+	{
+		wstring result;
+		result.resize(narrow.size());
+
+		for (size_t i = 0; i < narrow.size(); ++i)
+		{
+			result[i] = static_cast<wchar_t>(narrow[i]);
+		}
+
+		return result;
+	}
 }

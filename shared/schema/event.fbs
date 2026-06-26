@@ -1,0 +1,19 @@
+namespace Anticheat;
+
+table KernelModuleLoad {
+    base_address: uint64;
+    size: uint32;
+    name: string;
+}
+
+union EventBody {
+    KernelModuleLoad
+}
+
+table Event {
+    body: EventBody;
+}
+
+table EventBatch {
+    events: [Event];
+}
