@@ -1,7 +1,9 @@
 namespace Anticheat;
 
 enum RequestId : uint8 {
-    Ping = 0
+    Ping = 0,
+    ExampleCheckResult = 1,
+    ClientTimestampResult = 2
 }
 
 table PingRequest {

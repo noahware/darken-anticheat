@@ -1,0 +1,6 @@
+namespace Anticheat;
+
+table ExampleCheckResult {
+    value: uint64;
+    status: uint32;
+}

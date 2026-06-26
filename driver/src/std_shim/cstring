@@ -1,0 +1,43 @@
+#pragma once
+
+#ifndef _CSTD_CSTRING_SHIM
+#define _CSTD_CSTRING_SHIM
+
+extern "C"
+{
+    void* memcpy(void* dest, const void* src, size_t count);
+    void* memset(void* dest, int value, size_t count);
+    int memcmp(const void* lhs, const void* rhs, size_t count);
+    size_t strlen(const char* str);
+    int strcmp(const char* lhs, const char* rhs);
+}
+
+inline int strncmp(const char* lhs, const char* rhs, size_t count)
+{
+    for (size_t i = 0; i < count; ++i)
+    {
+        if (lhs[i] != rhs[i])
+        {
+            return static_cast<unsigned char>(lhs[i]) - static_cast<unsigned char>(rhs[i]);
+        }
+
+        if (lhs[i] == '\0')
+        {
+            return 0;
+        }
+    }
+
+    return 0;
+}
+
+namespace std
+{
+    using ::memcpy;
+    using ::memset;
+    using ::memcmp;
+    using ::strlen;
+    using ::strcmp;
+    using ::strncmp;
+}
+
+#endif

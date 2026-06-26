@@ -1,10 +1,16 @@
 namespace Anticheat;
 
 enum ResponseId : uint8 {
-    Pong = 0
+    Pong = 0,
+    ExampleCheck = 1,
+    ClientTimestamp = 2
 }
 
 table PongResponse {
     client_timestamp: uint64;
     server_timestamp: uint64;
 }
+
+table ExampleCheckRequest {}
+
+table ClientTimestampRequest {}

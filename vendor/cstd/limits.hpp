@@ -170,7 +170,9 @@ namespace cstd
 	template <> struct numeric_limits<unsigned long long> : detail::integer_limits<unsigned long long, false> { };
 
 	template <> struct numeric_limits<char>      : detail::integer_limits<char, (static_cast<char>(-1) < 0)> { };
+#if defined(_NATIVE_WCHAR_T_DEFINED)
 	template <> struct numeric_limits<wchar_t>   : detail::integer_limits<wchar_t, (static_cast<wchar_t>(-1) < 0)> { };
+#endif
 	template <> struct numeric_limits<char16_t>  : detail::integer_limits<char16_t, false> { };
 	template <> struct numeric_limits<char32_t>  : detail::integer_limits<char32_t, false> { };
 

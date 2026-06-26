@@ -141,6 +141,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+
+    <ClCompile Include="analysis.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+
+    <ClInclude Include="analysis.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)vendor\socketsl.vcxproj">

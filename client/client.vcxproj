@@ -141,6 +141,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="client_session.cpp" />
+    <ClCompile Include="driver.cpp" />
+    <ClCompile Include="handlers.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="client_session.hpp" />
+    <ClInclude Include="driver.hpp" />
+    <ClInclude Include="handlers.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)vendor\socketsl.vcxproj">

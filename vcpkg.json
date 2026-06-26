@@ -1,6 +1,7 @@
 {
     "name": "anticheat",
     "version": "0.1.0",
+    "builtin-baseline": "930ecc42b512b564571d767f70775d284a6fa307",
     "dependencies": [
         "boost-asio",
         "boost-endian",

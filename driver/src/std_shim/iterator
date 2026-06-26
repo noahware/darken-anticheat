@@ -1,0 +1,129 @@
+#pragma once
+#include <cstddef>
+
+namespace std
+{
+    struct input_iterator_tag {};
+    struct output_iterator_tag {};
+    struct forward_iterator_tag : input_iterator_tag {};
+    struct bidirectional_iterator_tag : forward_iterator_tag {};
+    struct random_access_iterator_tag : bidirectional_iterator_tag {};
+
+    template <class T>
+    struct iterator_traits;
+
+    template <class T>
+    struct iterator_traits<T*>
+    {
+        using difference_type = ptrdiff_t;
+        using value_type = T;
+        using pointer = T*;
+        using reference = T&;
+        using iterator_category = random_access_iterator_tag;
+    };
+
+    template <class Iterator>
+    class reverse_iterator
+    {
+    public:
+        using iterator_type = Iterator;
+        using value_type = typename Iterator::value_type;
+        using difference_type = typename Iterator::difference_type;
+        using pointer = typename Iterator::pointer;
+        using reference = typename Iterator::reference;
+
+        reverse_iterator() : current() {}
+        explicit reverse_iterator(Iterator x) : current(x) {}
+
+        template <class U>
+        reverse_iterator(const reverse_iterator<U>& other) : current(other.base()) {}
+
+        Iterator base() const { return current; }
+
+        reference operator*() const
+        {
+            Iterator tmp = current;
+            return *--tmp;
+        }
+
+        reverse_iterator& operator++() { --current; return *this; }
+        reverse_iterator operator++(int) { auto tmp = *this; --current; return tmp; }
+        reverse_iterator& operator--() { ++current; return *this; }
+        reverse_iterator operator--(int) { auto tmp = *this; ++current; return tmp; }
+
+        reverse_iterator operator+(difference_type n) const { return reverse_iterator(current - n); }
+        reverse_iterator operator-(difference_type n) const { return reverse_iterator(current + n); }
+        reverse_iterator& operator+=(difference_type n) { current -= n; return *this; }
+        reverse_iterator& operator-=(difference_type n) { current += n; return *this; }
+
+        reference operator[](difference_type n) const { return *(*this + n); }
+
+        bool operator==(const reverse_iterator& rhs) const { return current == rhs.current; }
+        bool operator!=(const reverse_iterator& rhs) const { return current != rhs.current; }
+        bool operator<(const reverse_iterator& rhs) const { return current > rhs.current; }
+        bool operator>(const reverse_iterator& rhs) const { return current < rhs.current; }
+        bool operator<=(const reverse_iterator& rhs) const { return current >= rhs.current; }
+        bool operator>=(const reverse_iterator& rhs) const { return current <= rhs.current; }
+
+    protected:
+        Iterator current;
+    };
+
+    template <class Container>
+    class back_insert_iterator
+    {
+    public:
+        explicit back_insert_iterator(Container& c) : container_(&c) {}
+
+        back_insert_iterator& operator=(const typename Container::value_type& value)
+        {
+            container_->push_back(value);
+            return *this;
+        }
+
+        back_insert_iterator& operator=(typename Container::value_type&& value)
+        {
+            container_->push_back(static_cast<typename Container::value_type&&>(value));
+            return *this;
+        }
+
+        back_insert_iterator& operator*() { return *this; }
+        back_insert_iterator& operator++() { return *this; }
+        back_insert_iterator operator++(int) { return *this; }
+
+    private:
+        Container* container_;
+    };
+
+    template <class Container>
+    back_insert_iterator<Container> back_inserter(Container& c)
+    {
+        return back_insert_iterator<Container>(c);
+    }
+
+    template <class C>
+    constexpr auto size(const C& c) -> decltype(c.size()) { return c.size(); }
+
+    template <class T, size_t N>
+    constexpr size_t size(const T (&)[N]) noexcept { return N; }
+
+    template <class C>
+    constexpr auto data(C& c) -> decltype(c.data()) { return c.data(); }
+
+    template <class C>
+    constexpr auto data(const C& c) -> decltype(c.data()) { return c.data(); }
+
+    template <class InputIt>
+    constexpr ptrdiff_t distance(InputIt first, InputIt last)
+    {
+        ptrdiff_t n = 0;
+
+        while (first != last)
+        {
+            ++first;
+            ++n;
+        }
+
+        return n;
+    }
+}

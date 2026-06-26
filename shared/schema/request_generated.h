@@ -20,27 +20,33 @@ struct PingRequestBuilder;
 
 enum RequestId : uint8_t {
   RequestId_Ping = 0,
+  RequestId_ExampleCheckResult = 1,
+  RequestId_ClientTimestampResult = 2,
   RequestId_MIN = RequestId_Ping,
-  RequestId_MAX = RequestId_Ping
+  RequestId_MAX = RequestId_ClientTimestampResult
 };
 
-inline const RequestId (&EnumValuesRequestId())[1] {
+inline const RequestId (&EnumValuesRequestId())[3] {
   static const RequestId values[] = {
-    RequestId_Ping
+    RequestId_Ping,
+    RequestId_ExampleCheckResult,
+    RequestId_ClientTimestampResult
   };
   return values;
 }
 
 inline const char * const *EnumNamesRequestId() {
-  static const char * const names[2] = {
+  static const char * const names[4] = {
     "Ping",
+    "ExampleCheckResult",
+    "ClientTimestampResult",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameRequestId(RequestId e) {
-  if (::flatbuffers::IsOutRange(e, RequestId_Ping, RequestId_Ping)) return "";
+  if (::flatbuffers::IsOutRange(e, RequestId_Ping, RequestId_ClientTimestampResult)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesRequestId()[index];
 }

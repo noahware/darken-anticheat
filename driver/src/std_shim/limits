@@ -1,0 +1,8 @@
+#pragma once
+#include <limits.hpp>
+
+namespace std
+{
+    template <class T>
+    using numeric_limits = cstd::numeric_limits<T>;
+}

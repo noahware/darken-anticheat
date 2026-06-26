@@ -1,0 +1,17 @@
+#pragma once
+#include <utility.hpp>
+#include <type_traits.hpp>
+
+namespace std
+{
+    using cstd::move;
+    using cstd::forward;
+    using cstd::swap;
+
+    template <class T1, class T2>
+    struct pair
+    {
+        T1 first;
+        T2 second;
+    };
+}

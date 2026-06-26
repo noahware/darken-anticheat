@@ -1,0 +1,12 @@
+#pragma once
+
+namespace std
+{
+    struct nothrow_t { explicit nothrow_t() = default; };
+    inline constexpr nothrow_t nothrow{};
+
+    enum class align_val_t : size_t {};
+}
+
+inline void* operator new(size_t, void* ptr) noexcept { return ptr; }
+inline void operator delete(void*, void*) noexcept {}

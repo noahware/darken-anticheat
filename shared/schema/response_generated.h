@@ -18,29 +18,41 @@ namespace Anticheat {
 struct PongResponse;
 struct PongResponseBuilder;
 
+struct ExampleCheckRequest;
+struct ExampleCheckRequestBuilder;
+
+struct ClientTimestampRequest;
+struct ClientTimestampRequestBuilder;
+
 enum ResponseId : uint8_t {
   ResponseId_Pong = 0,
+  ResponseId_ExampleCheck = 1,
+  ResponseId_ClientTimestamp = 2,
   ResponseId_MIN = ResponseId_Pong,
-  ResponseId_MAX = ResponseId_Pong
+  ResponseId_MAX = ResponseId_ClientTimestamp
 };
 
-inline const ResponseId (&EnumValuesResponseId())[1] {
+inline const ResponseId (&EnumValuesResponseId())[3] {
   static const ResponseId values[] = {
-    ResponseId_Pong
+    ResponseId_Pong,
+    ResponseId_ExampleCheck,
+    ResponseId_ClientTimestamp
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseId() {
-  static const char * const names[2] = {
+  static const char * const names[4] = {
     "Pong",
+    "ExampleCheck",
+    "ClientTimestamp",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameResponseId(ResponseId e) {
-  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_Pong)) return "";
+  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_ClientTimestamp)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseId()[index];
 }
@@ -94,6 +106,66 @@ inline ::flatbuffers::Offset<PongResponse> CreatePongResponse(
   PongResponseBuilder builder_(_fbb);
   builder_.add_server_timestamp(server_timestamp);
   builder_.add_client_timestamp(client_timestamp);
+  return builder_.Finish();
+}
+
+struct ExampleCheckRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ExampleCheckRequestBuilder Builder;
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct ExampleCheckRequestBuilder {
+  typedef ExampleCheckRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit ExampleCheckRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ExampleCheckRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ExampleCheckRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ExampleCheckRequest> CreateExampleCheckRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  ExampleCheckRequestBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct ClientTimestampRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ClientTimestampRequestBuilder Builder;
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct ClientTimestampRequestBuilder {
+  typedef ClientTimestampRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit ClientTimestampRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ClientTimestampRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ClientTimestampRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ClientTimestampRequest> CreateClientTimestampRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  ClientTimestampRequestBuilder builder_(_fbb);
   return builder_.Finish();
 }
 

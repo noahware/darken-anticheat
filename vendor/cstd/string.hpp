@@ -143,6 +143,11 @@ namespace cstd
 			return elements_.size() - 1;
 		}
 
+		[[nodiscard]] size_type length() const
+		{
+			return size();
+		}
+
 		[[nodiscard]] bool empty() const
 		{
 			return size() == 0;

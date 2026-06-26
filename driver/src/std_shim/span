@@ -1,0 +1,63 @@
+#pragma once
+#include <type_traits.hpp>
+
+namespace std
+{
+    inline constexpr size_t dynamic_extent = static_cast<size_t>(-1);
+
+    template <class T, size_t Extent = dynamic_extent>
+    class span
+    {
+    public:
+        using element_type = T;
+        using value_type = cstd::remove_cv_t<T>;
+        using size_type = size_t;
+        using difference_type = ptrdiff_t;
+        using pointer = T*;
+        using const_pointer = const T*;
+        using reference = T&;
+        using const_reference = const T&;
+        using iterator = pointer;
+
+        constexpr span() noexcept : data_(nullptr), size_(0) {}
+        constexpr span(pointer ptr, size_type count) noexcept : data_(ptr), size_(count) {}
+        constexpr span(pointer first, pointer last) noexcept : data_(first), size_(static_cast<size_type>(last - first)) {}
+
+        template <size_t N>
+        constexpr span(T (&arr)[N]) noexcept : data_(arr), size_(N) {}
+
+        template <class U>
+        constexpr span(const span<U>& other) noexcept : data_(other.data()), size_(other.size()) {}
+
+        [[nodiscard]] constexpr pointer data() const noexcept { return data_; }
+        [[nodiscard]] constexpr size_type size() const noexcept { return size_; }
+        [[nodiscard]] constexpr size_type size_bytes() const noexcept { return size_ * sizeof(T); }
+        [[nodiscard]] constexpr bool empty() const noexcept { return size_ == 0; }
+
+        constexpr reference operator[](size_type idx) const { return data_[idx]; }
+        constexpr reference front() const { return data_[0]; }
+        constexpr reference back() const { return data_[size_ - 1]; }
+
+        constexpr iterator begin() const noexcept { return data_; }
+        constexpr iterator end() const noexcept { return data_ + size_; }
+
+        constexpr span<T, dynamic_extent> subspan(size_type offset, size_type count = dynamic_extent) const
+        {
+            return span<T, dynamic_extent>(data_ + offset, count == dynamic_extent ? size_ - offset : count);
+        }
+
+        constexpr span<T, dynamic_extent> first(size_type count) const
+        {
+            return span<T, dynamic_extent>(data_, count);
+        }
+
+        constexpr span<T, dynamic_extent> last(size_type count) const
+        {
+            return span<T, dynamic_extent>(data_ + size_ - count, count);
+        }
+
+    private:
+        pointer data_;
+        size_type size_;
+    };
+}

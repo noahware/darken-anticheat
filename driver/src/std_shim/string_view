@@ -1,0 +1,8 @@
+#pragma once
+#include <string_view.hpp>
+
+namespace std
+{
+    using string_view = cstd::string_view;
+    using wstring_view = cstd::wstring_view;
+}

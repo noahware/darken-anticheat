@@ -1,9 +1,10 @@
 #include <network/socket.hpp>
 #include <message/message.hpp>
 #include <schema/request_generated.h>
-#include <schema/response_generated.h>
 
 #include "log.hpp"
+#include "driver.hpp"
+#include "client_session.hpp"
 
 #include <chrono>
 
@@ -18,36 +19,9 @@ namespace
         context.use_private_key("client_private_key.pem", sl::ssl_context::crypto_file_format::pem);
         context.use_tmp_dh_file("dhparams.pem");
     }
-}
 
-std::int32_t main()
-{
-    try
+    void send_ping(sl::socket& sock)
     {
-        LOG_INFO("anticheat client");
-
-        boost::asio::io_context io_context;
-        const auto ssl_ctx = std::make_shared<sl::boost_ssl_context>(
-            sl::boost_ssl_context::ssl_method_type::tlsv12_client
-        );
-        set_up_ssl_context(*ssl_ctx);
-
-        sl::boost_tcp_socket sock(io_context.get_executor(), ssl_ctx);
-
-        if (!sock.connect("127.0.0.1", "27015"))
-        {
-            LOG_ERR("failed to connect to server");
-            return 1;
-        }
-
-        if (!sock.handshake(sl::socket::handshake_type::client))
-        {
-            LOG_ERR("handshake failed");
-            return 1;
-        }
-
-        LOG_INFO("connected to server");
-
         const auto timestamp = static_cast<std::uint64_t>(
             std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()
@@ -56,26 +30,55 @@ std::int32_t main()
 
         sl::msg::send<Anticheat::CreatePingRequest>(sock, Anticheat::RequestId_Ping, timestamp);
         LOG_INFO("sent ping (timestamp: {})", timestamp);
+    }
+}
 
-        std::vector<std::uint8_t> response_buffer;
-        const auto* response = sl::msg::recv<Anticheat::PongResponse>(sock, response_buffer);
+std::int32_t main()
+{
+    try
+    {
+        LOG_INFO("anticheat client");
 
-        if (!response)
+        if (!driver::open())
         {
-            LOG_ERR("failed to receive pong");
+            LOG_ERR("failed to open driver device, continuing without driver");
+        }
+
+        boost::asio::io_context io_context;
+        const auto ssl_ctx = std::make_shared<sl::boost_ssl_context>(
+            sl::boost_ssl_context::ssl_method_type::tlsv12_client
+        );
+        set_up_ssl_context(*ssl_ctx);
+
+        auto socket = std::make_unique<sl::boost_tcp_socket>(io_context.get_executor(), ssl_ctx);
+        auto session = std::make_shared<client_session>(std::move(socket));
+
+        if (!session->connect("127.0.0.1", "27015"))
+        {
+            LOG_ERR("failed to connect to server");
             return 1;
         }
 
-        const auto now = static_cast<std::uint64_t>(
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()
-            ).count()
-        );
+        if (!session->handshake(sl::socket::handshake_type::client))
+        {
+            LOG_ERR("handshake failed");
+            return 1;
+        }
 
-        LOG_INFO("pong from server (rtt: {}ms, server_time: {})",
-            now - response->client_timestamp(),
-            response->server_timestamp()
-        );
+        LOG_INFO("connected to server");
+
+        send_ping(session->socket());
+        session->start();
+
+        boost::asio::signal_set signals(io_context.get_executor(), SIGINT, SIGTERM);
+        signals.async_wait([&](const boost::system::error_code&, int)
+        {
+            LOG_INFO("shutting down");
+            session->stop();
+            driver::close();
+        });
+
+        io_context.run();
     }
     catch (const std::exception& e)
     {
