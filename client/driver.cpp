@@ -93,6 +93,11 @@ namespace driver
         return run_check(Anticheat::ResponseId_KernelModuleList);
     }
 
+    std::optional<std::vector<std::uint8_t>> get_thread_list()
+    {
+        return run_check(Anticheat::ResponseId_ThreadList);
+    }
+
     std::optional<HANDLE> get_event_handle()
     {
         if (!is_open())

@@ -200,3 +200,57 @@ struct _MMPFN
         ULONGLONG EntireField;                                              //0x28
     } u4;                                                                   //0x28
 };
+
+struct system_thread_information
+{
+    LARGE_INTEGER kernel_time;
+    LARGE_INTEGER user_time;
+    LARGE_INTEGER create_time;
+    ULONG wait_time;
+    PVOID start_address;
+    CLIENT_ID client_id;
+    LONG priority;
+    LONG base_priority;
+    ULONG context_switches;
+    ULONG thread_state;
+    ULONG wait_reason;
+};
+
+struct system_process_information
+{
+    ULONG next_entry_offset;
+    ULONG number_of_threads;
+    LARGE_INTEGER working_set_private_size;
+    ULONG hard_fault_count;
+    ULONG number_of_threads_high_watermark;
+    ULONGLONG cycle_time;
+    LARGE_INTEGER create_time;
+    LARGE_INTEGER user_time;
+    LARGE_INTEGER kernel_time;
+    UNICODE_STRING image_name;
+    LONG base_priority;
+    HANDLE unique_process_id;
+    HANDLE inherited_from_unique_process_id;
+    ULONG handle_count;
+    ULONG session_id;
+    ULONG_PTR unique_process_key;
+    SIZE_T peak_virtual_size;
+    SIZE_T virtual_size;
+    ULONG page_fault_count;
+    SIZE_T peak_working_set_size;
+    SIZE_T working_set_size;
+    SIZE_T quota_peak_paged_pool_usage;
+    SIZE_T quota_paged_pool_usage;
+    SIZE_T quota_peak_non_paged_pool_usage;
+    SIZE_T quota_non_paged_pool_usage;
+    SIZE_T pagefile_usage;
+    SIZE_T peak_pagefile_usage;
+    SIZE_T private_page_count;
+    LARGE_INTEGER read_operation_count;
+    LARGE_INTEGER write_operation_count;
+    LARGE_INTEGER other_operation_count;
+    LARGE_INTEGER read_transfer_count;
+    LARGE_INTEGER write_transfer_count;
+    LARGE_INTEGER other_transfer_count;
+    system_thread_information threads[1];
+};

@@ -2,20 +2,18 @@
 #include "../log.hpp"
 
 #include <string.hpp>
-#include <hash.hpp>
+#include <span.hpp>
 
 #include "flatbuffers/flatbuffers.h"
 #include "kernel_modules_generated.h"
 
 namespace krnl
 {
-    cstd::hash_type hash_nonwritable_sections(portable_executable::image_t* image)
+    cstd::expected<crypto::sha256_hash_t, NTSTATUS> hash_nonwritable_sections(
+        portable_executable::image_t* image)
     {
-        constexpr cstd::hash_type basis = 0xcbf29ce484222325;
-        constexpr cstd::hash_type prime = 0x100000001B3;
-
-        auto hash = basis;
-        const auto base = reinterpret_cast<uint8_t*>(image);
+        const auto base = reinterpret_cast<const uint8_t*>(image);
+        cstd::vector<cstd::span<const uint8_t>> chunks;
 
         for (const auto& sec : image->sections())
         {
@@ -24,17 +22,14 @@ namespace krnl
                 continue;
             }
 
-            const auto* data = base + sec.virtual_address;
-            const auto size = sec.virtual_size;
-
-            for (uint32_t i = 0; i < size; ++i)
-            {
-                hash ^= data[i];
-                hash *= prime;
-            }
+            chunks.push_back(cstd::span<const uint8_t>(
+                base + sec.virtual_address, sec.virtual_size
+            ));
         }
 
-        return hash;
+        return crypto::sha256(cstd::span<const cstd::span<const uint8_t>>(
+            chunks.data(), chunks.size()
+        ));
     }
 
     portable_executable::image_t* find_module_image(cstd::wstring_view module_name)
@@ -60,14 +55,30 @@ namespace krnl
         for (const auto& mod : module_list{})
         {
             const auto narrow_name = cstd::to_string(mod.base_name());
-            const auto hash = hash_nonwritable_sections(mod.image());
+            const auto hash_result = hash_nonwritable_sections(mod.image());
+
             auto name_offset = fbb.CreateString(narrow_name.data(), narrow_name.size());
+
+            flatbuffers::Offset<flatbuffers::Vector<uint8_t>> hash_offset;
+
+            if (hash_result)
+            {
+                hash_offset = fbb.CreateVector(
+                    hash_result.value().data(), crypto::sha256_size
+                );
+            }
+            else
+            {
+                DBG_LOG("hash failed for %s: 0x%x\n",
+                    narrow_name.data(), hash_result.error());
+            }
+
             auto module = Anticheat::CreateKernelModule(
                 fbb,
                 mod.base_address(),
                 mod.size_of_image(),
                 name_offset,
-                hash
+                hash_offset
             );
 
             module_offsets.push_back(module);

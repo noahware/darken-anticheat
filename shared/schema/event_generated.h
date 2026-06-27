@@ -84,8 +84,8 @@ struct KernelModuleLoad FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
-  uint64_t hash() const {
-    return GetField<uint64_t>(VT_HASH, 0);
+  const ::flatbuffers::Vector<uint8_t> *hash() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_HASH);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
@@ -94,7 +94,8 @@ struct KernelModuleLoad FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<uint32_t>(verifier, VT_SIZE, 4) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint64_t>(verifier, VT_HASH, 8) &&
+           VerifyOffset(verifier, VT_HASH) &&
+           verifier.VerifyVector(hash()) &&
            verifier.EndTable();
   }
 };
@@ -112,8 +113,8 @@ struct KernelModuleLoadBuilder {
   void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(KernelModuleLoad::VT_NAME, name);
   }
-  void add_hash(uint64_t hash) {
-    fbb_.AddElement<uint64_t>(KernelModuleLoad::VT_HASH, hash, 0);
+  void add_hash(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> hash) {
+    fbb_.AddOffset(KernelModuleLoad::VT_HASH, hash);
   }
   explicit KernelModuleLoadBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -131,10 +132,10 @@ inline ::flatbuffers::Offset<KernelModuleLoad> CreateKernelModuleLoad(
     uint64_t base_address = 0,
     uint32_t size = 0,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    uint64_t hash = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> hash = 0) {
   KernelModuleLoadBuilder builder_(_fbb);
-  builder_.add_hash(hash);
   builder_.add_base_address(base_address);
+  builder_.add_hash(hash);
   builder_.add_name(name);
   builder_.add_size(size);
   return builder_.Finish();
@@ -145,14 +146,15 @@ inline ::flatbuffers::Offset<KernelModuleLoad> CreateKernelModuleLoadDirect(
     uint64_t base_address = 0,
     uint32_t size = 0,
     const char *name = nullptr,
-    uint64_t hash = 0) {
+    const std::vector<uint8_t> *hash = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto hash__ = hash ? _fbb.CreateVector<uint8_t>(*hash) : 0;
   return Anticheat::CreateKernelModuleLoad(
       _fbb,
       base_address,
       size,
       name__,
-      hash);
+      hash__);
 }
 
 struct Event FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

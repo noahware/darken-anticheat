@@ -3,6 +3,7 @@
 #include "../checks/example_check.hpp"
 #include "../events/events.hpp"
 #include "../krnl/modules.hpp"
+#include "../krnl/threads.hpp"
 #include "../log.hpp"
 #include <driver/ioctl.h>
 #include "response_generated.h"
@@ -55,6 +56,10 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 
     case Anticheat::ResponseId_KernelModuleList:
         response_bytes = krnl::get_module_list();
+        break;
+
+    case Anticheat::ResponseId_ThreadList:
+        response_bytes = krnl::get_thread_list();
         break;
 
     default:

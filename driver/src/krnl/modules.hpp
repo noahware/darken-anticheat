@@ -2,8 +2,8 @@
 #include <ntifs.h>
 #include <vector.hpp>
 #include <string_view.hpp>
-#include <hash.hpp>
 #include <portable_executable/image.hpp>
+#include "../crypto/crypto.hpp"
 
 #include "types.hpp"
 #include "list.hpp"
@@ -94,7 +94,7 @@ namespace krnl
         range_type range_;
     };
 
-    [[nodiscard]] cstd::hash_type hash_nonwritable_sections(portable_executable::image_t* image);
+    [[nodiscard]] cstd::expected<crypto::sha256_hash_t, NTSTATUS> hash_nonwritable_sections(portable_executable::image_t* image);
     [[nodiscard]] portable_executable::image_t* find_module_image(cstd::wstring_view module_name);
     [[nodiscard]] cstd::vector<uint8_t> get_module_list();
 }

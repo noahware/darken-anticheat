@@ -24,35 +24,38 @@ enum RequestId : uint8_t {
   RequestId_ClientTimestampResult = 2,
   RequestId_KernelModuleListResult = 3,
   RequestId_EventBatchResult = 4,
+  RequestId_ThreadListResult = 5,
   RequestId_MIN = RequestId_Ping,
-  RequestId_MAX = RequestId_EventBatchResult
+  RequestId_MAX = RequestId_ThreadListResult
 };
 
-inline const RequestId (&EnumValuesRequestId())[5] {
+inline const RequestId (&EnumValuesRequestId())[6] {
   static const RequestId values[] = {
     RequestId_Ping,
     RequestId_ExampleCheckResult,
     RequestId_ClientTimestampResult,
     RequestId_KernelModuleListResult,
-    RequestId_EventBatchResult
+    RequestId_EventBatchResult,
+    RequestId_ThreadListResult
   };
   return values;
 }
 
 inline const char * const *EnumNamesRequestId() {
-  static const char * const names[6] = {
+  static const char * const names[7] = {
     "Ping",
     "ExampleCheckResult",
     "ClientTimestampResult",
     "KernelModuleListResult",
     "EventBatchResult",
+    "ThreadListResult",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameRequestId(RequestId e) {
-  if (::flatbuffers::IsOutRange(e, RequestId_Ping, RequestId_EventBatchResult)) return "";
+  if (::flatbuffers::IsOutRange(e, RequestId_Ping, RequestId_ThreadListResult)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesRequestId()[index];
 }

@@ -4,7 +4,7 @@ table KernelModule {
     base_address: uint64;
     size: uint32;
     name: string;
-    hash: uint64;
+    hash: [ubyte];
 }
 
 table KernelModuleList {

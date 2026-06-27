@@ -2,9 +2,25 @@
 #include "log.hpp"
 
 #include <ranges>
+#include <format>
+#include <span>
+#include <algorithm>
 
 namespace analysis
 {
+    static std::string to_hex(std::span<const std::uint8_t> bytes)
+    {
+        std::string result;
+        result.reserve(bytes.size() * 2);
+
+        for (const auto b : bytes)
+        {
+            result += std::format("{:02x}", b);
+        }
+
+        return result;
+    }
+
     void process_example_check(const Anticheat::ExampleCheckResult* result)
     {
         if (!result)
@@ -55,11 +71,14 @@ namespace analysis
 
             for (const auto* mod : *fb_modules)
             {
+                const auto* hash_vec = mod->hash();
+
                 incoming.push_back({
                     mod->base_address(),
                     mod->size(),
                     mod->name() ? mod->name()->str() : "",
-                    mod->hash()
+                    hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
+                             : std::vector<std::uint8_t>{}
                 });
             }
         }
@@ -90,8 +109,8 @@ namespace analysis
 
                 if (it != incoming.end() && it->hash != old_mod.hash)
                 {
-                    LOG_WARN("module integrity mismatch: {} @ 0x{:x} (hash: 0x{:x} -> 0x{:x})",
-                        old_mod.name, old_mod.base_address, old_mod.hash, it->hash);
+                    LOG_WARN("module integrity mismatch: {} @ 0x{:x} (hash: {} -> {})",
+                        old_mod.name, old_mod.base_address, to_hex(old_mod.hash), to_hex(it->hash));
                 }
             }
         }
@@ -101,6 +120,80 @@ namespace analysis
         }
 
         modules = std::move(incoming);
+    }
+
+    static bool is_address_backed(std::uint64_t address, const std::vector<module_entry>& modules)
+    {
+        return std::ranges::any_of(modules, [address](const module_entry& mod)
+        {
+            return address >= mod.base_address && address < mod.base_address + mod.size;
+        });
+    }
+
+    void process_thread_list(std::vector<thread_entry>& threads, const std::vector<module_entry>& modules, const Anticheat::ThreadList* list)
+    {
+        if (!list)
+        {
+            LOG_ERR("null ThreadList");
+            return;
+        }
+
+        std::vector<thread_entry> incoming;
+
+        if (const auto* fb_threads = list->threads())
+        {
+            incoming.reserve(fb_threads->size());
+
+            for (const auto* t : *fb_threads)
+            {
+                incoming.push_back({ t->thread_id(), t->start_address() });
+            }
+        }
+
+        if (!threads.empty())
+        {
+            for (const auto& old_thread : threads)
+            {
+                if (!std::ranges::contains(incoming, old_thread.thread_id, &thread_entry::thread_id))
+                {
+                    LOG_INFO("system thread exited: tid={}, start=0x{:x}",
+                        old_thread.thread_id, old_thread.start_address);
+                }
+            }
+
+            for (const auto& new_thread : incoming)
+            {
+                if (!std::ranges::contains(threads, new_thread.thread_id, &thread_entry::thread_id))
+                {
+                    LOG_INFO("system thread created: tid={}, start=0x{:x}",
+                        new_thread.thread_id, new_thread.start_address);
+
+                    if (!modules.empty() && !is_address_backed(new_thread.start_address, modules))
+                    {
+                        LOG_WARN("system thread start address 0x{:x} (tid={}) not backed by any loaded module",
+                            new_thread.start_address, new_thread.thread_id);
+                    }
+                }
+            }
+        }
+        else
+        {
+            LOG_INFO("initial thread list: {} system threads", incoming.size());
+
+            if (!modules.empty())
+            {
+                for (const auto& t : incoming)
+                {
+                    if (!is_address_backed(t.start_address, modules))
+                    {
+                        LOG_WARN("system thread start address 0x{:x} (tid={}) not backed by any loaded module",
+                            t.start_address, t.thread_id);
+                    }
+                }
+            }
+        }
+
+        threads = std::move(incoming);
     }
 
     void process_event_batch(std::vector<module_entry>& modules, const Anticheat::EventBatch* batch)
@@ -133,11 +226,14 @@ namespace analysis
                 continue;
             }
 
+            const auto* hash_vec = load->hash();
+
             modules.push_back({
                 load->base_address(),
                 load->size(),
                 load->name() ? load->name()->str() : "",
-                load->hash()
+                hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
+                         : std::vector<std::uint8_t>{}
             });
 
             LOG_INFO("module loaded: {} @ 0x{:x} (size: 0x{:x})",

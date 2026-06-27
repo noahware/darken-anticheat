@@ -9,4 +9,7 @@ namespace handlers
     void handle_client_timestamp(const std::shared_ptr<sl::session>& sess, const Anticheat::ClientTimestampRequest* request);
     void handle_kernel_module_list_request(const std::shared_ptr<sl::session>& sess, const Anticheat::KernelModuleListRequest* request);
     bool send_kernel_module_list(const std::shared_ptr<sl::session>& sess);
+
+    void handle_thread_list_request(const std::shared_ptr<sl::session>& sess, const Anticheat::ThreadListRequest* request);
+    bool send_thread_list(const std::shared_ptr<sl::session>& sess);
 }

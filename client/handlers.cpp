@@ -7,6 +7,7 @@
 #include <schema/client_timestamp_generated.h>
 #include <schema/response_generated.h>
 #include <schema/kernel_modules_generated.h>
+#include <schema/thread_generated.h>
 
 #include <chrono>
 #include <thread>
@@ -101,6 +102,41 @@ namespace handlers
         std::thread([session]()
         {
             handlers::send_kernel_module_list(session);
+        }).detach();
+    }
+
+    bool send_thread_list(const std::shared_ptr<sl::session>& sess)
+    {
+        auto thread_list = driver::get_thread_list();
+
+        if (!thread_list)
+        {
+            LOG_ERR("driver request failed for ThreadList");
+            return false;
+        }
+
+        auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*thread_list));
+
+        sl::msg::async_send_view(
+            sess->socket(), Anticheat::RequestId_ThreadListResult,
+            [data](bool) {},
+            std::span<const std::uint8_t>{data->data(), data->size()}
+        );
+
+        LOG_INFO("sent thread list ({} bytes)", data->size());
+        return true;
+    }
+
+    void handle_thread_list_request(
+        const std::shared_ptr<sl::session>& sess,
+        [[maybe_unused]] const Anticheat::ThreadListRequest* request)
+    {
+        LOG_INFO("received thread list request");
+
+        auto session = sess;
+        std::thread([session]()
+        {
+            handlers::send_thread_list(session);
         }).detach();
     }
 
