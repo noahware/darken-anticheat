@@ -4,7 +4,6 @@ table NmiCoreCapture {
     rip: uint64;
     cs: uint64;
     processed: bool;
-    return_addresses: [uint64];
 }
 
 table NmiResult {

@@ -219,22 +219,6 @@ namespace analysis
             {
                 LOG_WARN("nmi: core {} executing unbacked code at 0x{:x}", i, cap->rip());
             }
-
-            const auto* addrs = cap->return_addresses();
-
-            if (addrs && addrs->size() > 0 && !modules.empty())
-            {
-                for (uint32_t j = 0; j < addrs->size(); ++j)
-                {
-                    const auto addr = addrs->Get(j);
-
-                    if (!is_address_backed(addr, modules))
-                    {
-                        LOG_WARN("nmi: core {} frame {} has unbacked return address 0x{:x}",
-                            i, j, addr);
-                    }
-                }
-            }
         }
     }
 

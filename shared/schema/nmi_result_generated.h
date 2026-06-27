@@ -26,8 +26,7 @@ struct NmiCoreCapture FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_RIP = 4,
     VT_CS = 6,
-    VT_PROCESSED = 8,
-    VT_RETURN_ADDRESSES = 10
+    VT_PROCESSED = 8
   };
   uint64_t rip() const {
     return GetField<uint64_t>(VT_RIP, 0);
@@ -38,17 +37,12 @@ struct NmiCoreCapture FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool processed() const {
     return GetField<uint8_t>(VT_PROCESSED, 0) != 0;
   }
-  const ::flatbuffers::Vector<uint64_t> *return_addresses() const {
-    return GetPointer<const ::flatbuffers::Vector<uint64_t> *>(VT_RETURN_ADDRESSES);
-  }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint64_t>(verifier, VT_RIP, 8) &&
            VerifyField<uint64_t>(verifier, VT_CS, 8) &&
            VerifyField<uint8_t>(verifier, VT_PROCESSED, 1) &&
-           VerifyOffset(verifier, VT_RETURN_ADDRESSES) &&
-           verifier.VerifyVector(return_addresses()) &&
            verifier.EndTable();
   }
 };
@@ -66,9 +60,6 @@ struct NmiCoreCaptureBuilder {
   void add_processed(bool processed) {
     fbb_.AddElement<uint8_t>(NmiCoreCapture::VT_PROCESSED, static_cast<uint8_t>(processed), 0);
   }
-  void add_return_addresses(::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> return_addresses) {
-    fbb_.AddOffset(NmiCoreCapture::VT_RETURN_ADDRESSES, return_addresses);
-  }
   explicit NmiCoreCaptureBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -84,29 +75,12 @@ inline ::flatbuffers::Offset<NmiCoreCapture> CreateNmiCoreCapture(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     uint64_t rip = 0,
     uint64_t cs = 0,
-    bool processed = false,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> return_addresses = 0) {
+    bool processed = false) {
   NmiCoreCaptureBuilder builder_(_fbb);
   builder_.add_cs(cs);
   builder_.add_rip(rip);
-  builder_.add_return_addresses(return_addresses);
   builder_.add_processed(processed);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<NmiCoreCapture> CreateNmiCoreCaptureDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    uint64_t rip = 0,
-    uint64_t cs = 0,
-    bool processed = false,
-    const std::vector<uint64_t> *return_addresses = nullptr) {
-  auto return_addresses__ = return_addresses ? _fbb.CreateVector<uint64_t>(*return_addresses) : 0;
-  return Anticheat::CreateNmiCoreCapture(
-      _fbb,
-      rip,
-      cs,
-      processed,
-      return_addresses__);
 }
 
 struct NmiResult FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
