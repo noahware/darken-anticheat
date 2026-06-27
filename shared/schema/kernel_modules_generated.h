@@ -26,7 +26,8 @@ struct KernelModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_BASE_ADDRESS = 4,
     VT_SIZE = 6,
-    VT_NAME = 8
+    VT_NAME = 8,
+    VT_HASH = 10
   };
   uint64_t base_address() const {
     return GetField<uint64_t>(VT_BASE_ADDRESS, 0);
@@ -37,6 +38,9 @@ struct KernelModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
+  uint64_t hash() const {
+    return GetField<uint64_t>(VT_HASH, 0);
+  }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -44,6 +48,7 @@ struct KernelModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<uint32_t>(verifier, VT_SIZE, 4) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
+           VerifyField<uint64_t>(verifier, VT_HASH, 8) &&
            verifier.EndTable();
   }
 };
@@ -61,6 +66,9 @@ struct KernelModuleBuilder {
   void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(KernelModule::VT_NAME, name);
   }
+  void add_hash(uint64_t hash) {
+    fbb_.AddElement<uint64_t>(KernelModule::VT_HASH, hash, 0);
+  }
   explicit KernelModuleBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -76,8 +84,10 @@ inline ::flatbuffers::Offset<KernelModule> CreateKernelModule(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     uint64_t base_address = 0,
     uint32_t size = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> name = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    uint64_t hash = 0) {
   KernelModuleBuilder builder_(_fbb);
+  builder_.add_hash(hash);
   builder_.add_base_address(base_address);
   builder_.add_name(name);
   builder_.add_size(size);
@@ -88,13 +98,15 @@ inline ::flatbuffers::Offset<KernelModule> CreateKernelModuleDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     uint64_t base_address = 0,
     uint32_t size = 0,
-    const char *name = nullptr) {
+    const char *name = nullptr,
+    uint64_t hash = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return Anticheat::CreateKernelModule(
       _fbb,
       base_address,
       size,
-      name__);
+      name__,
+      hash);
 }
 
 struct KernelModuleList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

@@ -58,7 +58,8 @@ namespace analysis
                 incoming.push_back({
                     mod->base_address(),
                     mod->size(),
-                    mod->name() ? mod->name()->str() : ""
+                    mod->name() ? mod->name()->str() : "",
+                    mod->hash()
                 });
             }
         }
@@ -80,6 +81,17 @@ namespace analysis
                 {
                     LOG_INFO("module loaded: {} @ 0x{:x} (size: 0x{:x})",
                         new_mod.name, new_mod.base_address, new_mod.size);
+                }
+            }
+
+            for (const auto& old_mod : modules)
+            {
+                const auto it = std::ranges::find(incoming, old_mod.base_address, &module_entry::base_address);
+
+                if (it != incoming.end() && it->hash != old_mod.hash)
+                {
+                    LOG_WARN("module integrity mismatch: {} @ 0x{:x} (hash: 0x{:x} -> 0x{:x})",
+                        old_mod.name, old_mod.base_address, old_mod.hash, it->hash);
                 }
             }
         }
@@ -124,7 +136,8 @@ namespace analysis
             modules.push_back({
                 load->base_address(),
                 load->size(),
-                load->name() ? load->name()->str() : ""
+                load->name() ? load->name()->str() : "",
+                load->hash()
             });
 
             LOG_INFO("module loaded: {} @ 0x{:x} (size: 0x{:x})",

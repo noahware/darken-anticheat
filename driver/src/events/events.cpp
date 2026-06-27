@@ -1,5 +1,6 @@
 #include "events.hpp"
 #include "../log.hpp"
+#include "../krnl/modules.hpp"
 
 #include <ntifs.h>
 #include <vector.hpp>
@@ -35,6 +36,8 @@ namespace
 
         const auto base = reinterpret_cast<uint64_t>(image_info->ImageBase);
         const auto size = static_cast<uint32_t>(image_info->ImageSize);
+        const auto image = static_cast<portable_executable::image_t*>(image_info->ImageBase);
+        const auto hash = krnl::hash_nonwritable_sections(image);
 
         const auto name_str = (full_image_name && full_image_name->Buffer && full_image_name->Length > 0)
             ? cstd::to_string(cstd::wstring_view{ full_image_name->Buffer, full_image_name->Length / sizeof(wchar_t) })
@@ -48,7 +51,8 @@ namespace
             fbb,
             base,
             size,
-            name_offset
+            name_offset,
+            hash
         );
         fbb.Finish(load);
 
@@ -211,7 +215,7 @@ namespace events
             const auto* load = flatbuffers::GetRoot<Anticheat::KernelModuleLoad>(entry.data.data());
             auto name_offset = fbb.CreateString(load->name()->c_str(), load->name()->size());
             auto load_offset = Anticheat::CreateKernelModuleLoad(
-                fbb, load->base_address(), load->size(), name_offset
+                fbb, load->base_address(), load->size(), name_offset, load->hash()
             );
             auto event_offset = Anticheat::CreateEvent(fbb, Anticheat::EventBody_KernelModuleLoad, load_offset.Union());
             event_offsets.push_back(event_offset);

@@ -2,12 +2,41 @@
 #include "../log.hpp"
 
 #include <string.hpp>
+#include <hash.hpp>
 
 #include "flatbuffers/flatbuffers.h"
 #include "kernel_modules_generated.h"
 
 namespace krnl
 {
+    cstd::hash_type hash_nonwritable_sections(portable_executable::image_t* image)
+    {
+        constexpr cstd::hash_type basis = 0xcbf29ce484222325;
+        constexpr cstd::hash_type prime = 0x100000001B3;
+
+        auto hash = basis;
+        const auto base = reinterpret_cast<uint8_t*>(image);
+
+        for (const auto& sec : image->sections())
+        {
+            if (sec.characteristics.mem_write || sec.characteristics.mem_discardable)
+            {
+                continue;
+            }
+
+            const auto* data = base + sec.virtual_address;
+            const auto size = sec.virtual_size;
+
+            for (uint32_t i = 0; i < size; ++i)
+            {
+                hash ^= data[i];
+                hash *= prime;
+            }
+        }
+
+        return hash;
+    }
+
     portable_executable::image_t* find_module_image(cstd::wstring_view module_name)
     {
         for (const auto& mod : module_list{})
@@ -31,12 +60,14 @@ namespace krnl
         for (const auto& mod : module_list{})
         {
             const auto narrow_name = cstd::to_string(mod.base_name());
+            const auto hash = hash_nonwritable_sections(mod.image());
             auto name_offset = fbb.CreateString(narrow_name.data(), narrow_name.size());
             auto module = Anticheat::CreateKernelModule(
                 fbb,
                 mod.base_address(),
                 mod.size_of_image(),
-                name_offset
+                name_offset,
+                hash
             );
 
             module_offsets.push_back(module);

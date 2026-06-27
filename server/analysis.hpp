@@ -15,6 +15,7 @@ namespace analysis
         std::uint64_t base_address;
         std::uint32_t size;
         std::string name;
+        std::uint64_t hash;
     };
 
     void process_example_check(const Anticheat::ExampleCheckResult* result);
