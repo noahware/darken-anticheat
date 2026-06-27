@@ -142,6 +142,10 @@ namespace
                 sl::msg::async_send<Anticheat::CreateClientTimestampRequest>(
                     sess->socket(), Anticheat::ResponseId_ClientTimestamp
                 );
+
+                sl::msg::async_send<Anticheat::CreateKernelModuleListRequest>(
+                    sess->socket(), Anticheat::ResponseId_KernelModuleList
+                );
             });
 
             LOG_INFO("sent check requests to {} client(s)", manager->session_count());

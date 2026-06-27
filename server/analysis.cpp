@@ -1,6 +1,8 @@
 #include "analysis.hpp"
 #include "log.hpp"
 
+#include <ranges>
+
 namespace analysis
 {
     void process_example_check(const Anticheat::ExampleCheckResult* result)
@@ -45,15 +47,15 @@ namespace analysis
             return;
         }
 
-        modules.clear();
+        std::vector<module_entry> incoming;
 
         if (const auto* fb_modules = list->modules())
         {
-            modules.reserve(fb_modules->size());
+            incoming.reserve(fb_modules->size());
 
             for (const auto* mod : *fb_modules)
             {
-                modules.push_back({
+                incoming.push_back({
                     mod->base_address(),
                     mod->size(),
                     mod->name() ? mod->name()->str() : ""
@@ -61,7 +63,32 @@ namespace analysis
             }
         }
 
-        LOG_INFO("kernel module list updated: {} modules", modules.size());
+        if (!modules.empty())
+        {
+            for (const auto& old_mod : modules)
+            {
+                if (!std::ranges::contains(incoming, old_mod.base_address, &module_entry::base_address))
+                {
+                    LOG_INFO("module unloaded: {} @ 0x{:x} (size: 0x{:x})",
+                        old_mod.name, old_mod.base_address, old_mod.size);
+                }
+            }
+
+            for (const auto& new_mod : incoming)
+            {
+                if (!std::ranges::contains(modules, new_mod.base_address, &module_entry::base_address))
+                {
+                    LOG_INFO("module loaded: {} @ 0x{:x} (size: 0x{:x})",
+                        new_mod.name, new_mod.base_address, new_mod.size);
+                }
+            }
+        }
+        else
+        {
+            LOG_INFO("initial kernel module list: {} modules", incoming.size());
+        }
+
+        modules = std::move(incoming);
     }
 
     void process_event_batch(std::vector<module_entry>& modules, const Anticheat::EventBatch* batch)

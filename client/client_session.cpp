@@ -19,7 +19,11 @@ namespace
         Anticheat::ResponseId_ClientTimestamp, handlers::handle_client_timestamp
     };
 
-    using response_router = sl::message_router<pong_response, example_check_request, client_timestamp_request>;
+    constexpr sl::message_info<Anticheat::KernelModuleListRequest, sl::session> kernel_module_list_request{
+        Anticheat::ResponseId_KernelModuleList, handlers::handle_kernel_module_list_request
+    };
+
+    using response_router = sl::message_router<pong_response, example_check_request, client_timestamp_request, kernel_module_list_request>;
 }
 
 void client_session::handle_message(const message_id_t id, const body_buffer_t body)

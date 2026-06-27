@@ -1,11 +1,10 @@
 #include <network/socket.hpp>
 #include <message/message.hpp>
 #include <schema/request_generated.h>
-#include <schema/kernel_modules_generated.h>
-#include <schema/event_generated.h>
 
 #include "log.hpp"
 #include "driver.hpp"
+#include "handlers.hpp"
 #include "client_session.hpp"
 
 #include <chrono>
@@ -40,23 +39,11 @@ namespace
 
     void driver_thread(const std::shared_ptr<sl::session>& session)
     {
-        auto module_list = driver::get_module_list();
-
-        if (!module_list)
+        if (!handlers::send_kernel_module_list(session))
         {
-            LOG_ERR("failed to get initial module list from driver");
+            LOG_ERR("failed to send initial module list");
             return;
         }
-
-        auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*module_list));
-
-        sl::msg::async_send_view(
-            session->socket(), Anticheat::RequestId_KernelModuleListResult,
-            [data](bool) {},
-            std::span<const std::uint8_t>{data->data(), data->size()}
-        );
-
-        LOG_INFO("sent initial kernel module list ({} bytes)", data->size());
 
         auto handle_opt = driver::get_event_handle();
 

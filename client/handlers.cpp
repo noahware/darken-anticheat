@@ -6,6 +6,7 @@
 #include <schema/request_generated.h>
 #include <schema/client_timestamp_generated.h>
 #include <schema/response_generated.h>
+#include <schema/kernel_modules_generated.h>
 
 #include <chrono>
 #include <thread>
@@ -66,6 +67,41 @@ namespace handlers
         );
 
         LOG_INFO("sent client timestamp: {}ms", now);
+    }
+
+    bool send_kernel_module_list(const std::shared_ptr<sl::session>& sess)
+    {
+        auto module_list = driver::get_module_list();
+
+        if (!module_list)
+        {
+            LOG_ERR("driver request failed for KernelModuleList");
+            return false;
+        }
+
+        auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*module_list));
+
+        sl::msg::async_send_view(
+            sess->socket(), Anticheat::RequestId_KernelModuleListResult,
+            [data](bool) {},
+            std::span<const std::uint8_t>{data->data(), data->size()}
+        );
+
+        LOG_INFO("sent kernel module list ({} bytes)", data->size());
+        return true;
+    }
+
+    void handle_kernel_module_list_request(
+        const std::shared_ptr<sl::session>& sess,
+        [[maybe_unused]] const Anticheat::KernelModuleListRequest* request)
+    {
+        LOG_INFO("received kernel module list request");
+
+        auto session = sess;
+        std::thread([session]()
+        {
+            handlers::send_kernel_module_list(session);
+        }).detach();
     }
 
 }
