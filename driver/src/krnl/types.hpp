@@ -201,6 +201,13 @@ struct _MMPFN
     } u4;                                                                   //0x28
 };
 
+struct runtime_function
+{
+    ULONG begin_address;
+    ULONG end_address;
+    ULONG unwind_data;
+};
+
 struct machine_frame
 {
     uint64_t rip;
