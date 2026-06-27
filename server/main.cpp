@@ -10,6 +10,7 @@
 #include <schema/kernel_modules_generated.h>
 #include <schema/event_generated.h>
 #include <schema/thread_generated.h>
+#include <schema/nmi_result_generated.h>
 
 #include "log.hpp"
 #include "analysis.hpp"
@@ -63,6 +64,7 @@ namespace
     void handle_kernel_module_list_result(const std::shared_ptr<client_connection>& conn, const Anticheat::KernelModuleList* result);
     void handle_event_batch_result(const std::shared_ptr<client_connection>& conn, const Anticheat::EventBatch* result);
     void handle_thread_list_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ThreadList* result);
+    void handle_nmi_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::NmiResult* result);
 
     constexpr sl::message_info<Anticheat::PingRequest, sl::session> ping_request{
         Anticheat::RequestId_Ping, handle_ping
@@ -88,7 +90,11 @@ namespace
         Anticheat::RequestId_ThreadListResult, handle_thread_list_result
     };
 
-    using request_router = sl::message_router<ping_request, example_check_result, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result>;
+    constexpr sl::message_info<Anticheat::NmiResult, client_connection> nmi_result_data{
+        Anticheat::RequestId_NmiResultData, handle_nmi_result_data
+    };
+
+    using request_router = sl::message_router<ping_request, example_check_result, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data>;
 
     class client_connection final : public sl::session
     {
@@ -136,6 +142,15 @@ namespace
         analysis::process_thread_list(conn->threads_, conn->kernel_modules_, result);
     }
 
+    void handle_nmi_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::NmiResult* result)
+    {
+        LOG_INFO("nmi result from {}:{}",
+            conn->socket().remote_address(), conn->socket().port());
+
+        std::lock_guard<std::mutex> lock(conn->modules_mutex_);
+        analysis::process_nmi_result(conn->kernel_modules_, result);
+    }
+
     void broadcast_check_requests(
         boost::asio::steady_timer& timer,
         const std::shared_ptr<sl::boost_session_manager<client_connection>>& manager,
@@ -165,6 +180,10 @@ namespace
 
                 sl::msg::async_send<Anticheat::CreateThreadListRequest>(
                     sess->socket(), Anticheat::ResponseId_ThreadList
+                );
+
+                sl::msg::async_send<Anticheat::CreateNmiCheckRequest>(
+                    sess->socket(), Anticheat::ResponseId_NmiCheck
                 );
             });
 

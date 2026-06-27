@@ -6,7 +6,8 @@ enum RequestId : uint8 {
     ClientTimestampResult = 2,
     KernelModuleListResult = 3,
     EventBatchResult = 4,
-    ThreadListResult = 5
+    ThreadListResult = 5,
+    NmiResultData = 6
 }
 
 table PingRequest {

@@ -30,41 +30,47 @@ struct KernelModuleListRequestBuilder;
 struct ThreadListRequest;
 struct ThreadListRequestBuilder;
 
+struct NmiCheckRequest;
+struct NmiCheckRequestBuilder;
+
 enum ResponseId : uint8_t {
   ResponseId_Pong = 0,
   ResponseId_ExampleCheck = 1,
   ResponseId_ClientTimestamp = 2,
   ResponseId_KernelModuleList = 3,
   ResponseId_ThreadList = 4,
+  ResponseId_NmiCheck = 5,
   ResponseId_MIN = ResponseId_Pong,
-  ResponseId_MAX = ResponseId_ThreadList
+  ResponseId_MAX = ResponseId_NmiCheck
 };
 
-inline const ResponseId (&EnumValuesResponseId())[5] {
+inline const ResponseId (&EnumValuesResponseId())[6] {
   static const ResponseId values[] = {
     ResponseId_Pong,
     ResponseId_ExampleCheck,
     ResponseId_ClientTimestamp,
     ResponseId_KernelModuleList,
-    ResponseId_ThreadList
+    ResponseId_ThreadList,
+    ResponseId_NmiCheck
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseId() {
-  static const char * const names[6] = {
+  static const char * const names[7] = {
     "Pong",
     "ExampleCheck",
     "ClientTimestamp",
     "KernelModuleList",
     "ThreadList",
+    "NmiCheck",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameResponseId(ResponseId e) {
-  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_ThreadList)) return "";
+  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_NmiCheck)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseId()[index];
 }
@@ -238,6 +244,36 @@ struct ThreadListRequestBuilder {
 inline ::flatbuffers::Offset<ThreadListRequest> CreateThreadListRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb) {
   ThreadListRequestBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct NmiCheckRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef NmiCheckRequestBuilder Builder;
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct NmiCheckRequestBuilder {
+  typedef NmiCheckRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit NmiCheckRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<NmiCheckRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<NmiCheckRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<NmiCheckRequest> CreateNmiCheckRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  NmiCheckRequestBuilder builder_(_fbb);
   return builder_.Finish();
 }
 

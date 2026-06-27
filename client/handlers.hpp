@@ -12,4 +12,7 @@ namespace handlers
 
     void handle_thread_list_request(const std::shared_ptr<sl::session>& sess, const Anticheat::ThreadListRequest* request);
     bool send_thread_list(const std::shared_ptr<sl::session>& sess);
+
+    void handle_nmi_check_request(const std::shared_ptr<sl::session>& sess, const Anticheat::NmiCheckRequest* request);
+    bool send_nmi_result(const std::shared_ptr<sl::session>& sess);
 }

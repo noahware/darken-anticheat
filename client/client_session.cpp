@@ -27,7 +27,11 @@ namespace
         Anticheat::ResponseId_ThreadList, handlers::handle_thread_list_request
     };
 
-    using response_router = sl::message_router<pong_response, example_check_request, client_timestamp_request, kernel_module_list_request, thread_list_request>;
+    constexpr sl::message_info<Anticheat::NmiCheckRequest, sl::session> nmi_check_request{
+        Anticheat::ResponseId_NmiCheck, handlers::handle_nmi_check_request
+    };
+
+    using response_router = sl::message_router<pong_response, example_check_request, client_timestamp_request, kernel_module_list_request, thread_list_request, nmi_check_request>;
 }
 
 void client_session::handle_message(const message_id_t id, const body_buffer_t body)

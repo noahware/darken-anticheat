@@ -4,6 +4,7 @@
 #include <schema/kernel_modules_generated.h>
 #include <schema/event_generated.h>
 #include <schema/thread_generated.h>
+#include <schema/nmi_result_generated.h>
 
 #include <cstdint>
 #include <string>
@@ -30,4 +31,5 @@ namespace analysis
     void process_kernel_module_list(std::vector<module_entry>& modules, const Anticheat::KernelModuleList* list);
     void process_event_batch(std::vector<module_entry>& modules, const Anticheat::EventBatch* batch);
     void process_thread_list(std::vector<thread_entry>& threads, const std::vector<module_entry>& modules, const Anticheat::ThreadList* list);
+    void process_nmi_result(const std::vector<module_entry>& modules, const Anticheat::NmiResult* result);
 }

@@ -1,6 +1,8 @@
 #include "analysis.hpp"
 #include "log.hpp"
 
+#include <schema/nmi_result_generated.h>
+
 #include <ranges>
 #include <format>
 #include <span>
@@ -194,6 +196,53 @@ namespace analysis
         }
 
         threads = std::move(incoming);
+    }
+
+    void process_nmi_result(const std::vector<module_entry>& modules, const Anticheat::NmiResult* result)
+    {
+        if (!result)
+        {
+            LOG_ERR("null NmiResult");
+            return;
+        }
+
+        const auto* captures = result->captures();
+
+        if (!captures || captures->size() == 0)
+        {
+            LOG_WARN("nmi result: empty captures");
+            return;
+        }
+
+        const auto current_core = result->current_core();
+
+        LOG_INFO("nmi result: {} cores, dispatcher core: {}", captures->size(), current_core);
+
+        for (uint32_t i = 0; i < captures->size(); ++i)
+        {
+            const auto* cap = captures->Get(i);
+
+            if (i == current_core)
+            {
+                continue;
+            }
+
+            if (!cap->processed())
+            {
+                LOG_WARN("nmi: core {} did not process callback", i);
+                continue;
+            }
+
+            if ((cap->cs() & 3) != 0)
+            {
+                continue;
+            }
+
+            if (!modules.empty() && !is_address_backed(cap->rip(), modules))
+            {
+                LOG_WARN("nmi: core {} executing unbacked code at 0x{:x}", i, cap->rip());
+            }
+        }
     }
 
     void process_event_batch(std::vector<module_entry>& modules, const Anticheat::EventBatch* batch)

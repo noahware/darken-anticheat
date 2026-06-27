@@ -5,7 +5,8 @@ enum ResponseId : uint8 {
     ExampleCheck = 1,
     ClientTimestamp = 2,
     KernelModuleList = 3,
-    ThreadList = 4
+    ThreadList = 4,
+    NmiCheck = 5
 }
 
 table PongResponse {
@@ -20,3 +21,5 @@ table ClientTimestampRequest {}
 table KernelModuleListRequest {}
 
 table ThreadListRequest {}
+
+table NmiCheckRequest {}

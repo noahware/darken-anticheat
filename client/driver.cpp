@@ -98,6 +98,11 @@ namespace driver
         return run_check(Anticheat::ResponseId_ThreadList);
     }
 
+    std::optional<std::vector<std::uint8_t>> get_nmi_result()
+    {
+        return run_check(Anticheat::ResponseId_NmiCheck);
+    }
+
     std::optional<HANDLE> get_event_handle()
     {
         if (!is_open())

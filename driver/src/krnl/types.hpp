@@ -201,6 +201,24 @@ struct _MMPFN
     } u4;                                                                   //0x28
 };
 
+struct machine_frame
+{
+    uint64_t rip;
+    uint64_t cs;
+    uint64_t rflags;
+    uint64_t rsp;
+    uint64_t ss;
+};
+
+//0xa8 bytes (sizeof)
+struct _KAFFINITY_EX
+{
+    USHORT Count;                                                           //0x0
+    USHORT Size;                                                            //0x2
+    ULONG Reserved;                                                         //0x4
+    ULONGLONG Bitmap[20];                                                   //0x8
+};
+
 struct system_thread_information
 {
     LARGE_INTEGER kernel_time;

@@ -4,6 +4,7 @@
 #include "../events/events.hpp"
 #include "../krnl/modules.hpp"
 #include "../krnl/threads.hpp"
+#include "../nmi/nmi.hpp"
 #include "../log.hpp"
 #include <driver/ioctl.h>
 #include "response_generated.h"
@@ -60,6 +61,10 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 
     case Anticheat::ResponseId_ThreadList:
         response_bytes = krnl::get_thread_list();
+        break;
+
+    case Anticheat::ResponseId_NmiCheck:
+        response_bytes = nmi::capture_rips();
         break;
 
     default:

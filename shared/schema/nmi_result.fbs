@@ -1,0 +1,12 @@
+namespace Anticheat;
+
+table NmiCoreCapture {
+    rip: uint64;
+    cs: uint64;
+    processed: bool;
+}
+
+table NmiResult {
+    captures: [NmiCoreCapture];
+    current_core: uint32;
+}

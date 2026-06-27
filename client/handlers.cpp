@@ -8,6 +8,7 @@
 #include <schema/response_generated.h>
 #include <schema/kernel_modules_generated.h>
 #include <schema/thread_generated.h>
+#include <schema/nmi_result_generated.h>
 
 #include <chrono>
 #include <thread>
@@ -137,6 +138,41 @@ namespace handlers
         std::thread([session]()
         {
             handlers::send_thread_list(session);
+        }).detach();
+    }
+
+    bool send_nmi_result(const std::shared_ptr<sl::session>& sess)
+    {
+        auto nmi_data = driver::get_nmi_result();
+
+        if (!nmi_data)
+        {
+            LOG_ERR("driver request failed for NmiCheck");
+            return false;
+        }
+
+        auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*nmi_data));
+
+        sl::msg::async_send_view(
+            sess->socket(), Anticheat::RequestId_NmiResultData,
+            [data](bool) {},
+            std::span<const std::uint8_t>{data->data(), data->size()}
+        );
+
+        LOG_INFO("sent nmi result ({} bytes)", data->size());
+        return true;
+    }
+
+    void handle_nmi_check_request(
+        const std::shared_ptr<sl::session>& sess,
+        [[maybe_unused]] const Anticheat::NmiCheckRequest* request)
+    {
+        LOG_INFO("received nmi check request");
+
+        auto session = sess;
+        std::thread([session]()
+        {
+            handlers::send_nmi_result(session);
         }).detach();
     }
 
