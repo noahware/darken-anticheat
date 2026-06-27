@@ -22,35 +22,6 @@ namespace handlers
         LOG_INFO("pong (server_timestamp: {})", pong->server_timestamp());
     }
 
-    void handle_example_check(
-        const std::shared_ptr<sl::session>& sess,
-        [[maybe_unused]] const Anticheat::ExampleCheckRequest* request)
-    {
-        LOG_INFO("received example check request");
-
-        auto session = sess;
-        std::thread([session]()
-        {
-            auto driver_result = driver::run_check(Anticheat::ResponseId_ExampleCheck);
-
-            if (!driver_result)
-            {
-                LOG_ERR("driver request failed for ExampleCheck");
-                return;
-            }
-
-            auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*driver_result));
-
-            sl::msg::async_send_view(
-                session->socket(), Anticheat::RequestId_ExampleCheckResult,
-                [data](bool) {},
-                std::span<const std::uint8_t>{data->data(), data->size()}
-            );
-
-            LOG_INFO("sent example check result (size: {})", data->size());
-        }).detach();
-    }
-
     void handle_client_timestamp(
         const std::shared_ptr<sl::session>& sess,
         [[maybe_unused]] const Anticheat::ClientTimestampRequest* request)

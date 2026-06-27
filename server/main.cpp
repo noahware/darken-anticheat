@@ -5,7 +5,6 @@
 #include <router/router.hpp>
 #include <schema/request_generated.h>
 #include <schema/response_generated.h>
-#include <schema/example_check_generated.h>
 #include <schema/client_timestamp_generated.h>
 #include <schema/kernel_modules_generated.h>
 #include <schema/event_generated.h>
@@ -45,13 +44,6 @@ namespace
         );
     }
 
-    void handle_example_check_result(const std::shared_ptr<sl::session>& sess, const Anticheat::ExampleCheckResult* result)
-    {
-        LOG_INFO("example check result from {}:{}",
-            sess->socket().remote_address(), sess->socket().port());
-        analysis::process_example_check(result);
-    }
-
     void handle_client_timestamp_result(const std::shared_ptr<sl::session>& sess, const Anticheat::ClientTimestampResult* result)
     {
         LOG_INFO("client timestamp from {}:{}",
@@ -68,10 +60,6 @@ namespace
 
     constexpr sl::message_info<Anticheat::PingRequest, sl::session> ping_request{
         Anticheat::RequestId_Ping, handle_ping
-    };
-
-    constexpr sl::message_info<Anticheat::ExampleCheckResult, sl::session> example_check_result{
-        Anticheat::RequestId_ExampleCheckResult, handle_example_check_result
     };
 
     constexpr sl::message_info<Anticheat::ClientTimestampResult, sl::session> client_timestamp_result{
@@ -94,7 +82,7 @@ namespace
         Anticheat::RequestId_NmiResultData, handle_nmi_result_data
     };
 
-    using request_router = sl::message_router<ping_request, example_check_result, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data>;
+    using request_router = sl::message_router<ping_request, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data>;
 
     class client_connection final : public sl::session
     {
@@ -166,10 +154,6 @@ namespace
 
             manager->for_each_session([](const std::shared_ptr<sl::session>& sess)
             {
-                sl::msg::async_send<Anticheat::CreateExampleCheckRequest>(
-                    sess->socket(), Anticheat::ResponseId_ExampleCheck
-                );
-
                 sl::msg::async_send<Anticheat::CreateClientTimestampRequest>(
                     sess->socket(), Anticheat::ResponseId_ClientTimestamp
                 );

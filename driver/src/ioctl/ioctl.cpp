@@ -1,6 +1,5 @@
 #include "ioctl.hpp"
 
-#include "../checks/example_check.hpp"
 #include "../events/events.hpp"
 #include "../krnl/modules.hpp"
 #include "../krnl/threads.hpp"
@@ -51,10 +50,6 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 
     switch (request_id)
     {
-    case Anticheat::ResponseId_ExampleCheck:
-        response_bytes = checks::example_check();
-        break;
-
     case Anticheat::ResponseId_KernelModuleList:
         response_bytes = krnl::get_module_list();
         break;

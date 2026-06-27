@@ -2,12 +2,11 @@ namespace Anticheat;
 
 enum RequestId : uint8 {
     Ping = 0,
-    ExampleCheckResult = 1,
-    ClientTimestampResult = 2,
-    KernelModuleListResult = 3,
-    EventBatchResult = 4,
-    ThreadListResult = 5,
-    NmiResultData = 6
+    ClientTimestampResult = 1,
+    KernelModuleListResult = 2,
+    EventBatchResult = 3,
+    ThreadListResult = 4,
+    NmiResultData = 5
 }
 
 table PingRequest {

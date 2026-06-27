@@ -20,20 +20,18 @@ struct PingRequestBuilder;
 
 enum RequestId : uint8_t {
   RequestId_Ping = 0,
-  RequestId_ExampleCheckResult = 1,
-  RequestId_ClientTimestampResult = 2,
-  RequestId_KernelModuleListResult = 3,
-  RequestId_EventBatchResult = 4,
-  RequestId_ThreadListResult = 5,
-  RequestId_NmiResultData = 6,
+  RequestId_ClientTimestampResult = 1,
+  RequestId_KernelModuleListResult = 2,
+  RequestId_EventBatchResult = 3,
+  RequestId_ThreadListResult = 4,
+  RequestId_NmiResultData = 5,
   RequestId_MIN = RequestId_Ping,
   RequestId_MAX = RequestId_NmiResultData
 };
 
-inline const RequestId (&EnumValuesRequestId())[7] {
+inline const RequestId (&EnumValuesRequestId())[6] {
   static const RequestId values[] = {
     RequestId_Ping,
-    RequestId_ExampleCheckResult,
     RequestId_ClientTimestampResult,
     RequestId_KernelModuleListResult,
     RequestId_EventBatchResult,
@@ -44,9 +42,8 @@ inline const RequestId (&EnumValuesRequestId())[7] {
 }
 
 inline const char * const *EnumNamesRequestId() {
-  static const char * const names[8] = {
+  static const char * const names[7] = {
     "Ping",
-    "ExampleCheckResult",
     "ClientTimestampResult",
     "KernelModuleListResult",
     "EventBatchResult",

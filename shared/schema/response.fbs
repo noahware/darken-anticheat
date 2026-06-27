@@ -2,19 +2,16 @@ namespace Anticheat;
 
 enum ResponseId : uint8 {
     Pong = 0,
-    ExampleCheck = 1,
-    ClientTimestamp = 2,
-    KernelModuleList = 3,
-    ThreadList = 4,
-    NmiCheck = 5
+    ClientTimestamp = 1,
+    KernelModuleList = 2,
+    ThreadList = 3,
+    NmiCheck = 4
 }
 
 table PongResponse {
     client_timestamp: uint64;
     server_timestamp: uint64;
 }
-
-table ExampleCheckRequest {}
 
 table ClientTimestampRequest {}
 

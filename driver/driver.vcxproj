@@ -161,7 +161,6 @@
     <ClCompile Include="src\crypto\crypto.cpp" />
     <ClCompile Include="src\emu\emu.cpp" />
     <ClCompile Include="src\ioctl\ioctl.cpp" />
-    <ClCompile Include="src\checks\example_check.cpp" />
     <ClCompile Include="src\events\events.cpp" />
     <ClCompile Include="src\krnl\modules.cpp" />
     <ClCompile Include="src\krnl\threads.cpp" />
@@ -181,7 +180,6 @@
   <ItemGroup>
     <ClInclude Include="src\crypto\crypto.hpp" />
     <ClInclude Include="src\ioctl\ioctl.hpp" />
-    <ClInclude Include="src\checks\example_check.hpp" />
     <ClInclude Include="src\events\events.hpp" />
     <ClInclude Include="src\krnl\modules.hpp" />
     <ClInclude Include="src\krnl\threads.hpp" />
