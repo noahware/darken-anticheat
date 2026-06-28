@@ -6,7 +6,6 @@
 #include "driver.hpp"
 #include "handlers.hpp"
 #include "client_session.hpp"
-
 #include <chrono>
 #include <thread>
 #include <atomic>

@@ -36,35 +36,38 @@ enum ResponseId : uint8_t {
   ResponseId_KernelModuleList = 2,
   ResponseId_ThreadList = 3,
   ResponseId_NmiCheck = 4,
+  ResponseId_ImageSignatureCheck = 5,
   ResponseId_MIN = ResponseId_Pong,
-  ResponseId_MAX = ResponseId_NmiCheck
+  ResponseId_MAX = ResponseId_ImageSignatureCheck
 };
 
-inline const ResponseId (&EnumValuesResponseId())[5] {
+inline const ResponseId (&EnumValuesResponseId())[6] {
   static const ResponseId values[] = {
     ResponseId_Pong,
     ResponseId_ClientTimestamp,
     ResponseId_KernelModuleList,
     ResponseId_ThreadList,
-    ResponseId_NmiCheck
+    ResponseId_NmiCheck,
+    ResponseId_ImageSignatureCheck
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseId() {
-  static const char * const names[6] = {
+  static const char * const names[7] = {
     "Pong",
     "ClientTimestamp",
     "KernelModuleList",
     "ThreadList",
     "NmiCheck",
+    "ImageSignatureCheck",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameResponseId(ResponseId e) {
-  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_NmiCheck)) return "";
+  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_ImageSignatureCheck)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseId()[index];
 }

@@ -5,7 +5,8 @@ enum ResponseId : uint8 {
     ClientTimestamp = 1,
     KernelModuleList = 2,
     ThreadList = 3,
-    NmiCheck = 4
+    NmiCheck = 4,
+    ImageSignatureCheck = 5
 }
 
 table PongResponse {

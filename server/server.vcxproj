@@ -143,10 +143,12 @@
     <ClCompile Include="main.cpp" />
 
     <ClCompile Include="analysis.cpp" />
+    <ClCompile Include="sign.cpp" />
   </ItemGroup>
   <ItemGroup>
 
     <ClInclude Include="analysis.hpp" />
+    <ClInclude Include="sign.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)vendor\socketsl.vcxproj">

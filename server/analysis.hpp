@@ -6,7 +6,10 @@
 #include <schema/nmi_result_generated.h>
 
 #include <cstdint>
+#include <mutex>
+#include <span>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace analysis
@@ -17,6 +20,7 @@ namespace analysis
         std::uint32_t size;
         std::string name;
         std::vector<std::uint8_t> hash;
+        std::string full_path;
     };
 
     struct thread_entry
@@ -25,9 +29,16 @@ namespace analysis
         std::uint64_t start_address;
     };
 
+    inline std::unordered_set<std::string> verified_hashes;
+    inline std::mutex verified_hashes_mutex;
+
+    std::string to_hex(std::span<const std::uint8_t> bytes);
+
     void process_client_timestamp(const Anticheat::ClientTimestampResult* result);
     void process_kernel_module_list(std::vector<module_entry>& modules, const Anticheat::KernelModuleList* list);
     void process_event_batch(std::vector<module_entry>& modules, const Anticheat::EventBatch* batch);
     void process_thread_list(std::vector<thread_entry>& threads, const std::vector<module_entry>& modules, const Anticheat::ThreadList* list);
     void process_nmi_result(const std::vector<module_entry>& modules, const Anticheat::NmiResult* result);
+
+    std::vector<std::string> find_unsigned_modules(std::span<const module_entry> modules);
 }

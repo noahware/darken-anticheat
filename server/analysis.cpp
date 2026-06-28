@@ -10,7 +10,7 @@
 
 namespace analysis
 {
-    static std::string to_hex(std::span<const std::uint8_t> bytes)
+    std::string to_hex(std::span<const std::uint8_t> bytes)
     {
         std::string result;
         result.reserve(bytes.size() * 2);
@@ -57,7 +57,8 @@ namespace analysis
                     mod->size(),
                     mod->name() ? mod->name()->str() : "",
                     hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
-                             : std::vector<std::uint8_t>{}
+                             : std::vector<std::uint8_t>{},
+                    mod->full_path() ? mod->full_path()->str() : ""
                 });
             }
         }
@@ -259,12 +260,36 @@ namespace analysis
                 load->size(),
                 load->name() ? load->name()->str() : "",
                 hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
-                         : std::vector<std::uint8_t>{}
+                         : std::vector<std::uint8_t>{},
+                load->full_path() ? load->full_path()->str() : ""
             });
 
             LOG_INFO("module loaded: {} @ 0x{:x} (size: 0x{:x})",
                 load->name() ? load->name()->c_str() : "unknown",
                 load->base_address(), load->size());
         }
+    }
+
+    std::vector<std::string> find_unsigned_modules(std::span<const module_entry> modules)
+    {
+        std::vector<std::string> paths;
+        std::lock_guard lock(verified_hashes_mutex);
+
+        for (const auto& mod : modules)
+        {
+            if (mod.hash.empty() || mod.full_path.empty())
+            {
+                continue;
+            }
+
+            const auto hex = to_hex(mod.hash);
+
+            if (!verified_hashes.contains(hex))
+            {
+                paths.push_back(mod.full_path);
+            }
+        }
+
+        return paths;
     }
 }

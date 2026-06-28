@@ -27,7 +27,8 @@ struct KernelModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_BASE_ADDRESS = 4,
     VT_SIZE = 6,
     VT_NAME = 8,
-    VT_HASH = 10
+    VT_HASH = 10,
+    VT_FULL_PATH = 12
   };
   uint64_t base_address() const {
     return GetField<uint64_t>(VT_BASE_ADDRESS, 0);
@@ -41,6 +42,9 @@ struct KernelModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<uint8_t> *hash() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_HASH);
   }
+  const ::flatbuffers::String *full_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_FULL_PATH);
+  }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -50,6 +54,8 @@ struct KernelModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyString(name()) &&
            VerifyOffset(verifier, VT_HASH) &&
            verifier.VerifyVector(hash()) &&
+           VerifyOffset(verifier, VT_FULL_PATH) &&
+           verifier.VerifyString(full_path()) &&
            verifier.EndTable();
   }
 };
@@ -70,6 +76,9 @@ struct KernelModuleBuilder {
   void add_hash(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> hash) {
     fbb_.AddOffset(KernelModule::VT_HASH, hash);
   }
+  void add_full_path(::flatbuffers::Offset<::flatbuffers::String> full_path) {
+    fbb_.AddOffset(KernelModule::VT_FULL_PATH, full_path);
+  }
   explicit KernelModuleBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -86,9 +95,11 @@ inline ::flatbuffers::Offset<KernelModule> CreateKernelModule(
     uint64_t base_address = 0,
     uint32_t size = 0,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> hash = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> hash = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> full_path = 0) {
   KernelModuleBuilder builder_(_fbb);
   builder_.add_base_address(base_address);
+  builder_.add_full_path(full_path);
   builder_.add_hash(hash);
   builder_.add_name(name);
   builder_.add_size(size);
@@ -100,15 +111,18 @@ inline ::flatbuffers::Offset<KernelModule> CreateKernelModuleDirect(
     uint64_t base_address = 0,
     uint32_t size = 0,
     const char *name = nullptr,
-    const std::vector<uint8_t> *hash = nullptr) {
+    const std::vector<uint8_t> *hash = nullptr,
+    const char *full_path = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto hash__ = hash ? _fbb.CreateVector<uint8_t>(*hash) : 0;
+  auto full_path__ = full_path ? _fbb.CreateString(full_path) : 0;
   return Anticheat::CreateKernelModule(
       _fbb,
       base_address,
       size,
       name__,
-      hash__);
+      hash__,
+      full_path__);
 }
 
 struct KernelModuleList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

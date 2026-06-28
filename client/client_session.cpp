@@ -4,6 +4,7 @@
 
 #include <router/router.hpp>
 #include <schema/response_generated.h>
+#include <schema/signature_generated.h>
 
 namespace
 {
@@ -27,7 +28,11 @@ namespace
         Anticheat::ResponseId_NmiCheck, handlers::handle_nmi_check_request
     };
 
-    using response_router = sl::message_router<pong_response, client_timestamp_request, kernel_module_list_request, thread_list_request, nmi_check_request>;
+    constexpr sl::message_info<Anticheat::ImageSignatureCheckRequest, sl::session> image_signature_check_request{
+        Anticheat::ResponseId_ImageSignatureCheck, handlers::handle_image_signature_check
+    };
+
+    using response_router = sl::message_router<pong_response, client_timestamp_request, kernel_module_list_request, thread_list_request, nmi_check_request, image_signature_check_request>;
 }
 
 void client_session::handle_message(const message_id_t id, const body_buffer_t body)

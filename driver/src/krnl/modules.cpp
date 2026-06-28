@@ -55,9 +55,11 @@ namespace krnl
         for (const auto& mod : module_list{})
         {
             const auto narrow_name = cstd::to_string(mod.base_name());
+            const auto narrow_path = cstd::to_string(mod.full_name());
             const auto hash_result = hash_nonwritable_sections(mod.image());
 
             auto name_offset = fbb.CreateString(narrow_name.data(), narrow_name.size());
+            auto path_offset = fbb.CreateString(narrow_path.data(), narrow_path.size());
 
             flatbuffers::Offset<flatbuffers::Vector<uint8_t>> hash_offset;
 
@@ -78,7 +80,8 @@ namespace krnl
                 mod.base_address(),
                 mod.size_of_image(),
                 name_offset,
-                hash_offset
+                hash_offset,
+                path_offset
             );
 
             module_offsets.push_back(module);

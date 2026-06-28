@@ -10,9 +10,11 @@
 #include <schema/event_generated.h>
 #include <schema/thread_generated.h>
 #include <schema/nmi_result_generated.h>
+#include <schema/signature_generated.h>
 
 #include "log.hpp"
 #include "analysis.hpp"
+#include "sign.hpp"
 
 #include <mutex>
 
@@ -57,6 +59,7 @@ namespace
     void handle_event_batch_result(const std::shared_ptr<client_connection>& conn, const Anticheat::EventBatch* result);
     void handle_thread_list_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ThreadList* result);
     void handle_nmi_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::NmiResult* result);
+    void handle_image_signature_check_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ImageSignatureCheckResult* result);
 
     constexpr sl::message_info<Anticheat::PingRequest, sl::session> ping_request{
         Anticheat::RequestId_Ping, handle_ping
@@ -82,7 +85,11 @@ namespace
         Anticheat::RequestId_NmiResultData, handle_nmi_result_data
     };
 
-    using request_router = sl::message_router<ping_request, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data>;
+    constexpr sl::message_info<Anticheat::ImageSignatureCheckResult, client_connection> image_signature_check_result{
+        Anticheat::RequestId_ImageSignatureCheckResult, handle_image_signature_check_result
+    };
+
+    using request_router = sl::message_router<ping_request, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data, image_signature_check_result>;
 
     class client_connection final : public sl::session
     {
@@ -103,6 +110,33 @@ namespace
         }
     };
 
+    void send_signature_checks(const std::shared_ptr<client_connection>& conn,
+                               const std::vector<std::string>& paths)
+    {
+        for (const auto& path : paths)
+        {
+            flatbuffers::FlatBufferBuilder fbb;
+            auto path_offset = fbb.CreateString(path);
+            auto req = Anticheat::CreateImageSignatureCheckRequest(fbb, path_offset);
+            fbb.Finish(req);
+
+            auto data = std::make_shared<std::vector<std::uint8_t>>(
+                fbb.GetBufferPointer(), fbb.GetBufferPointer() + fbb.GetSize()
+            );
+
+            sl::msg::async_send_view(
+                conn->socket(), Anticheat::ResponseId_ImageSignatureCheck,
+                [data](bool) {},
+                std::span<const std::uint8_t>{data->data(), data->size()}
+            );
+        }
+
+        if (!paths.empty())
+        {
+            LOG_INFO("sent {} signature check request(s)", paths.size());
+        }
+    }
+
     void handle_kernel_module_list_result(const std::shared_ptr<client_connection>& conn, const Anticheat::KernelModuleList* result)
     {
         LOG_INFO("kernel module list from {}:{}",
@@ -110,6 +144,9 @@ namespace
 
         std::lock_guard<std::mutex> lock(conn->modules_mutex_);
         analysis::process_kernel_module_list(conn->kernel_modules_, result);
+
+        const auto unsigned_paths = analysis::find_unsigned_modules(conn->kernel_modules_);
+        send_signature_checks(conn, unsigned_paths);
     }
 
     void handle_event_batch_result(const std::shared_ptr<client_connection>& conn, const Anticheat::EventBatch* result)
@@ -119,6 +156,9 @@ namespace
 
         std::lock_guard<std::mutex> lock(conn->modules_mutex_);
         analysis::process_event_batch(conn->kernel_modules_, result);
+
+        const auto unsigned_paths = analysis::find_unsigned_modules(conn->kernel_modules_);
+        send_signature_checks(conn, unsigned_paths);
     }
 
     void handle_thread_list_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ThreadList* result)
@@ -137,6 +177,58 @@ namespace
 
         std::lock_guard<std::mutex> lock(conn->modules_mutex_);
         analysis::process_nmi_result(conn->kernel_modules_, result);
+    }
+
+    void handle_image_signature_check_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ImageSignatureCheckResult* result)
+    {
+        if (!result || !result->full_path())
+        {
+            LOG_ERR("null ImageSignatureCheckResult");
+            return;
+        }
+
+        const auto path = result->full_path()->str();
+        auto valid = false;
+
+        if (result->data_type() == Anticheat::SignatureData_EmbeddedSignature)
+        {
+            const auto* emb = result->data_as_EmbeddedSignature();
+            if (emb && emb->pkcs7())
+            {
+                valid = sign::verify_embedded({emb->pkcs7()->data(), emb->pkcs7()->size()});
+            }
+        }
+        else if (result->data_type() == Anticheat::SignatureData_CatalogSignature)
+        {
+            const auto* cat = result->data_as_CatalogSignature();
+            if (cat && cat->catalog_pkcs7() && cat->authenticode_hash())
+            {
+                valid = sign::verify_catalog(
+                    {cat->catalog_pkcs7()->data(), cat->catalog_pkcs7()->size()},
+                    {cat->authenticode_hash()->data(), cat->authenticode_hash()->size()}
+                );
+            }
+        }
+
+        if (valid)
+        {
+            std::lock_guard lock(conn->modules_mutex_);
+
+            for (const auto& mod : conn->kernel_modules_)
+            {
+                if (mod.full_path == path)
+                {
+                    std::lock_guard hash_lock(analysis::verified_hashes_mutex);
+                    analysis::verified_hashes.insert(analysis::to_hex(mod.hash));
+                    LOG_INFO("module verified: {}", path);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            LOG_WARN("unsigned or untrusted module: {}", path);
+        }
     }
 
     void broadcast_check_requests(

@@ -39,14 +39,20 @@ namespace
         const auto image = static_cast<portable_executable::image_t*>(image_info->ImageBase);
         const auto hash_result = krnl::hash_nonwritable_sections(image);
 
-        const auto name_str = (full_image_name && full_image_name->Buffer && full_image_name->Length > 0)
+        const auto path_str = (full_image_name && full_image_name->Buffer && full_image_name->Length > 0)
             ? cstd::to_string(cstd::wstring_view{ full_image_name->Buffer, full_image_name->Length / sizeof(wchar_t) })
             : cstd::string{};
 
-        const auto estimated = 128 + name_str.size();
+        const auto name_start = path_str.rfind('\\');
+        const auto name_str = (name_start != cstd::string::npos)
+            ? cstd::string(path_str.data() + name_start + 1, path_str.size() - name_start - 1)
+            : path_str;
+
+        const auto estimated = 128 + path_str.size() + name_str.size();
         flatbuffers::FlatBufferBuilder fbb(estimated);
 
         auto name_offset = fbb.CreateString(name_str.data(), name_str.size());
+        auto path_offset = fbb.CreateString(path_str.data(), path_str.size());
 
         flatbuffers::Offset<flatbuffers::Vector<uint8_t>> hash_offset;
 
@@ -62,7 +68,8 @@ namespace
             base,
             size,
             name_offset,
-            hash_offset
+            hash_offset,
+            path_offset
         );
         fbb.Finish(load);
 
@@ -225,6 +232,12 @@ namespace events
             const auto* load = flatbuffers::GetRoot<Anticheat::KernelModuleLoad>(entry.data.data());
             auto name_offset = fbb.CreateString(load->name()->c_str(), load->name()->size());
 
+            flatbuffers::Offset<flatbuffers::String> path_offset;
+            if (load->full_path())
+            {
+                path_offset = fbb.CreateString(load->full_path()->c_str(), load->full_path()->size());
+            }
+
             flatbuffers::Offset<flatbuffers::Vector<uint8_t>> hash_offset;
 
             if (load->hash())
@@ -233,7 +246,7 @@ namespace events
             }
 
             auto load_offset = Anticheat::CreateKernelModuleLoad(
-                fbb, load->base_address(), load->size(), name_offset, hash_offset
+                fbb, load->base_address(), load->size(), name_offset, hash_offset, path_offset
             );
             auto event_offset = Anticheat::CreateEvent(fbb, Anticheat::EventBody_KernelModuleLoad, load_offset.Union());
             event_offsets.push_back(event_offset);

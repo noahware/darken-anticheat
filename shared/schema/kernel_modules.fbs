@@ -5,6 +5,7 @@ table KernelModule {
     size: uint32;
     name: string;
     hash: [ubyte];
+    full_path: string;
 }
 
 table KernelModuleList {
