@@ -197,6 +197,7 @@
     <ClInclude Include="src\state\protected_process.hpp" />
     <ClInclude Include="src\handle\object_callbacks.hpp" />
     <ClInclude Include="src\handle\table.hpp" />
+    <ClInclude Include="src\util\rva.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

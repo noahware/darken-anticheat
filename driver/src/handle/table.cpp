@@ -7,20 +7,20 @@
 
 #include <ntifs.h>
 
+#include "../util/rva.hpp"
+
 #define PROCESS_QUERY_LIMITED_INFORMATION (0x1000)
 
 extern "C" POBJECT_TYPE ObGetObjectType(void* object);
 
 using ex_enum_handle_table_callback_fn = BOOLEAN(*)(_HANDLE_TABLE* table, _HANDLE_TABLE_ENTRY* entry, HANDLE handle, void* context);
-
+using ex_unlock_handle_table_entry_fn = void(*)(_HANDLE_TABLE* table, _HANDLE_TABLE_ENTRY* entry);
 using ex_enum_handle_table_fn = BOOLEAN(*)(
     _HANDLE_TABLE* table,
     ex_enum_handle_table_callback_fn callback,
     void* context,
     HANDLE* handle
 );
-
-using ex_unlock_handle_table_entry_fn = void(*)(_HANDLE_TABLE* table, _HANDLE_TABLE_ENTRY* entry);
 
 namespace
 {
@@ -59,17 +59,7 @@ namespace
         DBG_LOG("stripping handle to protected process 0x%llx (access=0x%lx)\n",
                 target_process_id, entry->GrantedAccessBits);
 
-        constexpr ULONG access_mask = (1u << 25) - 1;
-        constexpr ULONG new_access = SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION;
-        auto* const access_dword = reinterpret_cast<volatile LONG*>(reinterpret_cast<uint8_t*>(entry) + 0x8);
-        LONG old_val, new_val;
-
-        do
-        {
-            old_val = *access_dword;
-            new_val = (old_val & ~static_cast<LONG>(access_mask)) | static_cast<LONG>(new_access);
-        }
-        while (_InterlockedCompareExchange(access_dword, new_val, old_val) != old_val);
+        entry->GrantedAccessBits = SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION;
 
         ex_unlock_handle_table_entry(table, entry);
 
@@ -97,8 +87,7 @@ nt_status handle::tbl::init()
         return nt_status::not_implemented();
     }
 
-    const auto unlock_rva = *reinterpret_cast<const int32_t*>(unlock_ref + 1);
-    ex_unlock_handle_table_entry = reinterpret_cast<ex_unlock_handle_table_entry_fn>(unlock_ref + 5 + unlock_rva);
+    ex_unlock_handle_table_entry = reinterpret_cast<ex_unlock_handle_table_entry_fn>(resolve_rip_relative(unlock_ref, 1, 5));
 
     const auto handle_table_list_ref = krnl::nt->signature_scan("4C 8B 35 ? ? ? ? B9");
 
@@ -108,8 +97,7 @@ nt_status handle::tbl::init()
         return nt_status::not_implemented();
     }
 
-    const auto rva = *reinterpret_cast<const int32_t*>(handle_table_list_ref + 3);
-    handle_table_list_head = reinterpret_cast<PLIST_ENTRY>(handle_table_list_ref + 7 + rva);
+    handle_table_list_head = reinterpret_cast<PLIST_ENTRY>(resolve_rip_relative(handle_table_list_ref, 3, 7));
 
     DBG_LOG("ExEnumHandleTable: %p, ExUnlockHandleTableEntry: %p, HandleTableListHead: %p\n",
             ex_enum_handle_table, ex_unlock_handle_table_entry, handle_table_list_head);
@@ -131,4 +119,3 @@ void handle::tbl::strip()
     	ex_enum_handle_table(&table, enum_callback, nullptr, nullptr);
     }
 }
-
