@@ -4,7 +4,7 @@
 #include "../krnl/modules.hpp"
 #include "../krnl/threads.hpp"
 #include "../nmi/nmi.hpp"
-#include "../state/state.hpp"
+#include "../state/protected_process.hpp"
 #include "../log.hpp"
 #include <driver/ioctl.h>
 #include "response_generated.h"
@@ -35,7 +35,7 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
     if (io_control_code == IOCTL_DARKEN_PROTECT_SELF)
     {
         const auto pid = reinterpret_cast<uint64_t>(PsGetCurrentProcessId());
-        state::protected_procs.push_back(protected_process_t(pid));
+        protected_process_t::add(pid);
         DBG_LOG("protected process: %llu\n", pid);
         return complete_request(irp, nt_status::success());
     }

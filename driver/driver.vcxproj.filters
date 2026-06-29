@@ -78,7 +78,7 @@
     <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\pe_crt\crt_string.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\state\state.cpp">
+    <ClCompile Include="src\handle\object_callbacks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -119,7 +119,10 @@
     <ClInclude Include="src\log.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\state\state.hpp">
+    <ClInclude Include="src\state\protected_process.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\handle\object_callbacks.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

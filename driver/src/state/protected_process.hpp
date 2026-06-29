@@ -1,5 +1,7 @@
 #pragma once
 #include <types.hpp>
+#include <list.hpp>
+#include <algorithm.hpp>
 
 class protected_process_t
 {
@@ -26,6 +28,25 @@ public:
         return id_ != other.id_;
     }
 
+    static void add(const id_type id)
+    {
+        list_.push_back(protected_process_t(id));
+    }
+
+    [[nodiscard]] static protected_process_t* find(const id_type id)
+    {
+        const protected_process_t target(id);
+        auto it = cstd::find(list_, target);
+
+        if (it == list_.end())
+        {
+            return nullptr;
+        }
+
+        return &(*it);
+    }
+
 protected:
     id_type id_ = 0;
+    static inline cstd::single_linked_list<protected_process_t> list_;
 };

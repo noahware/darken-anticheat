@@ -176,7 +176,7 @@
     <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\relocations_directory.cpp" />
     <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\pe_crt\crt_memory.cpp" />
     <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\pe_crt\crt_string.cpp" />
-    <ClCompile Include="src\state\state.cpp" />
+    <ClCompile Include="src\handle\object_callbacks.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\crypto\crypto.hpp" />
@@ -191,7 +191,8 @@
     <ClInclude Include="src\krnl\time.hpp" />
     <ClInclude Include="src\krnl\types.hpp" />
     <ClInclude Include="src\log.hpp" />
-    <ClInclude Include="src\state\state.hpp" />
+    <ClInclude Include="src\state\protected_process.hpp" />
+    <ClInclude Include="src\handle\object_callbacks.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
