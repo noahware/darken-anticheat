@@ -1,5 +1,6 @@
 #include "threads.hpp"
 #include "types.hpp"
+#include "nt_status.hpp"
 #include "../log.hpp"
 
 #include "flatbuffers/flatbuffers.h"
@@ -18,14 +19,14 @@ namespace krnl
         cstd::vector<uint8_t> buffer(initial_buffer_size);
         ULONG return_length = 0;
 
-        auto status = ZwQuerySystemInformation(
+        nt_status status = ZwQuerySystemInformation(
             system_process_info_class,
             buffer.data(),
             static_cast<ULONG>(buffer.size()),
             &return_length
         );
 
-        while (status == STATUS_INFO_LENGTH_MISMATCH)
+        while (status == nt_status::info_length_mismatch())
         {
             const auto new_size = buffer.size() * 2;
 
@@ -45,9 +46,9 @@ namespace krnl
             );
         }
 
-        if (!NT_SUCCESS(status))
+        if (!status)
         {
-            DBG_LOG("get_thread_list: ZwQuerySystemInformation failed: 0x%x\n", status);
+            DBG_LOG("get_thread_list: ZwQuerySystemInformation failed: 0x%x\n", status.value());
             return {};
         }
 

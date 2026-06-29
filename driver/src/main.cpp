@@ -7,6 +7,7 @@
 #include "krnl/krnl.hpp"
 #include "krnl/list.hpp"
 #include "krnl/types.hpp"
+#include "krnl/nt_status.hpp"
 #include "ioctl/ioctl.hpp"
 #include "crypto/crypto.hpp"
 #include "events/events.hpp"
@@ -42,10 +43,10 @@ static PDEVICE_OBJECT g_device_object = nullptr;
 
 static NTSTATUS dispatch_create_close([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 {
-	irp->IoStatus.Status = STATUS_SUCCESS;
+	irp->IoStatus.Status = nt_status::success();
 	irp->IoStatus.Information = 0;
 	IoCompleteRequest(irp, IO_NO_INCREMENT);
-	return STATUS_SUCCESS;
+	return nt_status::success();
 }
 
 static void driver_unload(PDRIVER_OBJECT driver_object)
@@ -73,13 +74,13 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 
 	/*if (emu::is_emulated())
 	{
-		return STATUS_ABANDONED;
+		return nt_status::abandoned();
 	}*/
 
 	UNICODE_STRING device_name = RTL_CONSTANT_STRING(DARKEN_DEVICE_NAME);
 	UNICODE_STRING symlink_name = RTL_CONSTANT_STRING(DARKEN_SYMLINK_NAME);
 
-	auto status = IoCreateDevice(
+	nt_status status = IoCreateDevice(
 		driver_object,
 		0,
 		&device_name,
@@ -89,9 +90,9 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 		&g_device_object
 	);
 
-	if (!NT_SUCCESS(status))
+	if (!status)
 	{
-		DBG_LOG("failed to create device: 0x%x\n", status);
+		DBG_LOG("failed to create device: 0x%x\n", status.value());
 		return status;
 	}
 
@@ -100,9 +101,9 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 
 	status = IoCreateSymbolicLink(&symlink_name, &device_name);
 
-	if (!NT_SUCCESS(status))
+	if (!status)
 	{
-		DBG_LOG("failed to create symbolic link: 0x%x\n", status);
+		DBG_LOG("failed to create symbolic link: 0x%x\n", status.value());
 		IoDeleteDevice(g_device_object);
 		return status;
 	}
@@ -114,9 +115,9 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 
 	status = crypto::init();
 
-	if (!NT_SUCCESS(status))
+	if (!status)
 	{
-		DBG_LOG("failed to initialize crypto: 0x%x\n", status);
+		DBG_LOG("failed to initialize crypto: 0x%x\n", status.value());
 		IoDeleteSymbolicLink(&symlink_name);
 		IoDeleteDevice(g_device_object);
 		return status;
@@ -124,9 +125,9 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 
 	status = events::init();
 
-	if (!NT_SUCCESS(status))
+	if (!status)
 	{
-		DBG_LOG("failed to initialize event system: 0x%x\n", status);
+		DBG_LOG("failed to initialize event system: 0x%x\n", status.value());
 		crypto::cleanup();
 		IoDeleteSymbolicLink(&symlink_name);
 		IoDeleteDevice(g_device_object);
@@ -134,5 +135,5 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 	}
 
 	DBG_LOG("darken anticheat loaded\n");
-	return STATUS_SUCCESS;
+	return nt_status::success();
 }

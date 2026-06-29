@@ -9,6 +9,7 @@
 #include "../log.hpp"
 #include "../krnl/krnl.hpp"
 #include "../krnl/types.hpp"
+#include "../krnl/nt_status.hpp"
 
 using zw_system_debug_control_t = NTSTATUS(NTAPI*)(ULONG, PVOID, ULONG, PVOID, ULONG, PULONG);
 
@@ -70,7 +71,7 @@ using zw_system_debug_control_t = NTSTATUS(NTAPI*)(ULONG, PVOID, ULONG, PVOID, U
 		return false;
 	}
 
-	return ZwSystemDebugControl(0, nullptr, 0, nullptr, 0, nullptr) != STATUS_DEBUGGER_INACTIVE;
+	return ZwSystemDebugControl(0, nullptr, 0, nullptr, 0, nullptr) != nt_status::debugger_inactive();
 }
 
 bool emu::is_emulated()

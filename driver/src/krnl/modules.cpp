@@ -9,7 +9,7 @@
 
 namespace krnl
 {
-    cstd::expected<crypto::sha256_hash_t, NTSTATUS> hash_nonwritable_sections(
+    cstd::expected<crypto::sha256_hash_t, nt_status> hash_nonwritable_sections(
         portable_executable::image_t* image)
     {
         const auto base = reinterpret_cast<const uint8_t*>(image);

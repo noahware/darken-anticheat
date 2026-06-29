@@ -8,18 +8,18 @@ namespace
 
 namespace crypto
 {
-    NTSTATUS init()
+    nt_status init()
     {
-        const auto status = BCryptOpenAlgorithmProvider(
+        const nt_status status = BCryptOpenAlgorithmProvider(
             &algorithm_,
             BCRYPT_SHA256_ALGORITHM,
             nullptr,
             0
         );
 
-        if (!NT_SUCCESS(status))
+        if (!status)
         {
-            DBG_LOG("BCryptOpenAlgorithmProvider failed: 0x%x\n", status);
+            DBG_LOG("BCryptOpenAlgorithmProvider failed: 0x%x\n", status.value());
         }
 
         return status;
@@ -34,20 +34,20 @@ namespace crypto
         }
     }
 
-    cstd::expected<sha256_hash_t, NTSTATUS> sha256(cstd::span<const uint8_t> data)
+    cstd::expected<sha256_hash_t, nt_status> sha256(cstd::span<const uint8_t> data)
     {
         const cstd::span<const cstd::span<const uint8_t>> single(&data, 1);
         return sha256(single);
     }
 
-    cstd::expected<sha256_hash_t, NTSTATUS> sha256(
+    cstd::expected<sha256_hash_t, nt_status> sha256(
         cstd::span<const cstd::span<const uint8_t>> chunks)
     {
         BCRYPT_HASH_HANDLE hash_handle = nullptr;
 
-        auto status = BCryptCreateHash(algorithm_, &hash_handle, nullptr, 0, nullptr, 0, 0);
+        nt_status status = BCryptCreateHash(algorithm_, &hash_handle, nullptr, 0, nullptr, 0, 0);
 
-        if (!NT_SUCCESS(status))
+        if (!status)
         {
             return cstd::unexpected(status);
         }
@@ -61,7 +61,7 @@ namespace crypto
                 0
             );
 
-            if (!NT_SUCCESS(status))
+            if (!status)
             {
                 BCryptDestroyHash(hash_handle);
                 return cstd::unexpected(status);
@@ -73,7 +73,7 @@ namespace crypto
         status = BCryptFinishHash(hash_handle, result.data(), sha256_size, 0);
         BCryptDestroyHash(hash_handle);
 
-        if (!NT_SUCCESS(status))
+        if (!status)
         {
             return cstd::unexpected(status);
         }

@@ -8,7 +8,7 @@
 #include <driver/ioctl.h>
 #include "response_generated.h"
 
-static NTSTATUS complete_request(PIRP irp, const NTSTATUS status, const ULONG_PTR information = 0)
+static nt_status complete_request(PIRP irp, const nt_status status, const ULONG_PTR information = 0)
 {
     irp->IoStatus.Status = status;
     irp->IoStatus.Information = information;
@@ -33,7 +33,7 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 
     if (io_control_code != IOCTL_DARKEN_FBS_REQUEST)
     {
-        return complete_request(irp, STATUS_INVALID_DEVICE_REQUEST);
+        return complete_request(irp, nt_status::invalid_device_request());
     }
 
     const auto input_size = stack->Parameters.DeviceIoControl.InputBufferLength;
@@ -42,7 +42,7 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 
     if (!system_buffer || input_size < sizeof(std::uint8_t))
     {
-        return complete_request(irp, STATUS_INVALID_PARAMETER);
+        return complete_request(irp, nt_status::invalid_parameter());
     }
 
     const auto request_id = static_cast<Anticheat::ResponseId>(*static_cast<const std::uint8_t*>(system_buffer));
@@ -64,15 +64,15 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 
     default:
         DBG_LOG("unknown request id: %d\n", static_cast<int>(request_id));
-        return complete_request(irp, STATUS_INVALID_PARAMETER);
+        return complete_request(irp, nt_status::invalid_parameter());
     }
 
     if (response_bytes.size() > output_capacity)
     {
-        return complete_request(irp, STATUS_BUFFER_TOO_SMALL);
+        return complete_request(irp, nt_status::buffer_too_small());
     }
 
     cstd::crt::memcpy(system_buffer, response_bytes.data(), response_bytes.size());
 
-    return complete_request(irp, STATUS_SUCCESS, response_bytes.size());
+    return complete_request(irp, nt_status::success(), response_bytes.size());
 }

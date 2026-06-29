@@ -91,18 +91,18 @@ namespace
 
 namespace events
 {
-    NTSTATUS init()
+    nt_status init()
     {
         event_queue_ = new cstd::vector<event_entry>();
 
         OBJECT_ATTRIBUTES oa;
         InitializeObjectAttributes(&oa, nullptr, OBJ_KERNEL_HANDLE, nullptr, nullptr);
 
-        auto status = ZwCreateEvent(&event_handle_, EVENT_ALL_ACCESS, &oa, SynchronizationEvent, FALSE);
+        nt_status status = ZwCreateEvent(&event_handle_, EVENT_ALL_ACCESS, &oa, SynchronizationEvent, FALSE);
 
-        if (!NT_SUCCESS(status))
+        if (!status)
         {
-            DBG_LOG("ZwCreateEvent failed: 0x%x\n", status);
+            DBG_LOG("ZwCreateEvent failed: 0x%x\n", status.value());
             return status;
         }
 
@@ -115,9 +115,9 @@ namespace events
             nullptr
         );
 
-        if (!NT_SUCCESS(status))
+        if (!status)
         {
-            DBG_LOG("ObReferenceObjectByHandle failed: 0x%x\n", status);
+            DBG_LOG("ObReferenceObjectByHandle failed: 0x%x\n", status.value());
             ZwClose(event_handle_);
             event_handle_ = nullptr;
             return status;
@@ -125,9 +125,9 @@ namespace events
 
         status = PsSetLoadImageNotifyRoutine(on_image_load);
 
-        if (!NT_SUCCESS(status))
+        if (!status)
         {
-            DBG_LOG("PsSetLoadImageNotifyRoutine failed: 0x%x\n", status);
+            DBG_LOG("PsSetLoadImageNotifyRoutine failed: 0x%x\n", status.value());
             ObDereferenceObject(event_object_);
             event_object_ = nullptr;
             ZwClose(event_handle_);
@@ -136,7 +136,7 @@ namespace events
         }
 
         DBG_LOG("event system initialized\n");
-        return STATUS_SUCCESS;
+        return nt_status::success();
     }
 
     void cleanup()
@@ -161,22 +161,22 @@ namespace events
         DBG_LOG("event system cleaned up\n");
     }
 
-    NTSTATUS get_event_handle(PIRP irp)
+    nt_status get_event_handle(PIRP irp)
     {
         const auto* stack = IoGetCurrentIrpStackLocation(irp);
         const auto output_capacity = stack->Parameters.DeviceIoControl.OutputBufferLength;
 
         if (output_capacity < sizeof(HANDLE))
         {
-            irp->IoStatus.Status = STATUS_BUFFER_TOO_SMALL;
+            irp->IoStatus.Status = nt_status::buffer_too_small();
             irp->IoStatus.Information = 0;
             IoCompleteRequest(irp, IO_NO_INCREMENT);
-            return STATUS_BUFFER_TOO_SMALL;
+            return nt_status::buffer_too_small();
         }
 
         HANDLE user_handle = nullptr;
 
-        const auto status = ObOpenObjectByPointer(
+        const nt_status status = ObOpenObjectByPointer(
             event_object_,
             0,
             nullptr,
@@ -186,9 +186,9 @@ namespace events
             &user_handle
         );
 
-        if (!NT_SUCCESS(status))
+        if (!status)
         {
-            DBG_LOG("ObOpenObjectByPointer failed: 0x%x\n", status);
+            DBG_LOG("ObOpenObjectByPointer failed: 0x%x\n", status.value());
             irp->IoStatus.Status = status;
             irp->IoStatus.Information = 0;
             IoCompleteRequest(irp, IO_NO_INCREMENT);
@@ -197,13 +197,13 @@ namespace events
 
         *static_cast<HANDLE*>(irp->AssociatedIrp.SystemBuffer) = user_handle;
 
-        irp->IoStatus.Status = STATUS_SUCCESS;
+        irp->IoStatus.Status = nt_status::success();
         irp->IoStatus.Information = sizeof(HANDLE);
         IoCompleteRequest(irp, IO_NO_INCREMENT);
-        return STATUS_SUCCESS;
+        return nt_status::success();
     }
 
-    NTSTATUS drain(PIRP irp)
+    nt_status drain(PIRP irp)
     {
         const auto* stack = IoGetCurrentIrpStackLocation(irp);
         const auto output_capacity = stack->Parameters.DeviceIoControl.OutputBufferLength;
@@ -260,17 +260,17 @@ namespace events
 
         if (response_size > output_capacity)
         {
-            irp->IoStatus.Status = STATUS_BUFFER_TOO_SMALL;
+            irp->IoStatus.Status = nt_status::buffer_too_small();
             irp->IoStatus.Information = 0;
             IoCompleteRequest(irp, IO_NO_INCREMENT);
-            return STATUS_BUFFER_TOO_SMALL;
+            return nt_status::buffer_too_small();
         }
 
         cstd::crt::memcpy(irp->AssociatedIrp.SystemBuffer, fbb.GetBufferPointer(), response_size);
 
-        irp->IoStatus.Status = STATUS_SUCCESS;
+        irp->IoStatus.Status = nt_status::success();
         irp->IoStatus.Information = response_size;
         IoCompleteRequest(irp, IO_NO_INCREMENT);
-        return STATUS_SUCCESS;
+        return nt_status::success();
     }
 }

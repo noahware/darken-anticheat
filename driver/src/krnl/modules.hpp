@@ -94,7 +94,7 @@ namespace krnl
         range_type range_;
     };
 
-    [[nodiscard]] cstd::expected<crypto::sha256_hash_t, NTSTATUS> hash_nonwritable_sections(portable_executable::image_t* image);
+    [[nodiscard]] cstd::expected<crypto::sha256_hash_t, nt_status> hash_nonwritable_sections(portable_executable::image_t* image);
     [[nodiscard]] portable_executable::image_t* find_module_image(cstd::wstring_view module_name);
     [[nodiscard]] cstd::vector<uint8_t> get_module_list();
 }
