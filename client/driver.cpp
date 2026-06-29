@@ -103,6 +103,36 @@ namespace driver
         return run_check(Anticheat::ResponseId_NmiCheck);
     }
 
+    bool protect_self()
+    {
+        if (!is_open())
+        {
+            return false;
+        }
+
+        DWORD bytes_returned = 0;
+
+        const BOOL success = DeviceIoControl(
+            device_handle,
+            IOCTL_DARKEN_PROTECT_SELF,
+            nullptr,
+            0,
+            nullptr,
+            0,
+            &bytes_returned,
+            nullptr
+        );
+
+        if (!success)
+        {
+            LOG_ERR("protect_self failed (error: {})", GetLastError());
+            return false;
+        }
+
+        LOG_INFO("process protected");
+        return true;
+    }
+
     std::optional<HANDLE> get_event_handle()
     {
         if (!is_open())

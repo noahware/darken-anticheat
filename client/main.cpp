@@ -108,6 +108,10 @@ std::int32_t main()
         {
             LOG_ERR("failed to open driver device, continuing without driver");
         }
+        else if (!driver::protect_self())
+        {
+            LOG_ERR("failed to register as protected process");
+        }
 
         boost::asio::io_context io_context;
         const auto ssl_ctx = std::make_shared<sl::boost_ssl_context>(
