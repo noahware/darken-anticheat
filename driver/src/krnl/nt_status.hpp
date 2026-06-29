@@ -7,7 +7,7 @@ public:
     using value_type = NTSTATUS;
 
     constexpr nt_status() noexcept
-        : value_(STATUS_SUCCESS) { }
+        : value_(0) { }
 
     constexpr nt_status(const value_type value) noexcept
         : value_(value) { }
@@ -24,20 +24,20 @@ public:
 
     explicit constexpr operator bool() const noexcept
     {
-        return NT_SUCCESS(value_);
+        return value_ >= 0;
     }
 
-    static constexpr nt_status success() noexcept { return STATUS_SUCCESS; }
-    static constexpr nt_status abandoned() noexcept { return STATUS_ABANDONED; }
-    static constexpr nt_status unsuccessful() noexcept { return STATUS_UNSUCCESSFUL; }
-    static constexpr nt_status not_implemented() noexcept { return STATUS_NOT_IMPLEMENTED; }
-    static constexpr nt_status invalid_parameter() noexcept { return STATUS_INVALID_PARAMETER; }
-    static constexpr nt_status invalid_device_request() noexcept { return STATUS_INVALID_DEVICE_REQUEST; }
-    static constexpr nt_status buffer_too_small() noexcept { return STATUS_BUFFER_TOO_SMALL; }
-    static constexpr nt_status access_denied() noexcept { return STATUS_ACCESS_DENIED; }
-    static constexpr nt_status insufficient_resources() noexcept { return STATUS_INSUFFICIENT_RESOURCES; }
-    static constexpr nt_status info_length_mismatch() noexcept { return STATUS_INFO_LENGTH_MISMATCH; }
-    static constexpr nt_status debugger_inactive() noexcept { return STATUS_DEBUGGER_INACTIVE; }
+    static constexpr nt_status success() noexcept { return nt_status(static_cast<value_type>(0x00000000)); }
+    static constexpr nt_status abandoned() noexcept { return nt_status(static_cast<value_type>(0x00000080)); }
+    static constexpr nt_status unsuccessful() noexcept { return nt_status(static_cast<value_type>(0xC0000001)); }
+    static constexpr nt_status not_implemented() noexcept { return nt_status(static_cast<value_type>(0xC0000002)); }
+    static constexpr nt_status invalid_parameter() noexcept { return nt_status(static_cast<value_type>(0xC000000D)); }
+    static constexpr nt_status invalid_device_request() noexcept { return nt_status(static_cast<value_type>(0xC0000010)); }
+    static constexpr nt_status buffer_too_small() noexcept { return nt_status(static_cast<value_type>(0xC0000023)); }
+    static constexpr nt_status access_denied() noexcept { return nt_status(static_cast<value_type>(0xC0000022)); }
+    static constexpr nt_status insufficient_resources() noexcept { return nt_status(static_cast<value_type>(0xC000009A)); }
+    static constexpr nt_status info_length_mismatch() noexcept { return nt_status(static_cast<value_type>(0xC0000004)); }
+    static constexpr nt_status debugger_inactive() noexcept { return nt_status(static_cast<value_type>(0xC0000354)); }
 
 protected:
     value_type value_;

@@ -98,6 +98,7 @@
     <Link>
       <EntryPointSymbol>driver_entry</EntryPointSymbol>
       <AdditionalDependencies>$(DDK_LIB_PATH)\cng.lib;$(DDK_LIB_PATH)\hal.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/INTEGRITYCHECK %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -115,6 +116,7 @@
     <Link>
       <EntryPointSymbol>driver_entry</EntryPointSymbol>
       <AdditionalDependencies>$(DDK_LIB_PATH)\cng.lib;$(DDK_LIB_PATH)\hal.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/INTEGRITYCHECK %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -177,6 +179,7 @@
     <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\pe_crt\crt_memory.cpp" />
     <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\pe_crt\crt_string.cpp" />
     <ClCompile Include="src\handle\object_callbacks.cpp" />
+    <ClCompile Include="src\handle\table.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\crypto\crypto.hpp" />
@@ -193,6 +196,7 @@
     <ClInclude Include="src\log.hpp" />
     <ClInclude Include="src\state\protected_process.hpp" />
     <ClInclude Include="src\handle\object_callbacks.hpp" />
+    <ClInclude Include="src\handle\table.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -12,6 +12,7 @@
 #include "crypto/crypto.hpp"
 #include "events/events.hpp"
 #include "handle/object_callbacks.hpp"
+#include "handle/table.hpp"
 #include <driver/ioctl.h>
 
 extern "C" void crt_global_init();
@@ -55,7 +56,7 @@ static NTSTATUS dispatch_create_close([[maybe_unused]] PDEVICE_OBJECT device, PI
 
 static void driver_unload(PDRIVER_OBJECT driver_object)
 {
-	handle::ob_callbacks::unload();
+	handle::cbs::unload();
 	events::cleanup();
 	crypto::cleanup();
 
@@ -143,11 +144,24 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 		return status;
 	}
 
-	status = handle::ob_callbacks::load();
+	status = handle::cbs::load();
 
 	if (!status)
 	{
 		DBG_LOG("failed to register ob callbacks: 0x%x\n", status.value());
+		events::cleanup();
+		crypto::cleanup();
+		IoDeleteSymbolicLink(&symlink_name);
+		IoDeleteDevice(g_device_object);
+		return status;
+	}
+
+	status = handle::tbl::init();
+
+	if (!status)
+	{
+		DBG_LOG("failed to initialize table walking: 0x%x\n", status.value());
+		handle::cbs::unload();
 		events::cleanup();
 		crypto::cleanup();
 		IoDeleteSymbolicLink(&symlink_name);

@@ -49,7 +49,7 @@ static void post_operation_callback([[maybe_unused]] void* const context,
 {
 }
 
-nt_status handle::ob_callbacks::load()
+nt_status handle::cbs::load()
 {
     POBJECT_TYPE* const process_type = PsProcessType;
 
@@ -71,7 +71,7 @@ nt_status handle::ob_callbacks::load()
     return ObRegisterCallbacks(&cb_registration, &registration_handle);
 }
 
-nt_status handle::ob_callbacks::unload()
+nt_status handle::cbs::unload()
 {
     if (registration_handle)
     {

@@ -1,7 +1,7 @@
 #pragma once
 #include "../krnl/nt_status.hpp"
 
-namespace handle::ob_callbacks
+namespace handle::cbs
 {
     nt_status load();
     nt_status unload();
