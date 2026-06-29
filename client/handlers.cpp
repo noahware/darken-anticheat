@@ -219,4 +219,38 @@ namespace handlers
         }).detach();
     }
 
+    void handle_handle_strip_check_request(
+        const std::shared_ptr<sl::session>& sess,
+        [[maybe_unused]] const Anticheat::HandleStripCheckRequest* request)
+    {
+        LOG_INFO("received handle strip check request");
+
+        auto session = sess;
+        std::thread([session]()
+            {
+                handlers::send_handle_strip_result(session);
+            }).detach();
+    }
+
+    bool send_handle_strip_result(const std::shared_ptr<sl::session>& sess)
+    {
+        auto handle_strip_data = driver::get_handle_strip_result();
+
+        if (!handle_strip_data)
+        {
+            LOG_ERR("driver request failed for HandleStripCheck");
+            return false;
+        }
+
+        auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*handle_strip_data));
+
+        sl::msg::async_send_view(
+            sess->socket(), Anticheat::RequestId_HandleStripData,
+            [data](bool) {},
+            std::span<const std::uint8_t>{data->data(), data->size()}
+        );
+
+        LOG_INFO("sent handle strip result ({} bytes)", data->size());
+        return true;
+    }
 }

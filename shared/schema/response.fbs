@@ -6,7 +6,8 @@ enum ResponseId : uint8 {
     KernelModuleList = 2,
     ThreadList = 3,
     NmiCheck = 4,
-    ImageSignatureCheck = 5
+    ImageSignatureCheck = 5,
+    HandleStripCheck = 6
 }
 
 table PongResponse {
@@ -21,3 +22,5 @@ table KernelModuleListRequest {}
 table ThreadListRequest {}
 
 table NmiCheckRequest {}
+
+table HandleStripCheckRequest {}

@@ -17,4 +17,7 @@ namespace handlers
     bool send_nmi_result(const std::shared_ptr<sl::session>& sess);
 
     void handle_image_signature_check(const std::shared_ptr<sl::session>& sess, const Anticheat::ImageSignatureCheckRequest* request);
+
+    void handle_handle_strip_check_request(const std::shared_ptr<sl::session>& sess, const Anticheat::HandleStripCheckRequest* request);
+    bool send_handle_strip_result(const std::shared_ptr<sl::session>& sess);
 }

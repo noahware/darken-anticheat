@@ -3,11 +3,13 @@
 #include "../krnl/krnl.hpp"
 #include "../krnl/list.hpp"
 #include "../krnl/types.hpp"
+#include "../util/rva.hpp"
 #include "../log.hpp"
 
 #include <ntifs.h>
 
-#include "../util/rva.hpp"
+#include "flatbuffers/flatbuffers.h"
+#include "handle_strip_generated.h"
 
 #define PROCESS_QUERY_LIMITED_INFORMATION (0x1000)
 
@@ -22,19 +24,28 @@ using ex_enum_handle_table_fn = BOOLEAN(*)(
     HANDLE* handle
 );
 
+struct handle_strip_info
+{
+    uint64_t source_process_id;
+    uint64_t target_process_id;
+    uint32_t access;
+};
+
 namespace
 {
     ex_enum_handle_table_fn ex_enum_handle_table = nullptr;
     ex_unlock_handle_table_entry_fn ex_unlock_handle_table_entry = nullptr;
     PLIST_ENTRY handle_table_list_head = nullptr;
 
-    BOOLEAN enum_callback([[maybe_unused]] _HANDLE_TABLE* const table, _HANDLE_TABLE_ENTRY* const entry, [[maybe_unused]] HANDLE handle, [[maybe_unused]] void* context)
+    BOOLEAN enum_callback(_HANDLE_TABLE* const table, _HANDLE_TABLE_ENTRY* const entry, [[maybe_unused]] HANDLE handle, void* context)
     {
-        if (!entry || !entry->ObjectPointerBits)
+        if (!entry || !entry->ObjectPointerBits || table->UniqueProcessId == 4)
         {
             ex_unlock_handle_table_entry(table, entry);
             return FALSE;
         }
+
+        auto& handle_infos = *static_cast<cstd::vector<handle_strip_info>*>(context);
 
         const auto object_header = reinterpret_cast<_OBJECT_HEADER*>(
             0xffff000000000000 | (static_cast<uint64_t>(entry->ObjectPointerBits) << 4)
@@ -58,6 +69,11 @@ namespace
 
         DBG_LOG("stripping handle to protected process 0x%llx (access=0x%lx)\n",
                 target_process_id, entry->GrantedAccessBits);
+
+        handle_infos.push_back(handle_strip_info{
+	        .source_process_id = table->UniqueProcessId, .target_process_id = target_process_id,
+	        .access = entry->GrantedAccessBits
+        });
 
         entry->GrantedAccessBits = SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION;
 
@@ -105,17 +121,38 @@ nt_status handle::tbl::init()
     return nt_status::success();
 }
 
-void handle::tbl::strip()
+cstd::vector<uint8_t> handle::tbl::strip()
 {
     if (!ex_enum_handle_table || !handle_table_list_head)
     {
-        return;
+        return { };
     }
+
+    cstd::vector<handle_strip_info> handle_infos;
 
     const krnl::list_range<_HANDLE_TABLE, &_HANDLE_TABLE::HandleTableList> handle_tables(handle_table_list_head);
 
     for (_HANDLE_TABLE& table : handle_tables)
     {
-    	ex_enum_handle_table(&table, enum_callback, nullptr, nullptr);
+    	ex_enum_handle_table(&table, enum_callback, &handle_infos, nullptr);
     }
+
+    flatbuffers::FlatBufferBuilder fbb(handle_infos.size() * 32);
+    cstd::vector<flatbuffers::Offset<Anticheat::StrippedHandleInfo>> handle_offsets;
+
+    for (const auto& info : handle_infos)
+    {
+        handle_offsets.push_back(
+            Anticheat::CreateStrippedHandleInfo(fbb, info.target_process_id, info.source_process_id, info.access)
+        );
+    }
+
+    auto handles_vec = fbb.CreateVector(handle_offsets.data(), handle_offsets.size());
+    auto result = Anticheat::CreateHandleStripResult(fbb, handles_vec);
+    fbb.Finish(result);
+
+    const auto* buf = fbb.GetBufferPointer();
+    const auto size = fbb.GetSize();
+
+    return cstd::vector<uint8_t>(buf, size);
 }

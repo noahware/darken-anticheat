@@ -10,6 +10,7 @@
 #include <schema/event_generated.h>
 #include <schema/thread_generated.h>
 #include <schema/nmi_result_generated.h>
+#include <schema/handle_strip_generated.h>
 #include <schema/signature_generated.h>
 
 #include "log.hpp"
@@ -60,6 +61,7 @@ namespace
     void handle_thread_list_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ThreadList* result);
     void handle_nmi_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::NmiResult* result);
     void handle_image_signature_check_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ImageSignatureCheckResult* result);
+    void handle_handle_strip_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::HandleStripResult* result);
 
     constexpr sl::message_info<Anticheat::PingRequest, sl::session> ping_request{
         Anticheat::RequestId_Ping, handle_ping
@@ -89,7 +91,11 @@ namespace
         Anticheat::RequestId_ImageSignatureCheckResult, handle_image_signature_check_result
     };
 
-    using request_router = sl::message_router<ping_request, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data, image_signature_check_result>;
+    constexpr sl::message_info<Anticheat::HandleStripResult, client_connection> handle_strip_result_data{
+        Anticheat::RequestId_HandleStripData, handle_handle_strip_result_data
+    };
+
+    using request_router = sl::message_router<ping_request, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data, image_signature_check_result, handle_strip_result_data>;
 
     class client_connection final : public sl::session
     {
@@ -231,6 +237,14 @@ namespace
         }
     }
 
+    void handle_handle_strip_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::HandleStripResult* result)
+    {
+        LOG_INFO("handle strip result from {}:{}",
+            conn->socket().remote_address(), conn->socket().port());
+
+        analysis::process_handle_strip_result(result);
+    }
+
     void broadcast_check_requests(
         boost::asio::steady_timer& timer,
         const std::shared_ptr<sl::boost_session_manager<client_connection>>& manager,
@@ -260,6 +274,10 @@ namespace
 
                 sl::msg::async_send<Anticheat::CreateNmiCheckRequest>(
                     sess->socket(), Anticheat::ResponseId_NmiCheck
+                );
+
+                sl::msg::async_send<Anticheat::CreateHandleStripCheckRequest>(
+                    sess->socket(), Anticheat::ResponseId_HandleStripCheck
                 );
             });
 

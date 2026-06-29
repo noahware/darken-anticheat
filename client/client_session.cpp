@@ -32,7 +32,11 @@ namespace
         Anticheat::ResponseId_ImageSignatureCheck, handlers::handle_image_signature_check
     };
 
-    using response_router = sl::message_router<pong_response, client_timestamp_request, kernel_module_list_request, thread_list_request, nmi_check_request, image_signature_check_request>;
+    constexpr sl::message_info<Anticheat::HandleStripCheckRequest, sl::session> handle_strip_check_request{
+        Anticheat::ResponseId_HandleStripCheck, handlers::handle_handle_strip_check_request
+    };
+
+    using response_router = sl::message_router<pong_response, client_timestamp_request, kernel_module_list_request, thread_list_request, nmi_check_request, image_signature_check_request, handle_strip_check_request>;
 }
 
 void client_session::handle_message(const message_id_t id, const body_buffer_t body)

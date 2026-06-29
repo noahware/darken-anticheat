@@ -103,6 +103,11 @@ namespace driver
         return run_check(Anticheat::ResponseId_NmiCheck);
     }
 
+    std::optional<std::vector<std::uint8_t>> get_handle_strip_result()
+    {
+        return run_check(Anticheat::ResponseId_HandleStripCheck);
+    }
+
     bool protect_self()
     {
         if (!is_open())

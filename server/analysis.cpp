@@ -223,6 +223,29 @@ namespace analysis
         }
     }
 
+    void process_handle_strip_result(const Anticheat::HandleStripResult* result)
+    {
+	    if (!result)
+	    {
+            LOG_ERR("null HandleStripResult");
+
+            return;
+	    }
+
+        const auto* handles = result->handles();
+
+        if (!handles)
+        {
+            return;
+        }
+
+        for (const auto* handle : *handles)
+        {
+            LOG_WARN("process ID 0x{:X} had its handle stripped (access: 0x{:X}, target protected process id: 0x{:X})",
+                     handle->source_process_id(), handle->access(), handle->target_process_id());
+        }
+    }
+
     void process_event_batch(std::vector<module_entry>& modules, const Anticheat::EventBatch* batch)
     {
         if (!batch)

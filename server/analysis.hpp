@@ -1,6 +1,7 @@
 #pragma once
 #include <schema/client_timestamp_generated.h>
 #include <schema/kernel_modules_generated.h>
+#include <schema/handle_strip_generated.h>
 #include <schema/event_generated.h>
 #include <schema/thread_generated.h>
 #include <schema/nmi_result_generated.h>
@@ -39,6 +40,7 @@ namespace analysis
     void process_event_batch(std::vector<module_entry>& modules, const Anticheat::EventBatch* batch);
     void process_thread_list(std::vector<thread_entry>& threads, const std::vector<module_entry>& modules, const Anticheat::ThreadList* list);
     void process_nmi_result(const std::vector<module_entry>& modules, const Anticheat::NmiResult* result);
+    void process_handle_strip_result(const Anticheat::HandleStripResult* result);
 
     std::vector<std::string> find_unsigned_modules(std::span<const module_entry> modules);
 }

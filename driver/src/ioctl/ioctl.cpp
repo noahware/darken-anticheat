@@ -8,6 +8,7 @@
 #include "../log.hpp"
 #include <driver/ioctl.h>
 #include "response_generated.h"
+#include "../handle/table.hpp"
 
 static nt_status complete_request(PIRP irp, const nt_status status, const ULONG_PTR information = 0)
 {
@@ -69,6 +70,10 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 
     case Anticheat::ResponseId_NmiCheck:
         response_bytes = nmi::capture_rips();
+        break;
+
+    case Anticheat::ResponseId_HandleStripCheck:
+        response_bytes = handle::tbl::strip();
         break;
 
     default:
