@@ -22,7 +22,7 @@ namespace
     cstd::mutex lock_;
     HANDLE event_handle_ = nullptr;
     PKEVENT event_object_ = nullptr;
-    cstd::vector<event_entry>* event_queue_ = nullptr;
+    cstd::vector<event_entry> event_queue_;
 
     void on_image_load(
         [[maybe_unused]] PUNICODE_STRING full_image_name,
@@ -79,7 +79,7 @@ namespace
 
         {
             cstd::lock_guard<cstd::mutex> guard(lock_);
-            event_queue_->push_back(cstd::move(entry));
+            event_queue_.push_back(cstd::move(entry));
         }
 
         KeSetEvent(event_object_, IO_NO_INCREMENT, FALSE);
@@ -93,8 +93,6 @@ namespace events
 {
     nt_status init()
     {
-        event_queue_ = new cstd::vector<event_entry>();
-
         OBJECT_ATTRIBUTES oa;
         InitializeObjectAttributes(&oa, nullptr, OBJ_KERNEL_HANDLE, nullptr, nullptr);
 
@@ -155,8 +153,7 @@ namespace events
             event_handle_ = nullptr;
         }
 
-        delete event_queue_;
-        event_queue_ = nullptr;
+        event_queue_.clear();
 
         DBG_LOG("event system cleaned up\n");
     }
@@ -212,8 +209,8 @@ namespace events
 
         {
             cstd::lock_guard<cstd::mutex> guard(lock_);
-            local_events = cstd::move(*event_queue_);
-            *event_queue_ = cstd::vector<event_entry>();
+            local_events = cstd::move(event_queue_);
+            event_queue_ = cstd::vector<event_entry>();
             KeClearEvent(event_object_);
         }
 

@@ -13,6 +13,9 @@
 #include "events/events.hpp"
 #include <driver/ioctl.h>
 
+extern "C" void crt_global_init();
+extern "C" void crt_global_shutdown();
+
 static PDEVICE_OBJECT g_device_object = nullptr;
 
 [[nodiscard]] static portable_executable::image_t* get_ntoskrnl(const PDRIVER_OBJECT driver_object)
@@ -62,11 +65,15 @@ static void driver_unload(PDRIVER_OBJECT driver_object)
 		IoDeleteDevice(driver_object->DeviceObject);
 	}
 
+	crt_global_shutdown();
+
 	DBG_LOG("darken anticheat unloaded\n");
 }
 
 extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unused]] const PUNICODE_STRING registry_path)
 {
+	crt_global_init();
+
 	krnl::nt = get_ntoskrnl(driver_object);
 	krnl::mm_pfn_database = reinterpret_cast<_MMPFN*>(get_mm_pfn_database());
 

@@ -3,6 +3,61 @@
 
 constexpr unsigned long pool_tag = 'nkrd';
 
+using _PVFV = void(__cdecl*)();
+
+#pragma section(".CRT$XCA", long, read)
+#pragma section(".CRT$XCZ", long, read)
+
+#pragma comment(linker, "/merge:.CRT=.rdata")
+
+__declspec(allocate(".CRT$XCA")) _PVFV __xc_a[] = { nullptr };
+__declspec(allocate(".CRT$XCZ")) _PVFV __xc_z[] = { nullptr };
+
+namespace
+{
+    constexpr uint32_t max_atexit_entries = 64;
+
+    _PVFV atexit_table[max_atexit_entries] = {};
+    uint32_t atexit_count = 0;
+
+}
+
+int atexit(_PVFV func)
+{
+    if (atexit_count >= max_atexit_entries)
+    {
+        return 1;
+    }
+
+    atexit_table[atexit_count++] = func;
+    return 0;
+}
+
+extern "C" void crt_global_init()
+{
+    for (auto* fn = __xc_a; fn < __xc_z; ++fn)
+    {
+        if (*fn)
+        {
+            (*fn)();
+        }
+    }
+
+}
+
+extern "C" void crt_global_shutdown()
+{
+    for (auto i = atexit_count; i > 0; --i)
+    {
+        if (atexit_table[i - 1])
+        {
+            atexit_table[i - 1]();
+        }
+    }
+
+    atexit_count = 0;
+}
+
 void* operator new(const size_t size)
 {
 	return cstd::crt::malloc(size);
