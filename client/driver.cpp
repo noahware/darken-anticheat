@@ -1,7 +1,6 @@
 #include "driver.hpp"
 #include "log.hpp"
 #include <driver/ioctl.h>
-#include <schema/response_generated.h>
 
 namespace
 {
@@ -86,26 +85,6 @@ namespace driver
 
         output.resize(bytes_returned);
         return output;
-    }
-
-    std::optional<std::vector<std::uint8_t>> get_module_list()
-    {
-        return run_check(Anticheat::ResponseId_KernelModuleList);
-    }
-
-    std::optional<std::vector<std::uint8_t>> get_thread_list()
-    {
-        return run_check(Anticheat::ResponseId_ThreadList);
-    }
-
-    std::optional<std::vector<std::uint8_t>> get_nmi_result()
-    {
-        return run_check(Anticheat::ResponseId_NmiCheck);
-    }
-
-    std::optional<std::vector<std::uint8_t>> get_handle_strip_result()
-    {
-        return run_check(Anticheat::ResponseId_HandleStripCheck);
     }
 
     bool protect_self()

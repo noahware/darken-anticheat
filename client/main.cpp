@@ -5,6 +5,7 @@
 #include "log.hpp"
 #include "driver.hpp"
 #include "handlers.hpp"
+#include "request_forwarder.hpp"
 #include "client_session.hpp"
 #include <chrono>
 #include <thread>
@@ -38,7 +39,7 @@ namespace
 
     void driver_thread(const std::shared_ptr<sl::session>& session)
     {
-        if (!handlers::send_kernel_module_list(session))
+        if (!request::forward<Anticheat::ResponseId_KernelModuleList, Anticheat::RequestId_KernelModuleListResult>(session))
         {
             LOG_ERR("failed to send initial module list");
             return;

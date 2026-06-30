@@ -11,10 +11,6 @@ namespace driver
     void close();
 
     std::optional<std::vector<std::uint8_t>> run_check(std::uint8_t check_id);
-    std::optional<std::vector<std::uint8_t>> get_module_list();
-    std::optional<std::vector<std::uint8_t>> get_thread_list();
-    std::optional<std::vector<std::uint8_t>> get_nmi_result();
-    std::optional<std::vector<std::uint8_t>> get_handle_strip_result();
     bool protect_self();
     std::optional<void*> get_event_handle();
     std::optional<std::vector<std::uint8_t>> drain_events();

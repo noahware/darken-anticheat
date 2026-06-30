@@ -6,10 +6,6 @@
 #include <message/message.hpp>
 #include <schema/request_generated.h>
 #include <schema/client_timestamp_generated.h>
-#include <schema/response_generated.h>
-#include <schema/kernel_modules_generated.h>
-#include <schema/thread_generated.h>
-#include <schema/nmi_result_generated.h>
 #include <schema/signature_generated.h>
 
 #include <chrono>
@@ -42,111 +38,6 @@ namespace handlers
         );
 
         LOG_INFO("sent client timestamp: {}ms", now);
-    }
-
-    bool send_kernel_module_list(const std::shared_ptr<sl::session>& sess)
-    {
-        auto module_list = driver::get_module_list();
-
-        if (!module_list)
-        {
-            LOG_ERR("driver request failed for KernelModuleList");
-            return false;
-        }
-
-        auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*module_list));
-
-        sl::msg::async_send_view(
-            sess->socket(), Anticheat::RequestId_KernelModuleListResult,
-            [data](bool) {},
-            std::span<const std::uint8_t>{data->data(), data->size()}
-        );
-
-        LOG_INFO("sent kernel module list ({} bytes)", data->size());
-        return true;
-    }
-
-    void handle_kernel_module_list_request(
-        const std::shared_ptr<sl::session>& sess,
-        [[maybe_unused]] const Anticheat::KernelModuleListRequest* request)
-    {
-        LOG_INFO("received kernel module list request");
-
-        auto session = sess;
-        std::thread([session]()
-        {
-            handlers::send_kernel_module_list(session);
-        }).detach();
-    }
-
-    bool send_thread_list(const std::shared_ptr<sl::session>& sess)
-    {
-        auto thread_list = driver::get_thread_list();
-
-        if (!thread_list)
-        {
-            LOG_ERR("driver request failed for ThreadList");
-            return false;
-        }
-
-        auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*thread_list));
-
-        sl::msg::async_send_view(
-            sess->socket(), Anticheat::RequestId_ThreadListResult,
-            [data](bool) {},
-            std::span<const std::uint8_t>{data->data(), data->size()}
-        );
-
-        LOG_INFO("sent thread list ({} bytes)", data->size());
-        return true;
-    }
-
-    void handle_thread_list_request(
-        const std::shared_ptr<sl::session>& sess,
-        [[maybe_unused]] const Anticheat::ThreadListRequest* request)
-    {
-        LOG_INFO("received thread list request");
-
-        auto session = sess;
-        std::thread([session]()
-        {
-            handlers::send_thread_list(session);
-        }).detach();
-    }
-
-    bool send_nmi_result(const std::shared_ptr<sl::session>& sess)
-    {
-        auto nmi_data = driver::get_nmi_result();
-
-        if (!nmi_data)
-        {
-            LOG_ERR("driver request failed for NmiCheck");
-            return false;
-        }
-
-        auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*nmi_data));
-
-        sl::msg::async_send_view(
-            sess->socket(), Anticheat::RequestId_NmiResultData,
-            [data](bool) {},
-            std::span<const std::uint8_t>{data->data(), data->size()}
-        );
-
-        LOG_INFO("sent nmi result ({} bytes)", data->size());
-        return true;
-    }
-
-    void handle_nmi_check_request(
-        const std::shared_ptr<sl::session>& sess,
-        [[maybe_unused]] const Anticheat::NmiCheckRequest* request)
-    {
-        LOG_INFO("received nmi check request");
-
-        auto session = sess;
-        std::thread([session]()
-        {
-            handlers::send_nmi_result(session);
-        }).detach();
     }
 
     void handle_image_signature_check(
@@ -217,40 +108,5 @@ namespace handlers
 
             LOG_INFO("sent signature check result for {} ({} bytes)", path, data->size());
         }).detach();
-    }
-
-    void handle_handle_strip_check_request(
-        const std::shared_ptr<sl::session>& sess,
-        [[maybe_unused]] const Anticheat::HandleStripCheckRequest* request)
-    {
-        LOG_INFO("received handle strip check request");
-
-        auto session = sess;
-        std::thread([session]()
-            {
-                handlers::send_handle_strip_result(session);
-            }).detach();
-    }
-
-    bool send_handle_strip_result(const std::shared_ptr<sl::session>& sess)
-    {
-        auto handle_strip_data = driver::get_handle_strip_result();
-
-        if (!handle_strip_data)
-        {
-            LOG_ERR("driver request failed for HandleStripCheck");
-            return false;
-        }
-
-        auto data = std::make_shared<std::vector<std::uint8_t>>(std::move(*handle_strip_data));
-
-        sl::msg::async_send_view(
-            sess->socket(), Anticheat::RequestId_HandleStripData,
-            [data](bool) {},
-            std::span<const std::uint8_t>{data->data(), data->size()}
-        );
-
-        LOG_INFO("sent handle strip result ({} bytes)", data->size());
-        return true;
     }
 }
