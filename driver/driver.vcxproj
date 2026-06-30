@@ -166,6 +166,7 @@
     <ClCompile Include="src\events\events.cpp" />
     <ClCompile Include="src\krnl\modules.cpp" />
     <ClCompile Include="src\krnl\threads.cpp" />
+    <ClCompile Include="src\msr\msr.cpp" />
     <ClCompile Include="src\nmi\nmi.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\crt.cpp" />
@@ -187,7 +188,9 @@
     <ClInclude Include="src\ioctl\ioctl.hpp" />
     <ClInclude Include="src\events\events.hpp" />
     <ClInclude Include="src\krnl\modules.hpp" />
+    <ClInclude Include="src\krnl\nt_status.hpp" />
     <ClInclude Include="src\krnl\threads.hpp" />
+    <ClInclude Include="src\msr\msr.hpp" />
     <ClInclude Include="src\nmi\nmi.hpp" />
     <ClInclude Include="src\emu\emu.hpp" />
     <ClInclude Include="src\krnl\krnl.hpp" />
@@ -198,7 +201,10 @@
     <ClInclude Include="src\state\protected_process.hpp" />
     <ClInclude Include="src\handle\object_callbacks.hpp" />
     <ClInclude Include="src\handle\table.hpp" />
+    <ClInclude Include="src\std_shim\assert.h" />
+    <ClInclude Include="src\util\import.hpp" />
     <ClInclude Include="src\util\rva.hpp" />
+    <ClInclude Include="src\util\serialisation.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

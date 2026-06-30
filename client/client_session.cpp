@@ -27,25 +27,30 @@ namespace
 
     constexpr sl::message_info<Anticheat::KernelModuleListRequest, sl::session> kernel_module_list_request{
         Anticheat::ResponseId_KernelModuleList,
-        request::handle_request<Anticheat::ResponseId_KernelModuleList, Anticheat::RequestId_KernelModuleListResult, Anticheat::KernelModuleListRequest>
+        request::forward<Anticheat::ResponseId_KernelModuleList, Anticheat::RequestId_KernelModuleListResult, Anticheat::KernelModuleListRequest>
     };
 
     constexpr sl::message_info<Anticheat::ThreadListRequest, sl::session> thread_list_request{
         Anticheat::ResponseId_ThreadList,
-        request::handle_request<Anticheat::ResponseId_ThreadList, Anticheat::RequestId_ThreadListResult, Anticheat::ThreadListRequest>
+        request::forward<Anticheat::ResponseId_ThreadList, Anticheat::RequestId_ThreadListResult, Anticheat::ThreadListRequest>
     };
 
     constexpr sl::message_info<Anticheat::NmiCheckRequest, sl::session> nmi_check_request{
         Anticheat::ResponseId_NmiCheck,
-        request::handle_request<Anticheat::ResponseId_NmiCheck, Anticheat::RequestId_NmiResultData, Anticheat::NmiCheckRequest>
+        request::forward<Anticheat::ResponseId_NmiCheck, Anticheat::RequestId_NmiResultData, Anticheat::NmiCheckRequest>
     };
 
     constexpr sl::message_info<Anticheat::HandleStripCheckRequest, sl::session> handle_strip_check_request{
         Anticheat::ResponseId_HandleStripCheck,
-        request::handle_request<Anticheat::ResponseId_HandleStripCheck, Anticheat::RequestId_HandleStripData, Anticheat::HandleStripCheckRequest>
+        request::forward<Anticheat::ResponseId_HandleStripCheck, Anticheat::RequestId_HandleStripData, Anticheat::HandleStripCheckRequest>
     };
 
-    using response_router = sl::message_router<pong_response, client_timestamp_request, kernel_module_list_request, thread_list_request, nmi_check_request, image_signature_check_request, handle_strip_check_request>;
+    constexpr sl::message_info<Anticheat::ReservedMsrCheckRequest, sl::session> reserved_msr_check_request{
+	    Anticheat::ResponseId_ReservedMsrCheck,
+	    request::forward<Anticheat::ResponseId_ReservedMsrCheck, Anticheat::RequestId_ReservedMsrData, Anticheat::ReservedMsrCheckRequest>
+    };
+
+    using response_router = sl::message_router<pong_response, client_timestamp_request, kernel_module_list_request, thread_list_request, nmi_check_request, image_signature_check_request, handle_strip_check_request, reserved_msr_check_request>;
 }
 
 void client_session::handle_message(const message_id_t id, const body_buffer_t body)

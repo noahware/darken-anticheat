@@ -3,6 +3,7 @@
 #include <vector.hpp>
 #include <span.hpp>
 #include <utility.hpp>
+#include <type_traits.hpp>
 
 namespace serialisation
 {
@@ -19,7 +20,8 @@ namespace serialisation
         return builder_to_vector(builder);
     }
 
-    template <class CreateFn, class... Args>
+    template <class CreateFn, class... Args,
+        cstd::enable_if_t<!cstd::is_same_v<cstd::decay_t<CreateFn>, flatbuffers::FlatBufferBuilder>, int> = 0>
     [[nodiscard]] cstd::vector<uint8_t> serialise(const CreateFn& create_fn, Args&&... args)
     {
         flatbuffers::FlatBufferBuilder builder;

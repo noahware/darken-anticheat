@@ -11,7 +11,7 @@
 namespace request
 {
     template <std::uint8_t DriverCheckId, std::uint8_t ServerResultId>
-    bool forward(const std::shared_ptr<sl::session>& sess)
+    bool send_from_driver(const std::shared_ptr<sl::session>& sess)
     {
         auto result = driver::run_check(DriverCheckId);
 
@@ -34,12 +34,12 @@ namespace request
     }
 
     template <std::uint8_t DriverCheckId, std::uint8_t ServerResultId, class RequestType>
-    void handle_request(const std::shared_ptr<sl::session>& sess, [[maybe_unused]] const RequestType*)
+    void forward(const std::shared_ptr<sl::session>& sess, [[maybe_unused]] const RequestType*)
     {
         auto session = sess;
         std::thread([session]()
         {
-            forward<DriverCheckId, ServerResultId>(session);
+            send_from_driver<DriverCheckId, ServerResultId>(session);
         }).detach();
     }
 }

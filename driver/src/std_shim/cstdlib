@@ -6,8 +6,8 @@
 
 extern "C"
 {
-    void* malloc(size_t size);
-    void free(void* ptr);
+    __declspec(restrict) __declspec(noalias) void* malloc(size_t size);
+    __declspec(noalias) void free(void* ptr);
 }
 
 inline void* bsearch(const void* key, const void* base, size_t count, size_t size,

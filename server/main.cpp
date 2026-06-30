@@ -62,6 +62,7 @@ namespace
     void handle_nmi_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::NmiResult* result);
     void handle_image_signature_check_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ImageSignatureCheckResult* result);
     void handle_handle_strip_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::HandleStripResult* result);
+    void handle_reserved_msr_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::ReservedMsrResult* result);
 
     constexpr sl::message_info<Anticheat::PingRequest, sl::session> ping_request{
         Anticheat::RequestId_Ping, handle_ping
@@ -95,7 +96,11 @@ namespace
         Anticheat::RequestId_HandleStripData, handle_handle_strip_result_data
     };
 
-    using request_router = sl::message_router<ping_request, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data, image_signature_check_result, handle_strip_result_data>;
+    constexpr sl::message_info<Anticheat::ReservedMsrResult, client_connection> reserved_msr_result_data{
+        Anticheat::RequestId_ReservedMsrData, handle_reserved_msr_result_data
+    };
+
+    using request_router = sl::message_router<ping_request, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data, image_signature_check_result, handle_strip_result_data, reserved_msr_result_data>;
 
     class client_connection final : public sl::session
     {
@@ -245,6 +250,14 @@ namespace
         analysis::process_handle_strip_result(result);
     }
 
+    void handle_reserved_msr_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::ReservedMsrResult* result)
+    {
+        LOG_INFO("reserved msr result from {}:{}",
+            conn->socket().remote_address(), conn->socket().port());
+
+        analysis::process_reserved_msr_result(result);
+    }
+
     void broadcast_check_requests(
         boost::asio::steady_timer& timer,
         const std::shared_ptr<sl::boost_session_manager<client_connection>>& manager,
@@ -278,6 +291,10 @@ namespace
 
                 sl::msg::async_send<Anticheat::CreateHandleStripCheckRequest>(
                     sess->socket(), Anticheat::ResponseId_HandleStripCheck
+                );
+
+                sl::msg::async_send<Anticheat::CreateReservedMsrCheckRequest>(
+                    sess->socket(), Anticheat::ResponseId_ReservedMsrCheck
                 );
             });
 
@@ -324,8 +341,8 @@ std::int32_t main()
         manager->async_wait_for_connection();
 
         boost::asio::steady_timer check_timer(pool.get_executor());
-        broadcast_check_requests(check_timer, manager, std::chrono::seconds(30));
-        LOG_INFO("check request broadcast started (interval: 30s)");
+        broadcast_check_requests(check_timer, manager, std::chrono::seconds(5));
+        LOG_INFO("check request broadcast started (interval: 5s)");
 
         boost::asio::signal_set signals(pool.get_executor(), SIGINT, SIGTERM);
         signals.async_wait([&](const boost::system::error_code&, int)

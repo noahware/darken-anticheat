@@ -70,7 +70,7 @@ namespace krnl
         }
 
         flatbuffers::FlatBufferBuilder fbb;
-        const auto threads = cstd::span<SYSTEM_THREAD_INFORMATION>(entry->threads, entry->number_of_threads);
+        const auto threads = cstd::span<system_thread_information>(entry->threads, entry->number_of_threads);
 
         auto threads_vec = serialisation::collect<Anticheat::Thread>(fbb, threads,
             [](auto& b, const auto& thread)

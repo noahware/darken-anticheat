@@ -12,6 +12,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <schema/reserved_msr_result_generated.h>
 
 namespace analysis
 {
@@ -41,6 +42,7 @@ namespace analysis
     void process_thread_list(std::vector<thread_entry>& threads, const std::vector<module_entry>& modules, const Anticheat::ThreadList* list);
     void process_nmi_result(const std::vector<module_entry>& modules, const Anticheat::NmiResult* result);
     void process_handle_strip_result(const Anticheat::HandleStripResult* result);
+    void process_reserved_msr_result(const Anticheat::ReservedMsrResult* result);
 
     std::vector<std::string> find_unsigned_modules(std::span<const module_entry> modules);
 }

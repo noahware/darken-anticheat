@@ -246,6 +246,20 @@ namespace analysis
         }
     }
 
+    void process_reserved_msr_result(const Anticheat::ReservedMsrResult* result)
+    {
+	    if (!result)
+	    {
+            LOG_ERR("null ReservedMsr");
+            return;
+	    }
+
+        if (const auto msr = result->non_throwing_msr())
+        {
+            LOG_INFO("reserved MSR 0x{:X} is being used", msr.value());
+        }
+    }
+
     void process_event_batch(std::vector<module_entry>& modules, const Anticheat::EventBatch* batch)
     {
         if (!batch)

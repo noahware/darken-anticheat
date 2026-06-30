@@ -39,7 +39,7 @@ namespace
 
     void driver_thread(const std::shared_ptr<sl::session>& session)
     {
-        if (!request::forward<Anticheat::ResponseId_KernelModuleList, Anticheat::RequestId_KernelModuleListResult>(session))
+        if (!request::send_from_driver<Anticheat::ResponseId_KernelModuleList, Anticheat::RequestId_KernelModuleListResult>(session))
         {
             LOG_ERR("failed to send initial module list");
             return;

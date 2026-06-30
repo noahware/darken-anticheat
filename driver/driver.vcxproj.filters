@@ -84,6 +84,9 @@
     <ClCompile Include="src\handle\table.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\msr\msr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\emu\emu.hpp">
@@ -135,6 +138,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\handle\handle.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\msr\msr.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\krnl\nt_status.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\std_shim\assert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\import.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\serialisation.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

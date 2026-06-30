@@ -33,6 +33,9 @@ struct NmiCheckRequestBuilder;
 struct HandleStripCheckRequest;
 struct HandleStripCheckRequestBuilder;
 
+struct ReservedMsrCheckRequest;
+struct ReservedMsrCheckRequestBuilder;
+
 enum ResponseId : uint8_t {
   ResponseId_Pong = 0,
   ResponseId_ClientTimestamp = 1,
@@ -41,11 +44,12 @@ enum ResponseId : uint8_t {
   ResponseId_NmiCheck = 4,
   ResponseId_ImageSignatureCheck = 5,
   ResponseId_HandleStripCheck = 6,
+  ResponseId_ReservedMsrCheck = 7,
   ResponseId_MIN = ResponseId_Pong,
-  ResponseId_MAX = ResponseId_HandleStripCheck
+  ResponseId_MAX = ResponseId_ReservedMsrCheck
 };
 
-inline const ResponseId (&EnumValuesResponseId())[7] {
+inline const ResponseId (&EnumValuesResponseId())[8] {
   static const ResponseId values[] = {
     ResponseId_Pong,
     ResponseId_ClientTimestamp,
@@ -53,13 +57,14 @@ inline const ResponseId (&EnumValuesResponseId())[7] {
     ResponseId_ThreadList,
     ResponseId_NmiCheck,
     ResponseId_ImageSignatureCheck,
-    ResponseId_HandleStripCheck
+    ResponseId_HandleStripCheck,
+    ResponseId_ReservedMsrCheck
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseId() {
-  static const char * const names[8] = {
+  static const char * const names[9] = {
     "Pong",
     "ClientTimestamp",
     "KernelModuleList",
@@ -67,13 +72,14 @@ inline const char * const *EnumNamesResponseId() {
     "NmiCheck",
     "ImageSignatureCheck",
     "HandleStripCheck",
+    "ReservedMsrCheck",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameResponseId(ResponseId e) {
-  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_HandleStripCheck)) return "";
+  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_ReservedMsrCheck)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseId()[index];
 }
@@ -277,6 +283,36 @@ struct HandleStripCheckRequestBuilder {
 inline ::flatbuffers::Offset<HandleStripCheckRequest> CreateHandleStripCheckRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb) {
   HandleStripCheckRequestBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct ReservedMsrCheckRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ReservedMsrCheckRequestBuilder Builder;
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct ReservedMsrCheckRequestBuilder {
+  typedef ReservedMsrCheckRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit ReservedMsrCheckRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ReservedMsrCheckRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ReservedMsrCheckRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ReservedMsrCheckRequest> CreateReservedMsrCheckRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  ReservedMsrCheckRequestBuilder builder_(_fbb);
   return builder_.Finish();
 }
 

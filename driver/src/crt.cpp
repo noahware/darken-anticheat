@@ -195,4 +195,22 @@ extern "C"
 	{
 		return cstd::crt::strcmp(lhs, rhs);
 	}
+
+	int strncmp(const char* const lhs, const char* const rhs, const size_t count)
+	{
+		for (size_t i = 0; i < count; ++i)
+		{
+			if (lhs[i] != rhs[i])
+			{
+				return static_cast<unsigned char>(lhs[i]) - static_cast<unsigned char>(rhs[i]);
+			}
+
+			if (lhs[i] == '\0')
+			{
+				return 0;
+			}
+		}
+
+		return 0;
+	}
 }
