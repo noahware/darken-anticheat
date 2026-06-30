@@ -6,6 +6,7 @@
 #include "../nmi/nmi.hpp"
 #include "../state/protected_process.hpp"
 #include "../log.hpp"
+#include "../util/import.hpp"
 #include <driver/ioctl.h>
 #include "response_generated.h"
 #include "../handle/table.hpp"
@@ -14,13 +15,13 @@ static nt_status complete_request(PIRP irp, const nt_status status, const ULONG_
 {
     irp->IoStatus.Status = status;
     irp->IoStatus.Information = information;
-    IoCompleteRequest(irp, IO_NO_INCREMENT);
+    LIMPORT(IoCompleteRequest)(irp, IO_NO_INCREMENT);
     return status;
 }
 
 NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 {
-    const auto* stack = IoGetCurrentIrpStackLocation(irp);
+    const auto* stack = LIMPORT(IoGetCurrentIrpStackLocation)(irp);
     const auto io_control_code = stack->Parameters.DeviceIoControl.IoControlCode;
 
     if (io_control_code == IOCTL_DARKEN_EVENT_HANDLE)
@@ -35,7 +36,7 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 
     if (io_control_code == IOCTL_DARKEN_PROTECT_SELF)
     {
-        const auto pid = reinterpret_cast<uint64_t>(PsGetCurrentProcessId());
+        const auto pid = reinterpret_cast<uint64_t>(LIMPORT(PsGetCurrentProcessId)());
         protected_process_t::add(pid);
         DBG_LOG("protected process: %llu\n", pid);
         return complete_request(irp, nt_status::success());

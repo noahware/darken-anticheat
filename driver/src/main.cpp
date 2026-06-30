@@ -2,6 +2,7 @@
 #include <string.hpp>
 #include <portable_executable/image.hpp>
 
+#include "util/import.hpp"
 #include "log.hpp"
 #include "emu/emu.hpp"
 #include "krnl/krnl.hpp"
@@ -50,7 +51,7 @@ static NTSTATUS dispatch_create_close([[maybe_unused]] PDEVICE_OBJECT device, PI
 {
 	irp->IoStatus.Status = nt_status::success();
 	irp->IoStatus.Information = 0;
-	IoCompleteRequest(irp, IO_NO_INCREMENT);
+	LIMPORT(IoCompleteRequest)(irp, IO_NO_INCREMENT);
 	return nt_status::success();
 }
 
@@ -61,11 +62,11 @@ static void driver_unload(PDRIVER_OBJECT driver_object)
 	crypto::cleanup();
 
 	UNICODE_STRING symlink_name = RTL_CONSTANT_STRING(DARKEN_SYMLINK_NAME);
-	IoDeleteSymbolicLink(&symlink_name);
+	LIMPORT(IoDeleteSymbolicLink)(&symlink_name);
 
 	if (driver_object->DeviceObject)
 	{
-		IoDeleteDevice(driver_object->DeviceObject);
+		LIMPORT(IoDeleteDevice)(driver_object->DeviceObject);
 	}
 
 	crt_global_shutdown();
@@ -90,7 +91,7 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 	UNICODE_STRING device_name = RTL_CONSTANT_STRING(DARKEN_DEVICE_NAME);
 	UNICODE_STRING symlink_name = RTL_CONSTANT_STRING(DARKEN_SYMLINK_NAME);
 
-	nt_status status = IoCreateDevice(
+	nt_status status = LIMPORT(IoCreateDevice)(
 		driver_object,
 		0,
 		&device_name,
@@ -109,12 +110,12 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 	g_device_object->Flags |= DO_BUFFERED_IO;
 	g_device_object->Flags &= ~DO_DEVICE_INITIALIZING;
 
-	status = IoCreateSymbolicLink(&symlink_name, &device_name);
+	status = LIMPORT(IoCreateSymbolicLink)(&symlink_name, &device_name);
 
 	if (!status)
 	{
 		DBG_LOG("failed to create symbolic link: 0x%x\n", status.value());
-		IoDeleteDevice(g_device_object);
+		LIMPORT(IoDeleteDevice)(g_device_object);
 		return status;
 	}
 
@@ -128,8 +129,8 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 	if (!status)
 	{
 		DBG_LOG("failed to initialize crypto: 0x%x\n", status.value());
-		IoDeleteSymbolicLink(&symlink_name);
-		IoDeleteDevice(g_device_object);
+		LIMPORT(IoDeleteSymbolicLink)(&symlink_name);
+		LIMPORT(IoDeleteDevice)(g_device_object);
 		return status;
 	}
 
@@ -139,8 +140,8 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 	{
 		DBG_LOG("failed to initialize event system: 0x%x\n", status.value());
 		crypto::cleanup();
-		IoDeleteSymbolicLink(&symlink_name);
-		IoDeleteDevice(g_device_object);
+		LIMPORT(IoDeleteSymbolicLink)(&symlink_name);
+		LIMPORT(IoDeleteDevice)(g_device_object);
 		return status;
 	}
 
@@ -151,8 +152,8 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 		DBG_LOG("failed to register ob callbacks: 0x%x\n", status.value());
 		events::cleanup();
 		crypto::cleanup();
-		IoDeleteSymbolicLink(&symlink_name);
-		IoDeleteDevice(g_device_object);
+		LIMPORT(IoDeleteSymbolicLink)(&symlink_name);
+		LIMPORT(IoDeleteDevice)(g_device_object);
 		return status;
 	}
 
@@ -164,8 +165,8 @@ extern "C" NTSTATUS driver_entry(const PDRIVER_OBJECT driver_object, [[maybe_unu
 		handle::cbs::unload();
 		events::cleanup();
 		crypto::cleanup();
-		IoDeleteSymbolicLink(&symlink_name);
-		IoDeleteDevice(g_device_object);
+		LIMPORT(IoDeleteSymbolicLink)(&symlink_name);
+		LIMPORT(IoDeleteDevice)(g_device_object);
 		return status;
 	}
 

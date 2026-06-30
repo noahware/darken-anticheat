@@ -8,13 +8,14 @@
 
 #include <ntifs.h>
 
+#include "../util/import.hpp"
 #include "handle.hpp"
 #include "flatbuffers/flatbuffers.h"
 #include "handle_strip_generated.h"
 
 #define PROCESS_QUERY_LIMITED_INFORMATION (0x1000)
 
-extern "C" POBJECT_TYPE ObGetObjectType(void* object);
+extern "C" POBJECT_TYPE LIMPORT(ObGetObjectType)(void* object);
 
 using ex_enum_handle_table_callback_fn = BOOLEAN(*)(_HANDLE_TABLE* table, _HANDLE_TABLE_ENTRY* entry, HANDLE handle, void* context);
 using ex_unlock_handle_table_entry_fn = void(*)(_HANDLE_TABLE* table, _HANDLE_TABLE_ENTRY* entry);
@@ -53,14 +54,14 @@ namespace
         );
         const auto object = reinterpret_cast<void*>(&object_header->Body);
 
-        if (ObGetObjectType(object) != *PsProcessType)
+        if (LIMPORT(ObGetObjectType)(object) != *PsProcessType)
         {
             ex_unlock_handle_table_entry(table, entry);
             return FALSE;
         }
 
         const auto target_process = static_cast<PEPROCESS>(object);
-        const auto target_process_id = reinterpret_cast<protected_process_t::id_type>(PsGetProcessId(target_process));
+        const auto target_process_id = reinterpret_cast<protected_process_t::id_type>(LIMPORT(PsGetProcessId)(target_process));
 
         if (!protected_process_t::find(target_process_id))
         {

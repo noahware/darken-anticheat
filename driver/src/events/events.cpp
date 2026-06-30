@@ -3,6 +3,8 @@
 #include "../krnl/modules.hpp"
 
 #include <ntifs.h>
+
+#include "../util/import.hpp"
 #include <vector.hpp>
 #include <mutex.hpp>
 #include <string.hpp>
@@ -82,7 +84,7 @@ namespace
             event_queue_.push_back(cstd::move(entry));
         }
 
-        KeSetEvent(event_object_, IO_NO_INCREMENT, FALSE);
+        LIMPORT(KeSetEvent)(event_object_, IO_NO_INCREMENT, FALSE);
 
         DBG_LOG("module loaded: %wZ @ %p (size: 0x%x)\n",
             full_image_name, image_info->ImageBase, size);
@@ -96,7 +98,7 @@ namespace events
         OBJECT_ATTRIBUTES oa;
         InitializeObjectAttributes(&oa, nullptr, OBJ_KERNEL_HANDLE, nullptr, nullptr);
 
-        nt_status status = ZwCreateEvent(&event_handle_, EVENT_ALL_ACCESS, &oa, SynchronizationEvent, FALSE);
+        nt_status status = LIMPORT(ZwCreateEvent)(&event_handle_, EVENT_ALL_ACCESS, &oa, SynchronizationEvent, FALSE);
 
         if (!status)
         {
@@ -104,7 +106,7 @@ namespace events
             return status;
         }
 
-        status = ObReferenceObjectByHandle(
+        status = LIMPORT(ObReferenceObjectByHandle)(
             event_handle_,
             EVENT_ALL_ACCESS,
             *ExEventObjectType,
@@ -116,19 +118,19 @@ namespace events
         if (!status)
         {
             DBG_LOG("ObReferenceObjectByHandle failed: 0x%x\n", status.value());
-            ZwClose(event_handle_);
+            LIMPORT(ZwClose)(event_handle_);
             event_handle_ = nullptr;
             return status;
         }
 
-        status = PsSetLoadImageNotifyRoutine(on_image_load);
+        status = LIMPORT(PsSetLoadImageNotifyRoutine)(on_image_load);
 
         if (!status)
         {
             DBG_LOG("PsSetLoadImageNotifyRoutine failed: 0x%x\n", status.value());
-            ObDereferenceObject(event_object_);
+            LIMPORT(ObDereferenceObject)(event_object_);
             event_object_ = nullptr;
-            ZwClose(event_handle_);
+            LIMPORT(ZwClose)(event_handle_);
             event_handle_ = nullptr;
             return status;
         }
@@ -139,17 +141,17 @@ namespace events
 
     void cleanup()
     {
-        PsRemoveLoadImageNotifyRoutine(on_image_load);
+        LIMPORT(PsRemoveLoadImageNotifyRoutine)(on_image_load);
 
         if (event_object_)
         {
-            ObDereferenceObject(event_object_);
+            LIMPORT(ObDereferenceObject)(event_object_);
             event_object_ = nullptr;
         }
 
         if (event_handle_)
         {
-            ZwClose(event_handle_);
+            LIMPORT(ZwClose)(event_handle_);
             event_handle_ = nullptr;
         }
 
@@ -160,20 +162,20 @@ namespace events
 
     nt_status get_event_handle(PIRP irp)
     {
-        const auto* stack = IoGetCurrentIrpStackLocation(irp);
+        const auto* stack = LIMPORT(IoGetCurrentIrpStackLocation)(irp);
         const auto output_capacity = stack->Parameters.DeviceIoControl.OutputBufferLength;
 
         if (output_capacity < sizeof(HANDLE))
         {
             irp->IoStatus.Status = nt_status::buffer_too_small();
             irp->IoStatus.Information = 0;
-            IoCompleteRequest(irp, IO_NO_INCREMENT);
+            LIMPORT(IoCompleteRequest)(irp, IO_NO_INCREMENT);
             return nt_status::buffer_too_small();
         }
 
         HANDLE user_handle = nullptr;
 
-        const nt_status status = ObOpenObjectByPointer(
+        const nt_status status = LIMPORT(ObOpenObjectByPointer)(
             event_object_,
             0,
             nullptr,
@@ -188,7 +190,7 @@ namespace events
             DBG_LOG("ObOpenObjectByPointer failed: 0x%x\n", status.value());
             irp->IoStatus.Status = status;
             irp->IoStatus.Information = 0;
-            IoCompleteRequest(irp, IO_NO_INCREMENT);
+            LIMPORT(IoCompleteRequest)(irp, IO_NO_INCREMENT);
             return status;
         }
 
@@ -196,13 +198,13 @@ namespace events
 
         irp->IoStatus.Status = nt_status::success();
         irp->IoStatus.Information = sizeof(HANDLE);
-        IoCompleteRequest(irp, IO_NO_INCREMENT);
+        LIMPORT(IoCompleteRequest)(irp, IO_NO_INCREMENT);
         return nt_status::success();
     }
 
     nt_status drain(PIRP irp)
     {
-        const auto* stack = IoGetCurrentIrpStackLocation(irp);
+        const auto* stack = LIMPORT(IoGetCurrentIrpStackLocation)(irp);
         const auto output_capacity = stack->Parameters.DeviceIoControl.OutputBufferLength;
 
         cstd::vector<event_entry> local_events;
@@ -211,7 +213,7 @@ namespace events
             cstd::lock_guard<cstd::mutex> guard(lock_);
             local_events = cstd::move(event_queue_);
             event_queue_ = cstd::vector<event_entry>();
-            KeClearEvent(event_object_);
+            LIMPORT(KeClearEvent)(event_object_);
         }
 
         const auto estimated = 48 + local_events.size() * 96;
@@ -259,7 +261,7 @@ namespace events
         {
             irp->IoStatus.Status = nt_status::buffer_too_small();
             irp->IoStatus.Information = 0;
-            IoCompleteRequest(irp, IO_NO_INCREMENT);
+            LIMPORT(IoCompleteRequest)(irp, IO_NO_INCREMENT);
             return nt_status::buffer_too_small();
         }
 
@@ -267,7 +269,7 @@ namespace events
 
         irp->IoStatus.Status = nt_status::success();
         irp->IoStatus.Information = response_size;
-        IoCompleteRequest(irp, IO_NO_INCREMENT);
+        LIMPORT(IoCompleteRequest)(irp, IO_NO_INCREMENT);
         return nt_status::success();
     }
 }

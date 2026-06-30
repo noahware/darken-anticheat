@@ -4,6 +4,7 @@
 
 #include <ntifs.h>
 
+#include "../util/import.hpp"
 #include "handle.hpp"
 
 namespace
@@ -16,7 +17,7 @@ namespace
 static OB_PREOP_CALLBACK_STATUS pre_operation_callback([[maybe_unused]] void* const context,
                                                        const POB_PRE_OPERATION_INFORMATION info)
 {
-    const auto current_process = IoGetCurrentProcess();
+    const auto current_process = LIMPORT(IoGetCurrentProcess)();
     const auto target_process = static_cast<decltype(current_process)>(info->Object);
 
     if (target_process == current_process)
@@ -24,7 +25,7 @@ static OB_PREOP_CALLBACK_STATUS pre_operation_callback([[maybe_unused]] void* co
         return OB_PREOP_SUCCESS;
     }
 
-    const auto target_process_id = reinterpret_cast<protected_process_t::id_type>(PsGetProcessId(target_process));
+    const auto target_process_id = reinterpret_cast<protected_process_t::id_type>(LIMPORT(PsGetProcessId)(target_process));
     const auto* const protected_process = protected_process_t::find(target_process_id);
 
     if (!protected_process)
@@ -32,7 +33,7 @@ static OB_PREOP_CALLBACK_STATUS pre_operation_callback([[maybe_unused]] void* co
         return OB_PREOP_SUCCESS;
     }
 
-    const auto current_process_id = reinterpret_cast<protected_process_t::id_type>(PsGetProcessId(current_process));
+    const auto current_process_id = reinterpret_cast<protected_process_t::id_type>(LIMPORT(PsGetProcessId)(current_process));
 
     ACCESS_MASK* const desired_access = info->Operation == OB_OPERATION_HANDLE_CREATE
                                             ? &info->Parameters->CreateHandleInformation.DesiredAccess
@@ -75,14 +76,14 @@ nt_status handle::cbs::load()
         .OperationRegistration = &op_registration
     };
 
-    return ObRegisterCallbacks(&cb_registration, &registration_handle);
+    return LIMPORT(ObRegisterCallbacks)(&cb_registration, &registration_handle);
 }
 
 nt_status handle::cbs::unload()
 {
     if (registration_handle)
     {
-        ObUnRegisterCallbacks(registration_handle);
+        LIMPORT(ObUnRegisterCallbacks)(registration_handle);
         registration_handle = nullptr;
     }
 

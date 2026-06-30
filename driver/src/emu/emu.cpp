@@ -7,6 +7,7 @@
 #include <ntddk.h>
 
 #include "../log.hpp"
+#include "../util/import.hpp"
 #include "../krnl/krnl.hpp"
 #include "../krnl/types.hpp"
 #include "../krnl/nt_status.hpp"
@@ -19,7 +20,7 @@ using zw_system_debug_control_t = NTSTATUS(NTAPI*)(ULONG, PVOID, ULONG, PVOID, U
 	{
 		cstd::array<char, 32> response;
 
-		DbgPrompt("Hello? ", response.data(), sizeof(response));
+		LIMPORT(DbgPrompt)("Hello? ", response.data(), sizeof(response));
 	}
 	__except (1)
 	{
@@ -60,10 +61,10 @@ using zw_system_debug_control_t = NTSTATUS(NTAPI*)(ULONG, PVOID, ULONG, PVOID, U
 [[nodiscard]] static bool check_debugger_status_funcs()
 {
 	UNICODE_STRING name = { };
-	RtlInitUnicodeString(&name, L"ZwSystemDebugControl");
+	LIMPORT(RtlInitUnicodeString)(&name, L"ZwSystemDebugControl");
 
 	const auto ZwSystemDebugControl = static_cast<zw_system_debug_control_t>(
-		MmGetSystemRoutineAddress(&name)
+		LIMPORT(MmGetSystemRoutineAddress)(&name)
 	);
 
 	if (!ZwSystemDebugControl)

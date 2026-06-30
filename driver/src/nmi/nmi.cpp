@@ -1,6 +1,7 @@
 #include "nmi.hpp"
 #include "../log.hpp"
 #include "../krnl/time.hpp"
+#include "../util/import.hpp"
 
 #include "flatbuffers/flatbuffers.h"
 #include "nmi_result_generated.h"
@@ -48,7 +49,7 @@ namespace nmi
     {
         DBG_LOG("capture_rips: entering\n");
 
-        const auto processor_count = KeQueryActiveProcessorCount(nullptr);
+        const auto processor_count = LIMPORT(KeQueryActiveProcessorCount)(nullptr);
 
         if (processor_count == 0)
         {
@@ -57,7 +58,7 @@ namespace nmi
 
         cstd::vector<nmi_core_info> core_info(processor_count, nmi_core_info{});
 
-        const auto callback_handle = KeRegisterNmiCallback(nmi_callback_handler, core_info.data());
+        const auto callback_handle = LIMPORT(KeRegisterNmiCallback)(nmi_callback_handler, core_info.data());
 
         if (!callback_handle)
         {
@@ -66,7 +67,7 @@ namespace nmi
         }
 
         const auto current_core = static_cast<uint32_t>(__readgsbyte(0x184));
-        const auto old_affinity = KeSetSystemAffinityThreadEx(1ull << current_core);
+        const auto old_affinity = LIMPORT(KeSetSystemAffinityThreadEx)(1ull << current_core);
 
         _KAFFINITY_EX affinity;
 
@@ -77,16 +78,16 @@ namespace nmi
                 continue;
             }
 
-            KeInitializeAffinityEx(&affinity);
-            KeAddProcessorAffinityEx(&affinity, i);
-            HalSendNMI(&affinity);
+            LIMPORT(KeInitializeAffinityEx)(&affinity);
+            LIMPORT(KeAddProcessorAffinityEx)(&affinity, i);
+            LIMPORT(HalSendNMI)(&affinity);
         }
 
-        KeRevertToUserAffinityThreadEx(old_affinity);
+        LIMPORT(KeRevertToUserAffinityThreadEx)(old_affinity);
 
         krnl::sleep_ms(10);
 
-        KeDeregisterNmiCallback(callback_handle);
+        LIMPORT(KeDeregisterNmiCallback)(callback_handle);
 
         flatbuffers::FlatBufferBuilder fbb(256 + processor_count * 16);
         cstd::vector<flatbuffers::Offset<Anticheat::NmiCoreCapture>> capture_offsets;

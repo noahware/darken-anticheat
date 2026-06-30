@@ -17,6 +17,7 @@ build/
 *.sln.docstates
 
 vcpkg_installed/
+*.exe
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

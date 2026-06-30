@@ -2,6 +2,7 @@
 #include "types.hpp"
 #include "nt_status.hpp"
 #include "../log.hpp"
+#include "../util/import.hpp"
 
 #include "flatbuffers/flatbuffers.h"
 #include "thread_generated.h"
@@ -19,7 +20,7 @@ namespace krnl
         cstd::vector<uint8_t> buffer(initial_buffer_size);
         ULONG return_length = 0;
 
-        nt_status status = ZwQuerySystemInformation(
+        nt_status status = LIMPORT(ZwQuerySystemInformation)(
             system_process_info_class,
             buffer.data(),
             static_cast<ULONG>(buffer.size()),
@@ -38,7 +39,7 @@ namespace krnl
 
             buffer.resize(new_size);
 
-            status = ZwQuerySystemInformation(
+            status = LIMPORT(ZwQuerySystemInformation)(
                 system_process_info_class,
                 buffer.data(),
                 static_cast<ULONG>(buffer.size()),

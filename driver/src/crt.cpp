@@ -1,5 +1,6 @@
 #include <ntifs.h>
 #include "crt.hpp"
+#include "util/import.hpp"
 
 constexpr unsigned long pool_tag = 'nkrd';
 
@@ -120,12 +121,12 @@ void operator delete[](void* buffer, [[maybe_unused]] const size_t size) noexcep
 
 void* cstd::crt::malloc(const size_t size)
 {
-	return ExAllocatePool2(POOL_FLAG_NON_PAGED, size, pool_tag);
+	return LIMPORT(ExAllocatePool2)(POOL_FLAG_NON_PAGED, size, pool_tag);
 }
 
 void cstd::crt::free(void* const buffer)
 {
-	ExFreePoolWithTag(buffer, pool_tag);
+	LIMPORT(ExFreePoolWithTag)(buffer, pool_tag);
 }
 
 void cstd::crt::memcpy(void* const destination, const void* const source, const size_t size)
