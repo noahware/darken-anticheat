@@ -12,6 +12,7 @@
 #include "handle.hpp"
 #include "flatbuffers/flatbuffers.h"
 #include "handle_strip_generated.h"
+#include "../util/serialisation.hpp"
 
 #define PROCESS_QUERY_LIMITED_INFORMATION (0x1000)
 
@@ -150,11 +151,6 @@ cstd::vector<uint8_t> handle::tbl::strip()
     }
 
     auto handles_vec = fbb.CreateVector(handle_offsets.data(), handle_offsets.size());
-    auto result = Anticheat::CreateHandleStripResult(fbb, handles_vec);
-    fbb.Finish(result);
 
-    const auto* buf = fbb.GetBufferPointer();
-    const auto size = fbb.GetSize();
-
-    return cstd::vector<uint8_t>(buf, size);
+    return serialisation::serialise(fbb, serialisation::lift<Anticheat::CreateHandleStripResult>(), handles_vec);
 }

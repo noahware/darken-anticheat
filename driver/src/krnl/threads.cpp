@@ -6,6 +6,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "thread_generated.h"
+#include "../util/serialisation.hpp"
 
 namespace krnl
 {
@@ -89,14 +90,10 @@ namespace krnl
         }
 
         auto threads_vec = fbb.CreateVector(thread_offsets.data(), thread_offsets.size());
-        auto list = Anticheat::CreateThreadList(fbb, threads_vec);
-        fbb.Finish(list);
+        auto result = serialisation::serialise(fbb, serialisation::lift<Anticheat::CreateThreadList>(), threads_vec);
 
-        const auto* buf = fbb.GetBufferPointer();
-        const auto size = fbb.GetSize();
+        DBG_LOG("thread list: %zu threads, %zu bytes\n", thread_offsets.size(), result.size());
 
-        DBG_LOG("thread list: %zu threads, %u bytes\n", thread_offsets.size(), size);
-
-        return cstd::vector<uint8_t>(buf, size);
+        return result;
     }
 }

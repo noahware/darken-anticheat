@@ -6,6 +6,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "kernel_modules_generated.h"
+#include "../util/serialisation.hpp"
 
 namespace krnl
 {
@@ -88,14 +89,10 @@ namespace krnl
         }
 
         auto modules_vec = fbb.CreateVector(module_offsets.data(), module_offsets.size());
-        auto list = Anticheat::CreateKernelModuleList(fbb, modules_vec);
-        fbb.Finish(list);
+        auto result = serialisation::serialise(fbb, serialisation::lift<Anticheat::CreateKernelModuleList>(), modules_vec);
 
-        const auto* buf = fbb.GetBufferPointer();
-        const auto size = fbb.GetSize();
+        DBG_LOG("module list: %zu modules, %zu bytes\n", module_offsets.size(), result.size());
 
-        DBG_LOG("module list: %zu modules, %u bytes\n", module_offsets.size(), size);
-
-        return cstd::vector<uint8_t>(buf, size);
+        return result;
     }
 }

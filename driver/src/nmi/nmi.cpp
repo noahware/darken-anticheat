@@ -5,6 +5,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "nmi_result_generated.h"
+#include "../util/serialisation.hpp"
 
 namespace
 {
@@ -100,14 +101,10 @@ namespace nmi
         }
 
         auto captures_vec = fbb.CreateVector(capture_offsets.data(), capture_offsets.size());
-        auto result = Anticheat::CreateNmiResult(fbb, captures_vec, current_core);
-        fbb.Finish(result);
+        auto result = serialisation::serialise(fbb, serialisation::lift<Anticheat::CreateNmiResult>(), captures_vec, current_core);
 
-        const auto* buf = fbb.GetBufferPointer();
-        const auto size = fbb.GetSize();
+        DBG_LOG("capture_rips: %u cores, %zu bytes\n", processor_count, result.size());
 
-        DBG_LOG("capture_rips: %u cores, %u bytes\n", processor_count, size);
-
-        return cstd::vector<uint8_t>(buf, size);
+        return result;
     }
 }

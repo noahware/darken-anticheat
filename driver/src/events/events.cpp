@@ -12,6 +12,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "event_generated.h"
+#include "../util/serialisation.hpp"
 
 namespace
 {
@@ -65,19 +66,12 @@ namespace
             );
         }
 
-        auto load = Anticheat::CreateKernelModuleLoad(
-            fbb,
-            base,
-            size,
-            name_offset,
-            hash_offset,
-            path_offset
-        );
-        fbb.Finish(load);
-
         event_entry entry;
         entry.type = Anticheat::EventBody_KernelModuleLoad;
-        entry.data = cstd::vector<uint8_t>(fbb.GetBufferPointer(), fbb.GetSize());
+        entry.data = serialisation::serialise(
+            fbb, serialisation::lift<Anticheat::CreateKernelModuleLoad>(),
+            base, size, name_offset, hash_offset, path_offset
+        );
 
         {
             cstd::lock_guard<cstd::mutex> guard(lock_);
@@ -228,7 +222,7 @@ namespace events
                 continue;
             }
 
-            const auto* load = flatbuffers::GetRoot<Anticheat::KernelModuleLoad>(entry.data.data());
+            const auto* load = serialisation::deserialise<Anticheat::KernelModuleLoad>(entry.data.data());
             auto name_offset = fbb.CreateString(load->name()->c_str(), load->name()->size());
 
             flatbuffers::Offset<flatbuffers::String> path_offset;
@@ -252,10 +246,9 @@ namespace events
         }
 
         auto events_vec = fbb.CreateVector(event_offsets.data(), event_offsets.size());
-        auto batch = Anticheat::CreateEventBatch(fbb, events_vec);
-        fbb.Finish(batch);
+        auto batch_data = serialisation::serialise(fbb, serialisation::lift<Anticheat::CreateEventBatch>(), events_vec);
 
-        const auto response_size = fbb.GetSize();
+        const auto response_size = batch_data.size();
 
         if (response_size > output_capacity)
         {
@@ -265,7 +258,7 @@ namespace events
             return nt_status::buffer_too_small();
         }
 
-        cstd::crt::memcpy(irp->AssociatedIrp.SystemBuffer, fbb.GetBufferPointer(), response_size);
+        cstd::crt::memcpy(irp->AssociatedIrp.SystemBuffer, batch_data.data(), response_size);
 
         irp->IoStatus.Status = nt_status::success();
         irp->IoStatus.Information = response_size;
