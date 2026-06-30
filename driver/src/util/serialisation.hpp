@@ -35,6 +35,19 @@ namespace serialisation
         };
     }
 
+    template <class T, class Range, class Fn>
+    [[nodiscard]] auto collect(flatbuffers::FlatBufferBuilder& builder, const Range& range, Fn&& fn)
+    {
+        cstd::vector<flatbuffers::Offset<T>> offsets;
+
+        for (const auto& item : range)
+        {
+            offsets.push_back(fn(builder, item));
+        }
+
+        return builder.CreateVector(offsets.data(), offsets.size());
+    }
+
     template <class T>
     [[nodiscard]] const T* deserialise(const uint8_t* data) noexcept
     {

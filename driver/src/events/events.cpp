@@ -51,8 +51,7 @@ namespace
             ? cstd::string(path_str.data() + name_start + 1, path_str.size() - name_start - 1)
             : path_str;
 
-        const auto estimated = 128 + path_str.size() + name_str.size();
-        flatbuffers::FlatBufferBuilder fbb(estimated);
+        flatbuffers::FlatBufferBuilder fbb;
 
         auto name_offset = fbb.CreateString(name_str.data(), name_str.size());
         auto path_offset = fbb.CreateString(path_str.data(), path_str.size());
@@ -210,8 +209,7 @@ namespace events
             LIMPORT(KeClearEvent)(event_object_);
         }
 
-        const auto estimated = 48 + local_events.size() * 96;
-        flatbuffers::FlatBufferBuilder fbb(estimated);
+        flatbuffers::FlatBufferBuilder fbb;
 
         cstd::vector<flatbuffers::Offset<Anticheat::Event>> event_offsets;
 

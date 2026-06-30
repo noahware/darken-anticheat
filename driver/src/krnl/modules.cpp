@@ -50,48 +50,45 @@ namespace krnl
     {
         DBG_LOG("get_module_list: entering\n");
 
-        cstd::vector<flatbuffers::Offset<Anticheat::KernelModule>> module_offsets;
-        flatbuffers::FlatBufferBuilder fbb(4096);
+        flatbuffers::FlatBufferBuilder fbb;
 
-        for (const auto& mod : module_list{})
-        {
-            const auto narrow_name = cstd::to_string(mod.base_name());
-            const auto narrow_path = cstd::to_string(mod.full_name());
-            const auto hash_result = hash_nonwritable_sections(mod.image());
-
-            auto name_offset = fbb.CreateString(narrow_name.data(), narrow_name.size());
-            auto path_offset = fbb.CreateString(narrow_path.data(), narrow_path.size());
-
-            flatbuffers::Offset<flatbuffers::Vector<uint8_t>> hash_offset;
-
-            if (hash_result)
+        auto modules_vec = serialisation::collect<Anticheat::KernelModule>(fbb, module_list{},
+            [](auto& b, const auto& mod)
             {
-                hash_offset = fbb.CreateVector(
-                    hash_result.value().data(), crypto::sha256_size
+                const auto narrow_name = cstd::to_string(mod.base_name());
+                const auto narrow_path = cstd::to_string(mod.full_name());
+                const auto hash_result = hash_nonwritable_sections(mod.image());
+
+                auto name_offset = b.CreateString(narrow_name.data(), narrow_name.size());
+                auto path_offset = b.CreateString(narrow_path.data(), narrow_path.size());
+
+                flatbuffers::Offset<flatbuffers::Vector<uint8_t>> hash_offset;
+
+                if (hash_result)
+                {
+                    hash_offset = b.CreateVector(
+                        hash_result.value().data(), crypto::sha256_size
+                    );
+                }
+                else
+                {
+                    DBG_LOG("hash failed for %s: 0x%x\n",
+                        narrow_name.data(), hash_result.error());
+                }
+
+                return Anticheat::CreateKernelModule(
+                    b,
+                    mod.base_address(),
+                    mod.size_of_image(),
+                    name_offset,
+                    hash_offset,
+                    path_offset
                 );
-            }
-            else
-            {
-                DBG_LOG("hash failed for %s: 0x%x\n",
-                    narrow_name.data(), hash_result.error());
-            }
+            });
 
-            auto module = Anticheat::CreateKernelModule(
-                fbb,
-                mod.base_address(),
-                mod.size_of_image(),
-                name_offset,
-                hash_offset,
-                path_offset
-            );
-
-            module_offsets.push_back(module);
-        }
-
-        auto modules_vec = fbb.CreateVector(module_offsets.data(), module_offsets.size());
         auto result = serialisation::serialise(fbb, serialisation::lift<Anticheat::CreateKernelModuleList>(), modules_vec);
 
-        DBG_LOG("module list: %zu modules, %zu bytes\n", module_offsets.size(), result.size());
+        DBG_LOG("module list: %zu bytes\n", result.size());
 
         return result;
     }

@@ -54,34 +54,14 @@ namespace krnl
             return {};
         }
 
-        flatbuffers::FlatBufferBuilder fbb(2048);
-        cstd::vector<flatbuffers::Offset<Anticheat::Thread>> thread_offsets;
-
         auto* entry = reinterpret_cast<system_process_information*>(buffer.data());
 
-        for (;;)
+        while (entry->unique_process_id != reinterpret_cast<HANDLE>(4))
         {
-            if (entry->unique_process_id == reinterpret_cast<HANDLE>(4))
-            {
-                for (ULONG i = 0; i < entry->number_of_threads; ++i)
-                {
-                    const auto& thread = entry->threads[i];
-                    const auto tid = static_cast<uint32_t>(
-                        reinterpret_cast<uintptr_t>(thread.client_id.UniqueThread)
-                    );
-                    const auto start = reinterpret_cast<uint64_t>(thread.start_address);
-
-                    thread_offsets.push_back(
-                        Anticheat::CreateThread(fbb, tid, start)
-                    );
-                }
-
-                break;
-            }
-
             if (entry->next_entry_offset == 0)
             {
-                break;
+                DBG_LOG("get_thread_list: system process not found\n");
+                return {};
             }
 
             entry = reinterpret_cast<system_process_information*>(
@@ -89,10 +69,23 @@ namespace krnl
             );
         }
 
-        auto threads_vec = fbb.CreateVector(thread_offsets.data(), thread_offsets.size());
+        flatbuffers::FlatBufferBuilder fbb;
+        const auto threads = cstd::span<SYSTEM_THREAD_INFORMATION>(entry->threads, entry->number_of_threads);
+
+        auto threads_vec = serialisation::collect<Anticheat::Thread>(fbb, threads,
+            [](auto& b, const auto& thread)
+            {
+                const auto tid = static_cast<uint32_t>(
+                    reinterpret_cast<uintptr_t>(thread.client_id.UniqueThread)
+                );
+                const auto start = reinterpret_cast<uint64_t>(thread.start_address);
+
+                return Anticheat::CreateThread(b, tid, start);
+            });
+
         auto result = serialisation::serialise(fbb, serialisation::lift<Anticheat::CreateThreadList>(), threads_vec);
 
-        DBG_LOG("thread list: %zu threads, %zu bytes\n", thread_offsets.size(), result.size());
+        DBG_LOG("thread list: %zu bytes\n", result.size());
 
         return result;
     }

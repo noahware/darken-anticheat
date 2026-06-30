@@ -90,17 +90,13 @@ namespace nmi
 
         LIMPORT(KeDeregisterNmiCallback)(callback_handle);
 
-        flatbuffers::FlatBufferBuilder fbb(256 + processor_count * 16);
-        cstd::vector<flatbuffers::Offset<Anticheat::NmiCoreCapture>> capture_offsets;
+        flatbuffers::FlatBufferBuilder fbb;
 
-        for (uint32_t i = 0; i < processor_count; ++i)
-        {
-            capture_offsets.push_back(
-                Anticheat::CreateNmiCoreCapture(fbb, core_info[i].rip, core_info[i].cs, core_info[i].processed)
-            );
-        }
-
-        auto captures_vec = fbb.CreateVector(capture_offsets.data(), capture_offsets.size());
+        auto captures_vec = serialisation::collect<Anticheat::NmiCoreCapture>(fbb, core_info,
+            [](auto& b, const auto& info)
+            {
+                return Anticheat::CreateNmiCoreCapture(b, info.rip, info.cs, info.processed);
+            });
         auto result = serialisation::serialise(fbb, serialisation::lift<Anticheat::CreateNmiResult>(), captures_vec, current_core);
 
         DBG_LOG("capture_rips: %u cores, %zu bytes\n", processor_count, result.size());

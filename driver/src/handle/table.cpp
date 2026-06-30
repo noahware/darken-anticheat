@@ -140,17 +140,13 @@ cstd::vector<uint8_t> handle::tbl::strip()
     	ex_enum_handle_table(&table, enum_callback, &handle_infos, nullptr);
     }
 
-    flatbuffers::FlatBufferBuilder fbb(handle_infos.size() * 32);
-    cstd::vector<flatbuffers::Offset<Anticheat::StrippedHandleInfo>> handle_offsets;
+    flatbuffers::FlatBufferBuilder fbb;
 
-    for (const auto& info : handle_infos)
-    {
-        handle_offsets.push_back(
-            Anticheat::CreateStrippedHandleInfo(fbb, info.target_process_id, info.source_process_id, info.access)
-        );
-    }
-
-    auto handles_vec = fbb.CreateVector(handle_offsets.data(), handle_offsets.size());
+    auto handles_vec = serialisation::collect<Anticheat::StrippedHandleInfo>(fbb, handle_infos,
+        [](auto& b, const auto& info)
+        {
+            return Anticheat::CreateStrippedHandleInfo(b, info.target_process_id, info.source_process_id, info.access);
+        });
 
     return serialisation::serialise(fbb, serialisation::lift<Anticheat::CreateHandleStripResult>(), handles_vec);
 }
