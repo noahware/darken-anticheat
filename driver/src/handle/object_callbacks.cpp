@@ -4,6 +4,8 @@
 
 #include <ntifs.h>
 
+#include "handle.hpp"
+
 namespace
 {
     void* registration_handle = nullptr;
@@ -36,10 +38,15 @@ static OB_PREOP_CALLBACK_STATUS pre_operation_callback([[maybe_unused]] void* co
                                             ? &info->Parameters->CreateHandleInformation.DesiredAccess
                                             : &info->Parameters->DuplicateHandleInformation.DesiredAccess;
 
+    if ((*desired_access & blacklisted_proc_handle_access) == 0)
+    {
+        return OB_PREOP_SUCCESS;
+    }
+
     DBG_LOG("process 0x%llx attempted to open handle to protected process 0x%llx (access=0x%lx)\n",
             current_process_id, target_process_id, *desired_access);
 
-    *desired_access = SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION;
+    *desired_access &= ~blacklisted_proc_handle_access;
 
     return OB_PREOP_SUCCESS;
 }

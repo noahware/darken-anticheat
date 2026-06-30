@@ -183,6 +183,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\crypto\crypto.hpp" />
+    <ClInclude Include="src\handle\handle.hpp" />
     <ClInclude Include="src\ioctl\ioctl.hpp" />
     <ClInclude Include="src\events\events.hpp" />
     <ClInclude Include="src\krnl\modules.hpp" />

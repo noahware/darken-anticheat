@@ -8,6 +8,7 @@
 
 #include <ntifs.h>
 
+#include "handle.hpp"
 #include "flatbuffers/flatbuffers.h"
 #include "handle_strip_generated.h"
 
@@ -39,7 +40,7 @@ namespace
 
     BOOLEAN enum_callback(_HANDLE_TABLE* const table, _HANDLE_TABLE_ENTRY* const entry, [[maybe_unused]] HANDLE handle, void* context)
     {
-        if (!entry || !entry->ObjectPointerBits || table->UniqueProcessId == 4)
+        if (!entry || !entry->ObjectPointerBits || (entry->GrantedAccessBits & blacklisted_proc_handle_access) == 0 || table->UniqueProcessId == 4)
         {
             ex_unlock_handle_table_entry(table, entry);
             return FALSE;
@@ -75,7 +76,7 @@ namespace
 	        .access = entry->GrantedAccessBits
         });
 
-        entry->GrantedAccessBits = SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION;
+        entry->GrantedAccessBits &= ~blacklisted_proc_handle_access;
 
         ex_unlock_handle_table_entry(table, entry);
 
