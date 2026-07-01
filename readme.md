@@ -12,6 +12,8 @@ The anti-cheat monitors both the operating system's kernel as well as the protec
 - Detects kernel threads whose start address is outside of a valid module.
 - Detects execution outside of a valid kernel or user module by interrupting CPU cores with a NMI (non maskable interrupt).
 - Detects the usage of reserved MSRs (model specific registers), to detect a virtual machine environment.
+- Blocks handles being opened with certain privileges (e.g. memory read or write permissions) using object callbacks. This does not report to server.
+- Detects handles being opened past the object callback, and strips their permissions and reports to server.
 - Detects emulated environments via DbgPrompt, DBGCTL MSR being unchanged after a write, various ntoskrnl and KUSER_SHARED_DATA fields indicating a debugger, calling ZwSystemDebugControl and expecting a 'debugger inactive' response.
 
 # Licensing
