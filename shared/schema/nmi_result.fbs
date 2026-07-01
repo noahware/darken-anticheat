@@ -4,6 +4,7 @@ table NmiCoreCapture {
     rip: uint64;
     cs: uint64;
     processed: bool;
+    process_id: uint32;
 }
 
 table NmiResult {

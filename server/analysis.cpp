@@ -176,7 +176,7 @@ namespace analysis
         threads = std::move(incoming);
     }
 
-    void process_nmi_result(const std::vector<module_entry>& modules, const Anticheat::NmiResult* result)
+    void process_nmi_result(const std::vector<module_entry>& modules, const std::vector<process_entry>& processes, const Anticheat::NmiResult* result)
     {
         if (!result)
         {
@@ -211,14 +211,30 @@ namespace analysis
                 continue;
             }
 
-            if ((cap->cs() & 3) != 0)
+            const auto is_usermode = (cap->cs() & 3) != 0;
+
+            if (!is_usermode)
+            {
+                if (!modules.empty() && !is_address_backed(cap->rip(), modules))
+                {
+                    LOG_WARN("nmi: core {} executing unbacked kernel code at 0x{:x}", i, cap->rip());
+                }
+
+                continue;
+            }
+
+            const auto pid = cap->process_id();
+            const auto it = std::ranges::find(processes, pid, &process_entry::process_id);
+
+            if (it == processes.end())
             {
                 continue;
             }
 
-            if (!modules.empty() && !is_address_backed(cap->rip(), modules))
+            if (!it->modules.empty() && !is_address_backed(cap->rip(), it->modules))
             {
-                LOG_WARN("nmi: core {} executing unbacked code at 0x{:x}", i, cap->rip());
+                LOG_WARN("nmi: core {} executing unbacked code at 0x{:x} in protected process 0x{:x}",
+                    i, cap->rip(), pid);
             }
         }
     }

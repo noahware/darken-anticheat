@@ -26,7 +26,8 @@ struct NmiCoreCapture FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_RIP = 4,
     VT_CS = 6,
-    VT_PROCESSED = 8
+    VT_PROCESSED = 8,
+    VT_PROCESS_ID = 10
   };
   uint64_t rip() const {
     return GetField<uint64_t>(VT_RIP, 0);
@@ -37,12 +38,16 @@ struct NmiCoreCapture FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool processed() const {
     return GetField<uint8_t>(VT_PROCESSED, 0) != 0;
   }
+  uint32_t process_id() const {
+    return GetField<uint32_t>(VT_PROCESS_ID, 0);
+  }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint64_t>(verifier, VT_RIP, 8) &&
            VerifyField<uint64_t>(verifier, VT_CS, 8) &&
            VerifyField<uint8_t>(verifier, VT_PROCESSED, 1) &&
+           VerifyField<uint32_t>(verifier, VT_PROCESS_ID, 4) &&
            verifier.EndTable();
   }
 };
@@ -60,6 +65,9 @@ struct NmiCoreCaptureBuilder {
   void add_processed(bool processed) {
     fbb_.AddElement<uint8_t>(NmiCoreCapture::VT_PROCESSED, static_cast<uint8_t>(processed), 0);
   }
+  void add_process_id(uint32_t process_id) {
+    fbb_.AddElement<uint32_t>(NmiCoreCapture::VT_PROCESS_ID, process_id, 0);
+  }
   explicit NmiCoreCaptureBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -75,10 +83,12 @@ inline ::flatbuffers::Offset<NmiCoreCapture> CreateNmiCoreCapture(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     uint64_t rip = 0,
     uint64_t cs = 0,
-    bool processed = false) {
+    bool processed = false,
+    uint32_t process_id = 0) {
   NmiCoreCaptureBuilder builder_(_fbb);
   builder_.add_cs(cs);
   builder_.add_rip(rip);
+  builder_.add_process_id(process_id);
   builder_.add_processed(processed);
   return builder_.Finish();
 }

@@ -14,6 +14,7 @@ namespace
         uint64_t rip;
         uint64_t cs;
         bool processed;
+        uint32_t process_id;
     };
 
     constexpr uint64_t kpcr_tss_base_offset = 0x8;
@@ -39,6 +40,7 @@ namespace
         info.rip = frame->rip;
         info.cs = frame->cs;
         info.processed = true;
+        info.process_id = static_cast<uint32_t>(reinterpret_cast<uint64_t>(PsGetCurrentProcessId()));
 
         return TRUE;
     }
@@ -95,7 +97,7 @@ namespace nmi
         auto captures_vec = serialisation::collect<Anticheat::NmiCoreCapture>(fbb, core_info,
             [](auto& b, const auto& info)
             {
-                return Anticheat::CreateNmiCoreCapture(b, info.rip, info.cs, info.processed);
+                return Anticheat::CreateNmiCoreCapture(b, info.rip, info.cs, info.processed, info.process_id);
             });
         auto result = serialisation::serialise(fbb, serialisation::lift<Anticheat::CreateNmiResult>(), captures_vec, current_core);
 

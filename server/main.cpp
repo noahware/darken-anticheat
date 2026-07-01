@@ -201,7 +201,7 @@ namespace
             conn->socket().remote_address(), conn->socket().port());
 
         std::lock_guard<std::mutex> lock(conn->modules_mutex_);
-        analysis::process_nmi_result(conn->kernel_modules_, result);
+        analysis::process_nmi_result(conn->kernel_modules_, conn->processes_, result);
     }
 
     void handle_image_signature_check_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ImageSignatureCheckResult* result)

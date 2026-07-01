@@ -47,7 +47,7 @@ namespace analysis
     void process_kernel_module_list(std::vector<module_entry>& modules, const Anticheat::KernelModuleList* list);
     void process_event_batch(std::vector<module_entry>& modules, std::vector<process_entry>& processes, const Anticheat::EventBatch* batch);
     void process_thread_list(std::vector<thread_entry>& threads, const std::vector<module_entry>& modules, const Anticheat::ThreadList* list);
-    void process_nmi_result(const std::vector<module_entry>& modules, const Anticheat::NmiResult* result);
+    void process_nmi_result(const std::vector<module_entry>& modules, const std::vector<process_entry>& processes, const Anticheat::NmiResult* result);
     void process_handle_strip_result(const Anticheat::HandleStripResult* result);
     void process_reserved_msr_result(const Anticheat::ReservedMsrResult* result);
 
