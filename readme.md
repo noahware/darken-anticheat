@@ -3,10 +3,11 @@ Open source anticheat for protecting your software against tampering and reverse
 
 # What does the anti-cheat do?
 
+It uses serverside for detection logic, the clientside/driver just acts as a collector of the detection info.
+
 The anti-cheat monitors both the operating system's kernel as well as the protected usermode processes to find any illegitimate code execution or tampering. The ways in which the anti-cheat does so are described below.
 
 # Current features
-- Uses serverside for detection logic, the clientside/driver just acts as a collector of the detection info.
 - Detects loaded user and kernel modules which are not digitally signed.
 - Detects patches to non writable sections in loaded user and kernel modules.
 - Detects kernel threads whose start address is outside of a valid module.
