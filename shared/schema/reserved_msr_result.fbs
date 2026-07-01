@@ -1,0 +1,5 @@
+namespace Anticheat;
+
+table ReservedMsrResult {
+    non_throwing_msr: uint32 = null;
+}

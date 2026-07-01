@@ -1,0 +1,29 @@
+#pragma once
+#include <initializer_list.hpp>
+
+namespace std
+{
+    template <class T>
+    class initializer_list
+    {
+    public:
+        using value_type = T;
+        using reference = const T&;
+        using const_reference = const T&;
+        using size_type = size_t;
+        using iterator = const T*;
+        using const_iterator = const T*;
+
+        constexpr initializer_list() noexcept : _First(nullptr), _Last(nullptr) {}
+
+        constexpr initializer_list(const T* first, const T* last) noexcept : _First(first), _Last(last) {}
+
+        constexpr const T* begin() const noexcept { return _First; }
+        constexpr const T* end() const noexcept { return _Last; }
+        constexpr size_type size() const noexcept { return static_cast<size_type>(_Last - _First); }
+
+    private:
+        const T* _First;
+        const T* _Last;
+    };
+}

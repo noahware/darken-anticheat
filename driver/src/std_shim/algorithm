@@ -1,0 +1,103 @@
+#pragma once
+#include <algorithm.hpp>
+
+namespace std
+{
+    using cstd::sort;
+    using cstd::find;
+    using cstd::find_if;
+    using cstd::copy;
+    using cstd::fill;
+    using cstd::equal;
+    using cstd::reverse;
+    using cstd::unique;
+    using cstd::remove;
+    using cstd::lower_bound;
+    using cstd::upper_bound;
+    using cstd::binary_search;
+    using cstd::min_element;
+    using cstd::max_element;
+    using cstd::for_each;
+    using cstd::all_of;
+    using cstd::any_of;
+    using cstd::none_of;
+    using cstd::count;
+    using cstd::count_if;
+    using cstd::is_sorted;
+
+    template <class T>
+    constexpr const T& min(const T& a, const T& b)
+    {
+        return (b < a) ? b : a;
+    }
+
+    template <class T>
+    constexpr const T& max(const T& a, const T& b)
+    {
+        return (a < b) ? b : a;
+    }
+
+    template <class T>
+    constexpr T min(T a, T b, T c)
+    {
+        return min(min(a, b), c);
+    }
+
+    template <class T>
+    constexpr T max(T a, T b, T c)
+    {
+        return max(max(a, b), c);
+    }
+
+    template <class T>
+    void swap(T& a, T& b) noexcept
+    {
+        T tmp = static_cast<T&&>(a);
+        a = static_cast<T&&>(b);
+        b = static_cast<T&&>(tmp);
+    }
+
+    template <class RandomIt>
+    void stable_sort(RandomIt first, RandomIt last)
+    {
+        for (auto i = first; i != last; ++i)
+        {
+            for (auto j = i; j != first; --j)
+            {
+                auto prev = j;
+                --prev;
+
+                if (*j < *prev)
+                {
+                    swap(*j, *prev);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    template <class RandomIt, class Compare>
+    void stable_sort(RandomIt first, RandomIt last, Compare comp)
+    {
+        for (auto i = first; i != last; ++i)
+        {
+            for (auto j = i; j != first; --j)
+            {
+                auto prev = j;
+                --prev;
+
+                if (comp(*j, *prev))
+                {
+                    swap(*j, *prev);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+    }
+}

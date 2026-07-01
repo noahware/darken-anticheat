@@ -1,0 +1,18 @@
+namespace Anticheat;
+
+table ProcessModule {
+    base_address: uint64;
+    size: uint32;
+    name: string;
+    hash: [ubyte];
+    full_path: string;
+}
+
+table ProtectedProcess {
+    process_id: uint32;
+    modules: [ProcessModule];
+}
+
+table ProtectedProcessList {
+    processes: [ProtectedProcess];
+}

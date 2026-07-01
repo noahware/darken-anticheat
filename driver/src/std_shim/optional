@@ -1,0 +1,14 @@
+#pragma once
+
+#define FLATBUFFERS_USE_STD_OPTIONAL 0
+
+#include <optional.hpp>
+
+namespace std
+{
+    template <class T>
+    using optional = cstd::optional<T>;
+
+    using nullopt_t = cstd::nullopt_type;
+    inline constexpr nullopt_t nullopt = cstd::nullopt;
+}

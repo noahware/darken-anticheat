@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="network">
+      <UniqueIdentifier>{A1B2C3D4-0001-0001-0001-000000000001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="message">
+      <UniqueIdentifier>{A1B2C3D4-0001-0001-0001-000000000002}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="connection">
+      <UniqueIdentifier>{A1B2C3D4-0001-0001-0001-000000000003}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="router">
+      <UniqueIdentifier>{A1B2C3D4-0001-0001-0001-000000000004}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="serialisation">
+      <UniqueIdentifier>{A1B2C3D4-0001-0001-0001-000000000005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="endian">
+      <UniqueIdentifier>{A1B2C3D4-0001-0001-0001-000000000006}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="socketsl\src\network\socket.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="socketsl\src\network\ssl.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="socketsl\src\message\message.cpp">
+      <Filter>message</Filter>
+    </ClCompile>
+    <ClCompile Include="socketsl\src\connection\session.cpp">
+      <Filter>connection</Filter>
+    </ClCompile>
+    <ClCompile Include="socketsl\src\connection\session_manager.cpp">
+      <Filter>connection</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="socketsl\src\network\socket.hpp">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="socketsl\src\network\ssl.hpp">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="socketsl\src\message\message.hpp">
+      <Filter>message</Filter>
+    </ClInclude>
+    <ClInclude Include="socketsl\src\connection\session.hpp">
+      <Filter>connection</Filter>
+    </ClInclude>
+    <ClInclude Include="socketsl\src\connection\session_manager.hpp">
+      <Filter>connection</Filter>
+    </ClInclude>
+    <ClInclude Include="socketsl\src\router\router.hpp">
+      <Filter>router</Filter>
+    </ClInclude>
+    <ClInclude Include="socketsl\src\serialisation\serialisation.hpp">
+      <Filter>serialisation</Filter>
+    </ClInclude>
+    <ClInclude Include="socketsl\src\endian\endian.hpp">
+      <Filter>endian</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,51 @@
+#pragma once
+#include <crt.hpp>
+
+#ifndef _CSTD_CSTDLIB_SHIM
+#define _CSTD_CSTDLIB_SHIM
+
+extern "C"
+{
+    __declspec(restrict) __declspec(noalias) void* malloc(size_t size);
+    __declspec(noalias) void free(void* ptr);
+}
+
+inline void* bsearch(const void* key, const void* base, size_t count, size_t size,
+                     int (*comp)(const void*, const void*))
+{
+    auto* ptr = static_cast<const unsigned char*>(base);
+
+    while (count > 0)
+    {
+        const auto half = count / 2;
+        const auto* mid = ptr + half * size;
+        const auto result = comp(key, mid);
+
+        if (result == 0)
+        {
+            return const_cast<void*>(static_cast<const void*>(mid));
+        }
+
+        if (result > 0)
+        {
+            ptr = mid + size;
+            count -= half + 1;
+        }
+        else
+        {
+            count = half;
+        }
+    }
+
+    return nullptr;
+}
+
+namespace std
+{
+    using ::size_t;
+    using ::malloc;
+    using ::free;
+    using ::bsearch;
+}
+
+#endif

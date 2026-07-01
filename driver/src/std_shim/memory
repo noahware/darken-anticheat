@@ -1,0 +1,32 @@
+#pragma once
+#include <pointer.hpp>
+
+namespace std
+{
+    template <class T>
+    using unique_ptr = cstd::unique_ptr<T>;
+
+    template <class T>
+    using shared_ptr = cstd::shared_ptr<T>;
+
+    using cstd::make_unique;
+    using cstd::make_shared;
+
+    template <class T>
+    struct default_delete
+    {
+        void operator()(T* ptr) const { delete ptr; }
+    };
+
+    template <class T>
+    constexpr T* addressof(T& arg) noexcept
+    {
+        return __builtin_addressof(arg);
+    }
+
+    template <class T>
+    struct allocator
+    {
+        using value_type = T;
+    };
+}

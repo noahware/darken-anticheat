@@ -1,0 +1,5 @@
+namespace Anticheat;
+
+table ClientTimestampResult {
+    timestamp: uint64;
+}

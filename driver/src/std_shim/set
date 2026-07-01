@@ -1,0 +1,176 @@
+#pragma once
+#include <vector.hpp>
+#include <utility.hpp>
+#include <algorithm.hpp>
+
+namespace std
+{
+    template <class T>
+    struct less
+    {
+        constexpr bool operator()(const T& a, const T& b) const { return a < b; }
+    };
+
+    template <class Key, class Compare = less<Key>, class Alloc = void>
+    class set
+    {
+    public:
+        using value_type = Key;
+        using size_type = size_t;
+        using iterator = Key*;
+        using const_iterator = const Key*;
+
+        set() = default;
+
+        iterator begin() { return data_.data(); }
+        iterator end() { return data_.data() + data_.size(); }
+        const_iterator begin() const { return data_.data(); }
+        const_iterator end() const { return data_.data() + data_.size(); }
+
+        [[nodiscard]] bool empty() const { return data_.empty(); }
+        [[nodiscard]] size_type size() const { return data_.size(); }
+
+        void clear() { data_.clear(); }
+
+        pair<iterator, bool> insert(const value_type& value)
+        {
+            auto pos = lower_bound_impl(value);
+
+            if (pos != end() && !comp_(value, *pos) && !comp_(*pos, value))
+            {
+                return {pos, false};
+            }
+
+            const auto offset = static_cast<size_type>(pos - begin());
+            data_.push_back(value);
+
+            for (auto i = data_.size() - 1; i > offset; --i)
+            {
+                cstd::swap(data_[i], data_[i - 1]);
+            }
+
+            return {begin() + offset, true};
+        }
+
+        pair<iterator, bool> insert(value_type&& value)
+        {
+            auto pos = lower_bound_impl(value);
+
+            if (pos != end() && !comp_(value, *pos) && !comp_(*pos, value))
+            {
+                return {pos, false};
+            }
+
+            const auto offset = static_cast<size_type>(pos - begin());
+            data_.push_back(cstd::move(value));
+
+            for (auto i = data_.size() - 1; i > offset; --i)
+            {
+                cstd::swap(data_[i], data_[i - 1]);
+            }
+
+            return {begin() + offset, true};
+        }
+
+        iterator find(const value_type& value)
+        {
+            auto pos = lower_bound_impl(value);
+
+            if (pos != end() && !comp_(value, *pos) && !comp_(*pos, value))
+            {
+                return pos;
+            }
+
+            return end();
+        }
+
+        const_iterator find(const value_type& value) const
+        {
+            auto pos = lower_bound_impl(value);
+
+            if (pos != end() && !comp_(value, *pos) && !comp_(*pos, value))
+            {
+                return pos;
+            }
+
+            return end();
+        }
+
+        size_type count(const value_type& value) const
+        {
+            return find(value) != end() ? 1 : 0;
+        }
+
+        size_type erase(const value_type& value)
+        {
+            auto pos = find(value);
+
+            if (pos == end())
+            {
+                return 0;
+            }
+
+            const auto offset = static_cast<size_type>(pos - begin());
+
+            for (auto i = offset; i + 1 < data_.size(); ++i)
+            {
+                cstd::swap(data_[i], data_[i + 1]);
+            }
+
+            data_.pop_back();
+            return 1;
+        }
+
+    private:
+        iterator lower_bound_impl(const value_type& value)
+        {
+            auto first = begin();
+            auto count = static_cast<ptrdiff_t>(size());
+
+            while (count > 0)
+            {
+                auto step = count / 2;
+                auto mid = first + step;
+
+                if (comp_(*mid, value))
+                {
+                    first = mid + 1;
+                    count -= step + 1;
+                }
+                else
+                {
+                    count = step;
+                }
+            }
+
+            return first;
+        }
+
+        const_iterator lower_bound_impl(const value_type& value) const
+        {
+            auto first = begin();
+            auto count = static_cast<ptrdiff_t>(size());
+
+            while (count > 0)
+            {
+                auto step = count / 2;
+                auto mid = first + step;
+
+                if (comp_(*mid, value))
+                {
+                    first = mid + 1;
+                    count -= step + 1;
+                }
+                else
+                {
+                    count = step;
+                }
+            }
+
+            return first;
+        }
+
+        cstd::vector<Key> data_;
+        Compare comp_;
+    };
+}

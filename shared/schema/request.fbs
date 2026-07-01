@@ -1,0 +1,18 @@
+namespace Anticheat;
+
+enum RequestId : uint8 {
+    Ping = 0,
+    ClientTimestampResult = 1,
+    KernelModuleListResult = 2,
+    EventBatchResult = 3,
+    ThreadListResult = 4,
+    NmiResultData = 5,
+    ImageSignatureCheckResult = 6,
+    HandleStripData = 7,
+    ReservedMsrData = 8,
+    ProtectedProcessListResult = 9
+}
+
+table PingRequest {
+    timestamp: uint64;
+}

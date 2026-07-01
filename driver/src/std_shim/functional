@@ -1,0 +1,8 @@
+#pragma once
+#include <function.hpp>
+
+namespace std
+{
+    template <class T>
+    using function = cstd::function<T>;
+}

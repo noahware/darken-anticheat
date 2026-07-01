@@ -1,0 +1,24 @@
+namespace Anticheat;
+
+table EmbeddedSignature {
+    pkcs7: [ubyte];
+}
+
+table CatalogSignature {
+    authenticode_hash: [ubyte];
+    catalog_pkcs7: [ubyte];
+}
+
+union SignatureData {
+    EmbeddedSignature,
+    CatalogSignature
+}
+
+table ImageSignatureCheckRequest {
+    full_path: string;
+}
+
+table ImageSignatureCheckResult {
+    full_path: string;
+    data: SignatureData;
+}

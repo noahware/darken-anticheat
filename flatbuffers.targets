@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <FlatcExe Condition="'$(FlatcExe)'==''">$(SolutionDir)vcpkg_installed\x64-windows-static\x64-windows\tools\flatbuffers\flatc.exe</FlatcExe>
+    <FlatBuffersOutDir>$(SolutionDir)shared\schema</FlatBuffersOutDir>
+    <FlatBuffersTmpDir>$(IntDir)flatbuffers\</FlatBuffersTmpDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <FlatBuffersSchema Include="$(SolutionDir)vendor\socketsl\src\message\*.fbs" />
+    <FlatBuffersSchema Include="$(SolutionDir)shared\schema\*.fbs" />
+  </ItemGroup>
+  <Target Name="CompileFlatBuffers"
+          BeforeTargets="ClCompile"
+          Inputs="@(FlatBuffersSchema)"
+          Outputs="@(FlatBuffersSchema->'$(FlatBuffersOutDir)\%(Filename)_generated.h')">
+    <MakeDir Directories="$(FlatBuffersTmpDir)" />
+    <MakeDir Directories="$(FlatBuffersOutDir)" />
+    <Exec Command="&quot;$(FlatcExe)&quot; --cpp -o &quot;$(FlatBuffersTmpDir).&quot; &quot;%(FlatBuffersSchema.FullPath)&quot;" />
+    <Copy SourceFiles="$(FlatBuffersTmpDir)%(FlatBuffersSchema.Filename)_generated.h"
+          DestinationFiles="$(FlatBuffersOutDir)\%(FlatBuffersSchema.Filename)_generated.h"
+          SkipUnchangedFiles="true" />
+    <Message Text="Compiled %(FlatBuffersSchema.Filename).fbs" Importance="high" />
+  </Target>
+</Project>

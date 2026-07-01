@@ -1,0 +1,8 @@
+#pragma once
+#include <vector.hpp>
+
+namespace std
+{
+    template <class T, class Alloc = void>
+    using vector = cstd::vector<T>;
+}

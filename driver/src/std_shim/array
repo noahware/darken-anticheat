@@ -1,0 +1,8 @@
+#pragma once
+#include <array.hpp>
+
+namespace std
+{
+    template <class T, size_t N>
+    using array = cstd::array<T, N>;
+}

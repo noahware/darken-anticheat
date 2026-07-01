@@ -1,0 +1,10 @@
+namespace Anticheat;
+
+table Thread {
+    thread_id: uint32;
+    start_address: uint64;
+}
+
+table ThreadList {
+    threads: [Thread];
+}

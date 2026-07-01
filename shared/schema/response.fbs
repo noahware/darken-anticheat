@@ -1,0 +1,26 @@
+namespace Anticheat;
+
+enum ResponseId : uint8 {
+    Pong = 0,
+    ClientTimestamp = 1,
+    KernelModuleList = 2,
+    ThreadList = 3,
+    NmiCheck = 4,
+    ImageSignatureCheck = 5,
+    HandleStripCheck = 6,
+    ReservedMsrCheck = 7,
+    ProtectedProcessList = 8
+}
+
+table PongResponse {
+    client_timestamp: uint64;
+    server_timestamp: uint64;
+}
+
+table ClientTimestampRequest {}
+table KernelModuleListRequest {}
+table ThreadListRequest {}
+table NmiCheckRequest {}
+table HandleStripCheckRequest {}
+table ReservedMsrCheckRequest {}
+table ProtectedProcessListRequest {}

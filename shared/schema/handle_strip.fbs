@@ -1,0 +1,11 @@
+namespace Anticheat;
+
+table StrippedHandleInfo {
+    target_process_id: uint64;
+    source_process_id: uint64;
+    access: uint32;
+}
+
+table HandleStripResult {
+    handles: [StrippedHandleInfo];
+}

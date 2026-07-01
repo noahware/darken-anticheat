@@ -1,0 +1,7 @@
+#pragma once
+#include <string.hpp>
+
+namespace std
+{
+    using string = cstd::string;
+}
