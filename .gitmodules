@@ -4,3 +4,6 @@
 [submodule "vendor/portable_executable"]
 	path = vendor/portable_executable
 	url = https://github.com/papstuc/nocrt_portable_executable.git
+[submodule "vendor/ia32-doc"]
+	path = vendor/ia32-doc
+	url = https://github.com/ia32-doc/ia32-doc.git
