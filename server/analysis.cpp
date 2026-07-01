@@ -260,7 +260,7 @@ namespace analysis
         }
     }
 
-    void process_event_batch(std::vector<module_entry>& modules, const Anticheat::EventBatch* batch)
+    void process_event_batch(std::vector<module_entry>& modules, std::vector<process_entry>& processes, const Anticheat::EventBatch* batch)
     {
         if (!batch)
         {
@@ -277,33 +277,70 @@ namespace analysis
 
         for (const auto* event : *events)
         {
-            if (event->body_type() != Anticheat::EventBody_KernelModuleLoad)
+            if (event->body_type() == Anticheat::EventBody_KernelModuleLoad)
+            {
+                const auto* load = event->body_as_KernelModuleLoad();
+
+                if (!load)
+                {
+                    continue;
+                }
+
+                const auto* hash_vec = load->hash();
+
+                modules.push_back({
+                    load->base_address(),
+                    load->size(),
+                    load->name() ? load->name()->str() : "",
+                    hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
+                             : std::vector<std::uint8_t>{},
+                    load->full_path() ? load->full_path()->str() : ""
+                });
+
+                LOG_INFO("kernel module loaded (event): {} @ 0x{:x} (size: 0x{:x})",
+                    load->name() ? load->name()->c_str() : "unknown",
+                    load->base_address(), load->size());
+            }
+            else if (event->body_type() == Anticheat::EventBody_ProcessModuleLoad)
+            {
+                const auto* load = event->body_as_ProcessModuleLoad();
+
+                if (!load)
+                {
+                    continue;
+                }
+
+                const auto* hash_vec = load->hash();
+
+                module_entry mod{
+                    load->base_address(),
+                    load->size(),
+                    load->name() ? load->name()->str() : "",
+                    hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
+                             : std::vector<std::uint8_t>{},
+                    load->full_path() ? load->full_path()->str() : ""
+                };
+
+                auto it = std::ranges::find(processes, load->process_id(), &process_entry::process_id);
+
+                if (it != processes.end())
+                {
+                    it->modules.push_back(std::move(mod));
+                }
+                else
+                {
+                    processes.push_back({ load->process_id(), { std::move(mod) } });
+                }
+
+                LOG_INFO("[pid 0x{:x}] process module loaded (event): {} @ 0x{:x} (size: 0x{:x})",
+                    load->process_id(),
+                    load->name() ? load->name()->c_str() : "unknown",
+                    load->base_address(), load->size());
+            }
+            else
             {
                 LOG_WARN("unknown event body type: {}", static_cast<int>(event->body_type()));
-                continue;
             }
-
-            const auto* load = event->body_as_KernelModuleLoad();
-
-            if (!load)
-            {
-                continue;
-            }
-
-            const auto* hash_vec = load->hash();
-
-            modules.push_back({
-                load->base_address(),
-                load->size(),
-                load->name() ? load->name()->str() : "",
-                hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
-                         : std::vector<std::uint8_t>{},
-                load->full_path() ? load->full_path()->str() : ""
-            });
-
-            LOG_INFO("module loaded: {} @ 0x{:x} (size: 0x{:x})",
-                load->name() ? load->name()->c_str() : "unknown",
-                load->base_address(), load->size());
         }
     }
 
@@ -337,7 +374,7 @@ namespace analysis
                 continue;
             }
 
-            if (it->hash != old_mod.hash)
+            if (it->hash != old_mod.hash && !old_mod.hash.empty())
             {
                 LOG_WARN("[pid 0x{:x}] module integrity mismatch: {} @ 0x{:x} (hash: {} -> {})",
                     pid, old_mod.name, old_mod.base_address, to_hex(old_mod.hash), to_hex(it->hash));

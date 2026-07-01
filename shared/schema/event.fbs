@@ -8,8 +8,18 @@ table KernelModuleLoad {
     full_path: string;
 }
 
+table ProcessModuleLoad {
+    process_id: uint32;
+    base_address: uint64;
+    size: uint32;
+    name: string;
+    hash: [ubyte];
+    full_path: string;
+}
+
 union EventBody {
-    KernelModuleLoad
+    KernelModuleLoad,
+    ProcessModuleLoad
 }
 
 table Event {

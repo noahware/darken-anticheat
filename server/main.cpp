@@ -173,9 +173,16 @@ namespace
             conn->socket().remote_address(), conn->socket().port());
 
         std::lock_guard<std::mutex> lock(conn->modules_mutex_);
-        analysis::process_event_batch(conn->kernel_modules_, result);
+        analysis::process_event_batch(conn->kernel_modules_, conn->processes_, result);
 
-        const auto unsigned_paths = analysis::find_unsigned_modules(conn->kernel_modules_);
+        auto unsigned_paths = analysis::find_unsigned_modules(conn->kernel_modules_);
+
+        for (const auto& proc : conn->processes_)
+        {
+            auto paths = analysis::find_unsigned_modules(proc.modules);
+            unsigned_paths.insert(unsigned_paths.end(), paths.begin(), paths.end());
+        }
+
         send_signature_checks(conn, unsigned_paths);
     }
 

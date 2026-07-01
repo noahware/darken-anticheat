@@ -2,6 +2,7 @@
 #include <types.hpp>
 #include <list.hpp>
 #include <algorithm.hpp>
+#include <mutex.hpp>
 
 class protected_process
 {
@@ -30,6 +31,7 @@ public:
 
     static void add(const id_type id)
     {
+        cstd::lock_guard<cstd::mutex> guard(mutex_);
         list_.push_back(protected_process(id));
     }
 
@@ -38,8 +40,14 @@ public:
         return list_;
     }
 
+    [[nodiscard]] static bool is_protected(const id_type id)
+    {
+        return find(id) != nullptr;
+    }
+
     [[nodiscard]] static protected_process* find(const id_type id)
     {
+        cstd::lock_guard<cstd::mutex> guard(mutex_);
         const protected_process target(id);
         auto it = cstd::find(list_, target);
 
@@ -51,7 +59,18 @@ public:
         return &(*it);
     }
 
+    template <typename Fn>
+    static void for_each(Fn&& fn)
+    {
+        cstd::lock_guard<cstd::mutex> guard(mutex_);
+        for (auto& proc : list_)
+        {
+            fn(proc);
+        }
+    }
+
 protected:
     id_type id_ = 0;
     static inline cstd::single_linked_list<protected_process> list_;
+    static inline cstd::mutex mutex_;
 };

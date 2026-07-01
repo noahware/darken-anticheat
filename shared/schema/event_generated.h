@@ -18,6 +18,9 @@ namespace Anticheat {
 struct KernelModuleLoad;
 struct KernelModuleLoadBuilder;
 
+struct ProcessModuleLoad;
+struct ProcessModuleLoadBuilder;
+
 struct Event;
 struct EventBuilder;
 
@@ -27,29 +30,32 @@ struct EventBatchBuilder;
 enum EventBody : uint8_t {
   EventBody_NONE = 0,
   EventBody_KernelModuleLoad = 1,
+  EventBody_ProcessModuleLoad = 2,
   EventBody_MIN = EventBody_NONE,
-  EventBody_MAX = EventBody_KernelModuleLoad
+  EventBody_MAX = EventBody_ProcessModuleLoad
 };
 
-inline const EventBody (&EnumValuesEventBody())[2] {
+inline const EventBody (&EnumValuesEventBody())[3] {
   static const EventBody values[] = {
     EventBody_NONE,
-    EventBody_KernelModuleLoad
+    EventBody_KernelModuleLoad,
+    EventBody_ProcessModuleLoad
   };
   return values;
 }
 
 inline const char * const *EnumNamesEventBody() {
-  static const char * const names[3] = {
+  static const char * const names[4] = {
     "NONE",
     "KernelModuleLoad",
+    "ProcessModuleLoad",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameEventBody(EventBody e) {
-  if (::flatbuffers::IsOutRange(e, EventBody_NONE, EventBody_KernelModuleLoad)) return "";
+  if (::flatbuffers::IsOutRange(e, EventBody_NONE, EventBody_ProcessModuleLoad)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesEventBody()[index];
 }
@@ -60,6 +66,10 @@ template<typename T> struct EventBodyTraits {
 
 template<> struct EventBodyTraits<Anticheat::KernelModuleLoad> {
   static const EventBody enum_value = EventBody_KernelModuleLoad;
+};
+
+template<> struct EventBodyTraits<Anticheat::ProcessModuleLoad> {
+  static const EventBody enum_value = EventBody_ProcessModuleLoad;
 };
 
 template <bool B = false>
@@ -171,6 +181,122 @@ inline ::flatbuffers::Offset<KernelModuleLoad> CreateKernelModuleLoadDirect(
       full_path__);
 }
 
+struct ProcessModuleLoad FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ProcessModuleLoadBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_PROCESS_ID = 4,
+    VT_BASE_ADDRESS = 6,
+    VT_SIZE = 8,
+    VT_NAME = 10,
+    VT_HASH = 12,
+    VT_FULL_PATH = 14
+  };
+  uint32_t process_id() const {
+    return GetField<uint32_t>(VT_PROCESS_ID, 0);
+  }
+  uint64_t base_address() const {
+    return GetField<uint64_t>(VT_BASE_ADDRESS, 0);
+  }
+  uint32_t size() const {
+    return GetField<uint32_t>(VT_SIZE, 0);
+  }
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
+  }
+  const ::flatbuffers::Vector<uint8_t> *hash() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_HASH);
+  }
+  const ::flatbuffers::String *full_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_FULL_PATH);
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint32_t>(verifier, VT_PROCESS_ID, 4) &&
+           VerifyField<uint64_t>(verifier, VT_BASE_ADDRESS, 8) &&
+           VerifyField<uint32_t>(verifier, VT_SIZE, 4) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffset(verifier, VT_HASH) &&
+           verifier.VerifyVector(hash()) &&
+           VerifyOffset(verifier, VT_FULL_PATH) &&
+           verifier.VerifyString(full_path()) &&
+           verifier.EndTable();
+  }
+};
+
+struct ProcessModuleLoadBuilder {
+  typedef ProcessModuleLoad Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_process_id(uint32_t process_id) {
+    fbb_.AddElement<uint32_t>(ProcessModuleLoad::VT_PROCESS_ID, process_id, 0);
+  }
+  void add_base_address(uint64_t base_address) {
+    fbb_.AddElement<uint64_t>(ProcessModuleLoad::VT_BASE_ADDRESS, base_address, 0);
+  }
+  void add_size(uint32_t size) {
+    fbb_.AddElement<uint32_t>(ProcessModuleLoad::VT_SIZE, size, 0);
+  }
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
+    fbb_.AddOffset(ProcessModuleLoad::VT_NAME, name);
+  }
+  void add_hash(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> hash) {
+    fbb_.AddOffset(ProcessModuleLoad::VT_HASH, hash);
+  }
+  void add_full_path(::flatbuffers::Offset<::flatbuffers::String> full_path) {
+    fbb_.AddOffset(ProcessModuleLoad::VT_FULL_PATH, full_path);
+  }
+  explicit ProcessModuleLoadBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ProcessModuleLoad> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ProcessModuleLoad>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ProcessModuleLoad> CreateProcessModuleLoad(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint32_t process_id = 0,
+    uint64_t base_address = 0,
+    uint32_t size = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> hash = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> full_path = 0) {
+  ProcessModuleLoadBuilder builder_(_fbb);
+  builder_.add_base_address(base_address);
+  builder_.add_full_path(full_path);
+  builder_.add_hash(hash);
+  builder_.add_name(name);
+  builder_.add_size(size);
+  builder_.add_process_id(process_id);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<ProcessModuleLoad> CreateProcessModuleLoadDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint32_t process_id = 0,
+    uint64_t base_address = 0,
+    uint32_t size = 0,
+    const char *name = nullptr,
+    const std::vector<uint8_t> *hash = nullptr,
+    const char *full_path = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto hash__ = hash ? _fbb.CreateVector<uint8_t>(*hash) : 0;
+  auto full_path__ = full_path ? _fbb.CreateString(full_path) : 0;
+  return Anticheat::CreateProcessModuleLoad(
+      _fbb,
+      process_id,
+      base_address,
+      size,
+      name__,
+      hash__,
+      full_path__);
+}
+
 struct Event FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef EventBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -187,6 +313,9 @@ struct Event FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const Anticheat::KernelModuleLoad *body_as_KernelModuleLoad() const {
     return body_type() == Anticheat::EventBody_KernelModuleLoad ? static_cast<const Anticheat::KernelModuleLoad *>(body()) : nullptr;
   }
+  const Anticheat::ProcessModuleLoad *body_as_ProcessModuleLoad() const {
+    return body_type() == Anticheat::EventBody_ProcessModuleLoad ? static_cast<const Anticheat::ProcessModuleLoad *>(body()) : nullptr;
+  }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -199,6 +328,10 @@ struct Event FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
 
 template<> inline const Anticheat::KernelModuleLoad *Event::body_as<Anticheat::KernelModuleLoad>() const {
   return body_as_KernelModuleLoad();
+}
+
+template<> inline const Anticheat::ProcessModuleLoad *Event::body_as<Anticheat::ProcessModuleLoad>() const {
+  return body_as_ProcessModuleLoad();
 }
 
 struct EventBuilder {
@@ -293,6 +426,10 @@ inline bool VerifyEventBody(::flatbuffers::VerifierTemplate<B> &verifier, const 
     }
     case EventBody_KernelModuleLoad: {
       auto ptr = reinterpret_cast<const Anticheat::KernelModuleLoad *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case EventBody_ProcessModuleLoad: {
+      auto ptr = reinterpret_cast<const Anticheat::ProcessModuleLoad *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;
