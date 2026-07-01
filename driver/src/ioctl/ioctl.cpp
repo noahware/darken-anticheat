@@ -11,6 +11,7 @@
 #include "response_generated.h"
 #include "../handle/table.hpp"
 #include "../msr/msr.hpp"
+#include "../process/process_modules.hpp"
 
 static nt_status complete_request(PIRP irp, const nt_status status, const ULONG_PTR information = 0)
 {
@@ -38,7 +39,7 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
     if (io_control_code == IOCTL_DARKEN_PROTECT_SELF)
     {
         const auto pid = reinterpret_cast<uint64_t>(LIMPORT(PsGetCurrentProcessId)());
-        protected_process_t::add(pid);
+        protected_process::add(pid);
         DBG_LOG("protected process: %llu\n", pid);
         return complete_request(irp, nt_status::success());
     }
@@ -80,6 +81,10 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 
     case Anticheat::ResponseId_ReservedMsrCheck:
         response_bytes = msr::test_reserved();
+        break;
+
+    case Anticheat::ResponseId_ProtectedProcessList:
+        response_bytes = proc::get_protected_process_modules();
         break;
 
     default:

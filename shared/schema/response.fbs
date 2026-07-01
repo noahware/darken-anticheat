@@ -8,7 +8,8 @@ enum ResponseId : uint8 {
     NmiCheck = 4,
     ImageSignatureCheck = 5,
     HandleStripCheck = 6,
-    ReservedMsrCheck = 7
+    ReservedMsrCheck = 7,
+    ProtectedProcessList = 8
 }
 
 table PongResponse {
@@ -22,3 +23,4 @@ table ThreadListRequest {}
 table NmiCheckRequest {}
 table HandleStripCheckRequest {}
 table ReservedMsrCheckRequest {}
+table ProtectedProcessListRequest {}

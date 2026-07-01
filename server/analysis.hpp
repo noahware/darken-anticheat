@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <vector>
 #include <schema/reserved_msr_result_generated.h>
+#include <schema/protected_process_generated.h>
 
 namespace analysis
 {
@@ -23,6 +24,12 @@ namespace analysis
         std::string name;
         std::vector<std::uint8_t> hash;
         std::string full_path;
+    };
+
+    struct process_entry
+    {
+        std::uint32_t process_id;
+        std::vector<module_entry> modules;
     };
 
     struct thread_entry
@@ -43,6 +50,8 @@ namespace analysis
     void process_nmi_result(const std::vector<module_entry>& modules, const Anticheat::NmiResult* result);
     void process_handle_strip_result(const Anticheat::HandleStripResult* result);
     void process_reserved_msr_result(const Anticheat::ReservedMsrResult* result);
+
+    void process_protected_process_list(std::vector<process_entry>& processes, const Anticheat::ProtectedProcessList* list);
 
     std::vector<std::string> find_unsigned_modules(std::span<const module_entry> modules);
 }

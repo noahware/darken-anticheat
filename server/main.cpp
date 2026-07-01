@@ -12,6 +12,7 @@
 #include <schema/nmi_result_generated.h>
 #include <schema/handle_strip_generated.h>
 #include <schema/signature_generated.h>
+#include <schema/protected_process_generated.h>
 
 #include "log.hpp"
 #include "analysis.hpp"
@@ -63,6 +64,7 @@ namespace
     void handle_image_signature_check_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ImageSignatureCheckResult* result);
     void handle_handle_strip_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::HandleStripResult* result);
     void handle_reserved_msr_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::ReservedMsrResult* result);
+    void handle_protected_process_list_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ProtectedProcessList* result);
 
     constexpr sl::message_info<Anticheat::PingRequest, sl::session> ping_request{
         Anticheat::RequestId_Ping, handle_ping
@@ -100,7 +102,11 @@ namespace
         Anticheat::RequestId_ReservedMsrData, handle_reserved_msr_result_data
     };
 
-    using request_router = sl::message_router<ping_request, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data, image_signature_check_result, handle_strip_result_data, reserved_msr_result_data>;
+    constexpr sl::message_info<Anticheat::ProtectedProcessList, client_connection> protected_process_list_result{
+        Anticheat::RequestId_ProtectedProcessListResult, handle_protected_process_list_result
+    };
+
+    using request_router = sl::message_router<ping_request, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data, image_signature_check_result, handle_strip_result_data, reserved_msr_result_data, protected_process_list_result>;
 
     class client_connection final : public sl::session
     {
@@ -108,6 +114,7 @@ namespace
         using session::session;
 
         std::vector<analysis::module_entry> kernel_modules_;
+        std::vector<analysis::process_entry> processes_;
         std::vector<analysis::thread_entry> threads_;
         std::mutex modules_mutex_;
 
@@ -224,15 +231,27 @@ namespace
         if (valid)
         {
             std::lock_guard lock(conn->modules_mutex_);
+            std::lock_guard hash_lock(analysis::verified_hashes_mutex);
 
             for (const auto& mod : conn->kernel_modules_)
             {
                 if (mod.full_path == path)
                 {
-                    std::lock_guard hash_lock(analysis::verified_hashes_mutex);
                     analysis::verified_hashes.insert(analysis::to_hex(mod.hash));
                     LOG_INFO("module verified: {}", path);
                     break;
+                }
+            }
+
+            for (const auto& proc : conn->processes_)
+            {
+                for (const auto& mod : proc.modules)
+                {
+                    if (mod.full_path == path)
+                    {
+                        analysis::verified_hashes.insert(analysis::to_hex(mod.hash));
+                        LOG_INFO("process module verified: {} (pid 0x{:x})", path, proc.process_id);
+                    }
                 }
             }
         }
@@ -256,6 +275,25 @@ namespace
             conn->socket().remote_address(), conn->socket().port());
 
         analysis::process_reserved_msr_result(result);
+    }
+
+    void handle_protected_process_list_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ProtectedProcessList* result)
+    {
+        LOG_INFO("protected process list from {}:{}",
+            conn->socket().remote_address(), conn->socket().port());
+
+        std::lock_guard<std::mutex> lock(conn->modules_mutex_);
+        analysis::process_protected_process_list(conn->processes_, result);
+
+        std::vector<std::string> unsigned_paths;
+
+        for (const auto& proc : conn->processes_)
+        {
+            auto paths = analysis::find_unsigned_modules(proc.modules);
+            unsigned_paths.insert(unsigned_paths.end(), paths.begin(), paths.end());
+        }
+
+        send_signature_checks(conn, unsigned_paths);
     }
 
     void broadcast_check_requests(
@@ -295,6 +333,10 @@ namespace
 
                 sl::msg::async_send<Anticheat::CreateReservedMsrCheckRequest>(
                     sess->socket(), Anticheat::ResponseId_ReservedMsrCheck
+                );
+
+                sl::msg::async_send<Anticheat::CreateProtectedProcessListRequest>(
+                    sess->socket(), Anticheat::ResponseId_ProtectedProcessList
                 );
             });
 

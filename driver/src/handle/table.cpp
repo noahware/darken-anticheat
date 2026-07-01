@@ -62,9 +62,9 @@ namespace
         }
 
         const auto target_process = static_cast<PEPROCESS>(object);
-        const auto target_process_id = reinterpret_cast<protected_process_t::id_type>(LIMPORT(PsGetProcessId)(target_process));
+        const auto target_process_id = reinterpret_cast<protected_process::id_type>(LIMPORT(PsGetProcessId)(target_process));
 
-        if (!protected_process_t::find(target_process_id))
+        if (!protected_process::find(target_process_id))
         {
             ex_unlock_handle_table_entry(table, entry);
             return FALSE;

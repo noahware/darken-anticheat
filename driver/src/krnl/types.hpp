@@ -356,6 +356,39 @@ struct _OBJECT_HEADER
     struct _QUAD Body;                                                      //0x30
 };
 
+struct peb_ldr_data
+{
+    ULONG length;
+    BOOLEAN initialized;
+    PVOID ss_handle;
+    LIST_ENTRY in_load_order_module_list;
+    LIST_ENTRY in_memory_order_module_list;
+    LIST_ENTRY in_initialization_order_module_list;
+};
+
+struct peb
+{
+    BOOLEAN inherited_address_space;
+    BOOLEAN read_image_file_exec_options;
+    BOOLEAN being_debugged;
+    BOOLEAN spare;
+    HANDLE mutant;
+    PVOID image_base_address;
+    peb_ldr_data* ldr;
+};
+
+struct ldr_data_table_entry
+{
+    LIST_ENTRY in_load_order_links;
+    LIST_ENTRY in_memory_order_links;
+    LIST_ENTRY in_initialization_order_links;
+    PVOID dll_base;
+    PVOID entry_point;
+    ULONG size_of_image;
+    UNICODE_STRING full_dll_name;
+    UNICODE_STRING base_dll_name;
+};
+
 struct machine_frame
 {
     uint64_t rip;

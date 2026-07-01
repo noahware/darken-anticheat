@@ -307,6 +307,137 @@ namespace analysis
         }
     }
 
+    static void diff_module_list(
+        const std::uint32_t pid,
+        const std::vector<module_entry>& old_modules,
+        const std::vector<module_entry>& new_modules)
+    {
+        for (const auto& old_mod : old_modules)
+        {
+            if (!std::ranges::contains(new_modules, old_mod.base_address, &module_entry::base_address))
+            {
+                LOG_INFO("[pid 0x{:x}] module unloaded: {} @ 0x{:x}", pid, old_mod.name, old_mod.base_address);
+            }
+        }
+
+        for (const auto& new_mod : new_modules)
+        {
+            if (!std::ranges::contains(old_modules, new_mod.base_address, &module_entry::base_address))
+            {
+                LOG_INFO("[pid 0x{:x}] module loaded: {} @ 0x{:x} (size: 0x{:x})", pid, new_mod.name, new_mod.base_address, new_mod.size);
+            }
+        }
+
+        for (const auto& old_mod : old_modules)
+        {
+            const auto it = std::ranges::find(new_modules, old_mod.base_address, &module_entry::base_address);
+
+            if (it == new_modules.end())
+            {
+                continue;
+            }
+
+            if (it->hash != old_mod.hash)
+            {
+                LOG_WARN("[pid 0x{:x}] module integrity mismatch: {} @ 0x{:x} (hash: {} -> {})",
+                    pid, old_mod.name, old_mod.base_address, to_hex(old_mod.hash), to_hex(it->hash));
+            }
+        }
+    }
+
+    static std::vector<module_entry> parse_process_modules(const Anticheat::ProtectedProcess* proc)
+    {
+        std::vector<module_entry> modules;
+
+        const auto* fb_modules = proc->modules();
+
+        if (!fb_modules)
+        {
+            return modules;
+        }
+
+        modules.reserve(fb_modules->size());
+
+        for (const auto* mod : *fb_modules)
+        {
+            const auto* hash_vec = mod->hash();
+
+            modules.push_back({
+                mod->base_address(),
+                mod->size(),
+                mod->name() ? mod->name()->str() : "",
+                hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
+                         : std::vector<std::uint8_t>{},
+                mod->full_path() ? mod->full_path()->str() : ""
+            });
+        }
+
+        return modules;
+    }
+
+    void process_protected_process_list(std::vector<process_entry>& processes, const Anticheat::ProtectedProcessList* list)
+    {
+        if (!list)
+        {
+            LOG_ERR("null ProtectedProcessList");
+            return;
+        }
+
+        std::vector<process_entry> incoming;
+
+        if (const auto* fb_processes = list->processes())
+        {
+            incoming.reserve(fb_processes->size());
+
+            for (const auto* proc : *fb_processes)
+            {
+                incoming.push_back({
+                    proc->process_id(),
+                    parse_process_modules(proc)
+                });
+            }
+        }
+
+        if (!processes.empty())
+        {
+            for (const auto& old_proc : processes)
+            {
+                if (!std::ranges::contains(incoming, old_proc.process_id, &process_entry::process_id))
+                {
+                    LOG_INFO("protected process exited: pid 0x{:x}", old_proc.process_id);
+                }
+            }
+
+            for (const auto& new_proc : incoming)
+            {
+                const auto it = std::ranges::find(processes, new_proc.process_id, &process_entry::process_id);
+
+                if (it == processes.end())
+                {
+                    LOG_INFO("protected process appeared: pid 0x{:x} ({} modules)", new_proc.process_id, new_proc.modules.size());
+                }
+                else
+                {
+                    diff_module_list(new_proc.process_id, it->modules, new_proc.modules);
+                }
+            }
+        }
+        else if (!incoming.empty())
+        {
+            LOG_INFO("initial protected process list: {} processes", incoming.size());
+
+            for (const auto& proc : incoming)
+            {
+                const auto empty_hashes = std::ranges::count_if(proc.modules,
+                    [](const auto& m) { return m.hash.empty(); });
+
+                LOG_INFO("  pid 0x{:x}: {} modules ({} without hash)", proc.process_id, proc.modules.size(), empty_hashes);
+            }
+        }
+
+        processes = std::move(incoming);
+    }
+
     std::vector<std::string> find_unsigned_modules(std::span<const module_entry> modules)
     {
         std::vector<std::string> paths;

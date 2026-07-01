@@ -36,6 +36,9 @@ struct HandleStripCheckRequestBuilder;
 struct ReservedMsrCheckRequest;
 struct ReservedMsrCheckRequestBuilder;
 
+struct ProtectedProcessListRequest;
+struct ProtectedProcessListRequestBuilder;
+
 enum ResponseId : uint8_t {
   ResponseId_Pong = 0,
   ResponseId_ClientTimestamp = 1,
@@ -45,11 +48,12 @@ enum ResponseId : uint8_t {
   ResponseId_ImageSignatureCheck = 5,
   ResponseId_HandleStripCheck = 6,
   ResponseId_ReservedMsrCheck = 7,
+  ResponseId_ProtectedProcessList = 8,
   ResponseId_MIN = ResponseId_Pong,
-  ResponseId_MAX = ResponseId_ReservedMsrCheck
+  ResponseId_MAX = ResponseId_ProtectedProcessList
 };
 
-inline const ResponseId (&EnumValuesResponseId())[8] {
+inline const ResponseId (&EnumValuesResponseId())[9] {
   static const ResponseId values[] = {
     ResponseId_Pong,
     ResponseId_ClientTimestamp,
@@ -58,13 +62,14 @@ inline const ResponseId (&EnumValuesResponseId())[8] {
     ResponseId_NmiCheck,
     ResponseId_ImageSignatureCheck,
     ResponseId_HandleStripCheck,
-    ResponseId_ReservedMsrCheck
+    ResponseId_ReservedMsrCheck,
+    ResponseId_ProtectedProcessList
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseId() {
-  static const char * const names[9] = {
+  static const char * const names[10] = {
     "Pong",
     "ClientTimestamp",
     "KernelModuleList",
@@ -73,13 +78,14 @@ inline const char * const *EnumNamesResponseId() {
     "ImageSignatureCheck",
     "HandleStripCheck",
     "ReservedMsrCheck",
+    "ProtectedProcessList",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameResponseId(ResponseId e) {
-  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_ReservedMsrCheck)) return "";
+  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_ProtectedProcessList)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseId()[index];
 }
@@ -313,6 +319,36 @@ struct ReservedMsrCheckRequestBuilder {
 inline ::flatbuffers::Offset<ReservedMsrCheckRequest> CreateReservedMsrCheckRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb) {
   ReservedMsrCheckRequestBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct ProtectedProcessListRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ProtectedProcessListRequestBuilder Builder;
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct ProtectedProcessListRequestBuilder {
+  typedef ProtectedProcessListRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit ProtectedProcessListRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ProtectedProcessListRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ProtectedProcessListRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ProtectedProcessListRequest> CreateProtectedProcessListRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  ProtectedProcessListRequestBuilder builder_(_fbb);
   return builder_.Finish();
 }
 

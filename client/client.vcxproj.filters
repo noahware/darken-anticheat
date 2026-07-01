@@ -18,6 +18,10 @@
     <ClCompile Include="handlers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sign.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\data_directory.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\dos_header.cpp" />
+    <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\nt_headers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client_session.hpp">
@@ -29,5 +33,6 @@
     <ClInclude Include="handlers.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="sign.hpp" />
   </ItemGroup>
 </Project>

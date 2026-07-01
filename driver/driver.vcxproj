@@ -181,6 +181,7 @@
     <ClCompile Include="$(SolutionDir)vendor\portable_executable\nocrt_portable_executable\portable_executable\pe_crt\crt_string.cpp" />
     <ClCompile Include="src\handle\object_callbacks.cpp" />
     <ClCompile Include="src\handle\table.cpp" />
+    <ClCompile Include="src\process\process_modules.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\crypto\crypto.hpp" />

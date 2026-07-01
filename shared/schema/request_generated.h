@@ -28,11 +28,12 @@ enum RequestId : uint8_t {
   RequestId_ImageSignatureCheckResult = 6,
   RequestId_HandleStripData = 7,
   RequestId_ReservedMsrData = 8,
+  RequestId_ProtectedProcessListResult = 9,
   RequestId_MIN = RequestId_Ping,
-  RequestId_MAX = RequestId_ReservedMsrData
+  RequestId_MAX = RequestId_ProtectedProcessListResult
 };
 
-inline const RequestId (&EnumValuesRequestId())[9] {
+inline const RequestId (&EnumValuesRequestId())[10] {
   static const RequestId values[] = {
     RequestId_Ping,
     RequestId_ClientTimestampResult,
@@ -42,13 +43,14 @@ inline const RequestId (&EnumValuesRequestId())[9] {
     RequestId_NmiResultData,
     RequestId_ImageSignatureCheckResult,
     RequestId_HandleStripData,
-    RequestId_ReservedMsrData
+    RequestId_ReservedMsrData,
+    RequestId_ProtectedProcessListResult
   };
   return values;
 }
 
 inline const char * const *EnumNamesRequestId() {
-  static const char * const names[10] = {
+  static const char * const names[11] = {
     "Ping",
     "ClientTimestampResult",
     "KernelModuleListResult",
@@ -58,13 +60,14 @@ inline const char * const *EnumNamesRequestId() {
     "ImageSignatureCheckResult",
     "HandleStripData",
     "ReservedMsrData",
+    "ProtectedProcessListResult",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameRequestId(RequestId e) {
-  if (::flatbuffers::IsOutRange(e, RequestId_Ping, RequestId_ReservedMsrData)) return "";
+  if (::flatbuffers::IsOutRange(e, RequestId_Ping, RequestId_ProtectedProcessListResult)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesRequestId()[index];
 }

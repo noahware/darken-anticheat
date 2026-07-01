@@ -25,15 +25,15 @@ static OB_PREOP_CALLBACK_STATUS pre_operation_callback([[maybe_unused]] void* co
         return OB_PREOP_SUCCESS;
     }
 
-    const auto target_process_id = reinterpret_cast<protected_process_t::id_type>(LIMPORT(PsGetProcessId)(target_process));
-    const auto* const protected_process = protected_process_t::find(target_process_id);
+    const auto target_process_id = reinterpret_cast<protected_process::id_type>(LIMPORT(PsGetProcessId)(target_process));
+    const auto* const protected_process = protected_process::find(target_process_id);
 
     if (!protected_process)
     {
         return OB_PREOP_SUCCESS;
     }
 
-    const auto current_process_id = reinterpret_cast<protected_process_t::id_type>(LIMPORT(PsGetProcessId)(current_process));
+    const auto current_process_id = reinterpret_cast<protected_process::id_type>(LIMPORT(PsGetProcessId)(current_process));
 
     ACCESS_MASK* const desired_access = info->Operation == OB_OPERATION_HANDLE_CREATE
                                             ? &info->Parameters->CreateHandleInformation.DesiredAccess
