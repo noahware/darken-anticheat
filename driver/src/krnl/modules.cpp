@@ -40,7 +40,7 @@ namespace krnl
     {
         for (const auto& sec : image->sections())
         {
-            if (sec.characteristics.mem_write && sec.characteristics.mem_execute)
+            if (sec.characteristics.mem_write && sec.characteristics.mem_execute && !sec.characteristics.mem_discardable)
             {
                 const auto len = strnlen(sec.name, 8);
                 if (len == 0)
