@@ -286,7 +286,7 @@ namespace analysis
 
         if (const auto msr = result->non_throwing_msr())
         {
-            LOG_INFO("reserved MSR 0x{:X} is being used", msr.value());
+            LOG_WARN("reserved MSR 0x{:X} is being used", msr.value());
         }
     }
 

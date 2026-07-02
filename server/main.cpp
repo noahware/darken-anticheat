@@ -99,7 +99,7 @@ std::int32_t main()
         );
 
         manager->set_idle_timeout(std::chrono::seconds(30));
-        manager->set_heartbeat_timeout(std::chrono::seconds(5));
+        manager->set_heartbeat_timeout(std::chrono::seconds(30));
         manager->set_handshake_timeout(std::chrono::seconds(5));
         manager->set_max_message_size(1024 * 1024);
 
