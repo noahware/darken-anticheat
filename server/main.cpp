@@ -13,6 +13,7 @@
 #include <schema/handle_strip_generated.h>
 #include <schema/signature_generated.h>
 #include <schema/protected_process_generated.h>
+#include <schema/kernel_data_page_exec_result_generated.h>
 
 #include "log.hpp"
 #include "analysis.hpp"
@@ -65,6 +66,7 @@ namespace
     void handle_handle_strip_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::HandleStripResult* result);
     void handle_reserved_msr_result_data(const std::shared_ptr<client_connection>& conn, const Anticheat::ReservedMsrResult* result);
     void handle_protected_process_list_result(const std::shared_ptr<client_connection>& conn, const Anticheat::ProtectedProcessList* result);
+    void handle_kernel_data_page_exec_check_result(const std::shared_ptr<client_connection>& conn, const Anticheat::KernelDataPageExecCheckResult* result);
 
     constexpr sl::message_info<Anticheat::PingRequest, sl::session> ping_request{
         Anticheat::RequestId_Ping, handle_ping
@@ -106,7 +108,11 @@ namespace
         Anticheat::RequestId_ProtectedProcessListResult, handle_protected_process_list_result
     };
 
-    using request_router = sl::message_router<ping_request, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data, image_signature_check_result, handle_strip_result_data, reserved_msr_result_data, protected_process_list_result>;
+    constexpr sl::message_info<Anticheat::KernelDataPageExecCheckResult, client_connection> kernel_data_page_exec_check_result{
+        Anticheat::RequestId_KernelDataPageExecResult, handle_kernel_data_page_exec_check_result
+    };
+
+    using request_router = sl::message_router<ping_request, client_timestamp_result, kernel_module_list_result, event_batch_result, thread_list_result, nmi_result_data, image_signature_check_result, handle_strip_result_data, reserved_msr_result_data, protected_process_list_result, kernel_data_page_exec_check_result>;
 
     class client_connection final : public sl::session
     {
@@ -303,6 +309,16 @@ namespace
         send_signature_checks(conn, unsigned_paths);
     }
 
+    void handle_kernel_data_page_exec_check_result(const std::shared_ptr<client_connection>& conn, const Anticheat::KernelDataPageExecCheckResult* result)
+    {
+        LOG_INFO("kernel data page exec result from {}:{}",
+            conn->socket().remote_address(), conn->socket().port());
+
+        std::lock_guard lock(conn->modules_mutex_);
+
+        analysis::process_kernel_data_page_exec_check_result(conn->kernel_modules_, result);
+    }
+
     void broadcast_check_requests(
         boost::asio::steady_timer& timer,
         const std::shared_ptr<sl::boost_session_manager<client_connection>>& manager,
@@ -344,6 +360,10 @@ namespace
 
                 sl::msg::async_send<Anticheat::CreateProtectedProcessListRequest>(
                     sess->socket(), Anticheat::ResponseId_ProtectedProcessList
+                );
+
+                sl::msg::async_send<Anticheat::CreateKernelDataPageExecCheckRequest>(
+                    sess->socket(), Anticheat::ResponseId_KernelDataPageExecCheck
                 );
             });
 

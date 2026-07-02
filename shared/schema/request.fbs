@@ -10,7 +10,8 @@ enum RequestId : uint8 {
     ImageSignatureCheckResult = 6,
     HandleStripData = 7,
     ReservedMsrData = 8,
-    ProtectedProcessListResult = 9
+    ProtectedProcessListResult = 9,
+    KernelDataPageExecResult = 10
 }
 
 table PingRequest {

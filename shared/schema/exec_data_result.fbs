@@ -1,0 +1,10 @@
+namespace Anticheat;
+
+table KernelDataPteExecEntry {
+    image_base: uint64;
+    rva: uint32;
+}
+
+table KernelDataPteExecCheckResult {
+    entries: [StrippedHandleInfo];
+}

@@ -1,0 +1,12 @@
+namespace Anticheat;
+
+table KernelPagePteExecEntry {
+    image_base: uint64;
+    rva: uint32;
+    source_process_id: uint64;
+    access: uint32;
+}
+
+table KernelDataPageExecCheckResult {
+    entries: [KernelPagePteExecEntry];
+}

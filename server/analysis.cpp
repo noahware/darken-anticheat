@@ -102,7 +102,7 @@ namespace analysis
         modules = std::move(incoming);
     }
 
-    static bool is_address_backed(std::uint64_t address, const std::vector<module_entry>& modules)
+    static bool is_address_backed(std::uint64_t address, const std::span<const module_entry> modules)
     {
         return std::ranges::any_of(modules, [address](const module_entry& mod)
         {
@@ -110,7 +110,7 @@ namespace analysis
         });
     }
 
-    void process_thread_list(std::vector<thread_entry>& threads, const std::vector<module_entry>& modules, const Anticheat::ThreadList* list)
+    void process_thread_list(std::vector<thread_entry>& threads, const std::span<const module_entry> modules, const Anticheat::ThreadList* list)
     {
         if (!list)
         {
@@ -176,7 +176,7 @@ namespace analysis
         threads = std::move(incoming);
     }
 
-    void process_nmi_result(const std::vector<module_entry>& modules, const std::vector<process_entry>& processes, const Anticheat::NmiResult* result)
+    void process_nmi_result(const std::span<const module_entry> modules, const std::span<const process_entry> processes, const Anticheat::NmiResult* result)
     {
         if (!result)
         {
@@ -489,6 +489,31 @@ namespace analysis
         }
 
         processes = std::move(incoming);
+    }
+
+    void process_kernel_data_page_exec_check_result(const std::span<const module_entry> modules, const Anticheat::KernelDataPageExecCheckResult* list)
+    {
+        if (!list)
+        {
+            LOG_ERR("null KernelDataPageExecCheck");
+            return;
+        }
+
+        const auto entries = list->entries();
+
+        for (const auto* e : *entries)
+        {
+            const auto it = std::ranges::find(modules, e->image_base(), &module_entry::base_address);
+
+            if (it == modules.end())
+            {
+	            LOG_WARN("unable to locate module with address 0x{:X}", e->image_base());
+
+                continue;
+            }
+
+            LOG_WARN("kernel module {} has a data page set as executable at rva 0x{:X}", it->name, e->rva());
+        }
     }
 
     std::vector<std::string> find_unsigned_modules(std::span<const module_entry> modules)

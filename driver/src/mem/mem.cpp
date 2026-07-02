@@ -1,4 +1,7 @@
 #include "mem.hpp"
+
+#include <intrin.h>
+
 #include "../krnl/nt_status.hpp"
 
 template <typename... Entries>
@@ -24,6 +27,11 @@ page_flags compute_flags(const Entries&... entries)
 	return static_cast<page_flags>(result);
 }
 
+cr3 mem::curr_cr3()
+{
+	return cr3{ .flags = __readcr3() };
+}
+
 cstd::optional<mem::phys_addr_t> mem::translate_virt_addr(const cr3 cr3, const virt_addr_t addr,
                                                           page_flags* const flags)
 {
@@ -34,16 +42,16 @@ cstd::optional<mem::phys_addr_t> mem::translate_virt_addr(const cr3 cr3, const v
 
 	bool success = false;
 
-	const auto pml4 = read_physical_memory<pml4_t>(cr3.address_of_page_directory << page_shift, &success);
-	const auto pml4e = pml4[addr.pml4e];
+	const auto pml4e = read_physical_memory<pml4e_64>(
+		(cr3.address_of_page_directory << page_shift) + addr.pml4e * sizeof(pml4e_64), &success);
 
 	if (!success || !pml4e.present)
 	{
 		return { };
 	}
 
-	const auto pdpt = read_physical_memory<pdpt_t>(pml4e.page_frame_number << page_shift, &success);
-	const auto pdpte = pdpt[addr.pdpte];
+	const auto pdpte = read_physical_memory<pdpte_64>(
+		(pml4e.page_frame_number << page_shift) + addr.pdpte * sizeof(pdpte_64), &success);
 
 	if (!success || !pdpte.present)
 	{
@@ -63,8 +71,8 @@ cstd::optional<mem::phys_addr_t> mem::translate_virt_addr(const cr3 cr3, const v
 		return (large_pdpte.page_frame_number << pdpte_shift) + page_offset;
 	}
 
-	const auto pd = read_physical_memory<pd_t>(pml4e.page_frame_number << page_shift, &success);
-	const auto pde = pd[addr.pde];
+	const auto pde = read_physical_memory<pde_64>(
+		(pdpte.page_frame_number << page_shift) + addr.pde * sizeof(pde_64), &success);
 
 	if (!success || !pde.present)
 	{
@@ -84,8 +92,8 @@ cstd::optional<mem::phys_addr_t> mem::translate_virt_addr(const cr3 cr3, const v
 		return (large_pde.page_frame_number << pde_shift) + page_offset;
 	}
 
-	const auto pt = read_physical_memory<pt_t>(pml4e.page_frame_number << page_shift, &success);
-	const auto pte = pt[addr.pte];
+	const auto pte = read_physical_memory<pte_64>(
+		(pde.page_frame_number << page_shift) + addr.pte * sizeof(pte_64), &success);
 
 	if (!success || !pte.present)
 	{

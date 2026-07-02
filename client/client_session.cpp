@@ -55,7 +55,12 @@ namespace
         request::forward<Anticheat::ResponseId_ProtectedProcessList, Anticheat::RequestId_ProtectedProcessListResult, Anticheat::ProtectedProcessListRequest>
     };
 
-    using response_router = sl::message_router<pong_response, client_timestamp_request, kernel_module_list_request, thread_list_request, nmi_check_request, image_signature_check_request, handle_strip_check_request, reserved_msr_check_request, protected_process_list_request>;
+    constexpr sl::message_info<Anticheat::KernelDataPageExecCheckRequest, sl::session> kernel_data_page_exec_check_request{
+        Anticheat::ResponseId_KernelDataPageExecCheck,
+        request::forward<Anticheat::ResponseId_KernelDataPageExecCheck, Anticheat::RequestId_KernelDataPageExecResult, Anticheat::KernelDataPageExecCheckRequest>
+    };
+
+    using response_router = sl::message_router<pong_response, client_timestamp_request, kernel_module_list_request, thread_list_request, nmi_check_request, image_signature_check_request, handle_strip_check_request, reserved_msr_check_request, protected_process_list_request, kernel_data_page_exec_check_request>;
 }
 
 void client_session::handle_message(const message_id_t id, const body_buffer_t body)

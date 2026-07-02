@@ -9,7 +9,8 @@ enum ResponseId : uint8 {
     ImageSignatureCheck = 5,
     HandleStripCheck = 6,
     ReservedMsrCheck = 7,
-    ProtectedProcessList = 8
+    ProtectedProcessList = 8,
+    KernelDataPageExecCheck = 9
 }
 
 table PongResponse {
@@ -24,3 +25,4 @@ table NmiCheckRequest {}
 table HandleStripCheckRequest {}
 table ReservedMsrCheckRequest {}
 table ProtectedProcessListRequest {}
+table KernelDataPageExecCheckRequest {}

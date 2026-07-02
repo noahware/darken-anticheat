@@ -39,6 +39,9 @@ struct ReservedMsrCheckRequestBuilder;
 struct ProtectedProcessListRequest;
 struct ProtectedProcessListRequestBuilder;
 
+struct KernelDataPageExecCheckRequest;
+struct KernelDataPageExecCheckRequestBuilder;
+
 enum ResponseId : uint8_t {
   ResponseId_Pong = 0,
   ResponseId_ClientTimestamp = 1,
@@ -49,11 +52,12 @@ enum ResponseId : uint8_t {
   ResponseId_HandleStripCheck = 6,
   ResponseId_ReservedMsrCheck = 7,
   ResponseId_ProtectedProcessList = 8,
+  ResponseId_KernelDataPageExecCheck = 9,
   ResponseId_MIN = ResponseId_Pong,
-  ResponseId_MAX = ResponseId_ProtectedProcessList
+  ResponseId_MAX = ResponseId_KernelDataPageExecCheck
 };
 
-inline const ResponseId (&EnumValuesResponseId())[9] {
+inline const ResponseId (&EnumValuesResponseId())[10] {
   static const ResponseId values[] = {
     ResponseId_Pong,
     ResponseId_ClientTimestamp,
@@ -63,13 +67,14 @@ inline const ResponseId (&EnumValuesResponseId())[9] {
     ResponseId_ImageSignatureCheck,
     ResponseId_HandleStripCheck,
     ResponseId_ReservedMsrCheck,
-    ResponseId_ProtectedProcessList
+    ResponseId_ProtectedProcessList,
+    ResponseId_KernelDataPageExecCheck
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseId() {
-  static const char * const names[10] = {
+  static const char * const names[11] = {
     "Pong",
     "ClientTimestamp",
     "KernelModuleList",
@@ -79,13 +84,14 @@ inline const char * const *EnumNamesResponseId() {
     "HandleStripCheck",
     "ReservedMsrCheck",
     "ProtectedProcessList",
+    "KernelDataPageExecCheck",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameResponseId(ResponseId e) {
-  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_ProtectedProcessList)) return "";
+  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_KernelDataPageExecCheck)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseId()[index];
 }
@@ -349,6 +355,36 @@ struct ProtectedProcessListRequestBuilder {
 inline ::flatbuffers::Offset<ProtectedProcessListRequest> CreateProtectedProcessListRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb) {
   ProtectedProcessListRequestBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct KernelDataPageExecCheckRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef KernelDataPageExecCheckRequestBuilder Builder;
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct KernelDataPageExecCheckRequestBuilder {
+  typedef KernelDataPageExecCheckRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit KernelDataPageExecCheckRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<KernelDataPageExecCheckRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<KernelDataPageExecCheckRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<KernelDataPageExecCheckRequest> CreateKernelDataPageExecCheckRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  KernelDataPageExecCheckRequestBuilder builder_(_fbb);
   return builder_.Finish();
 }
 

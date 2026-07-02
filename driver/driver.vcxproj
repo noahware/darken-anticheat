@@ -166,6 +166,7 @@
     <ClCompile Include="src\events\events.cpp" />
     <ClCompile Include="src\krnl\modules.cpp" />
     <ClCompile Include="src\krnl\threads.cpp" />
+    <ClCompile Include="src\mem\data_page_exec.cpp" />
     <ClCompile Include="src\mem\mem.cpp" />
     <ClCompile Include="src\msr\msr.cpp" />
     <ClCompile Include="src\nmi\nmi.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="src\krnl\modules.hpp" />
     <ClInclude Include="src\krnl\nt_status.hpp" />
     <ClInclude Include="src\krnl\threads.hpp" />
+    <ClInclude Include="src\mem\data_page_exec.hpp" />
     <ClInclude Include="src\mem\mem.hpp" />
     <ClInclude Include="src\msr\msr.hpp" />
     <ClInclude Include="src\nmi\nmi.hpp" />

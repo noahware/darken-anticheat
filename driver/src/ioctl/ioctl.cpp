@@ -1,5 +1,4 @@
 #include "ioctl.hpp"
-
 #include "../events/events.hpp"
 #include "../krnl/modules.hpp"
 #include "../krnl/threads.hpp"
@@ -7,11 +6,12 @@
 #include "../state/protected_process.hpp"
 #include "../log.hpp"
 #include "../util/import.hpp"
-#include <driver/ioctl.h>
-#include "response_generated.h"
 #include "../handle/table.hpp"
+#include "../mem/data_page_exec.hpp"
 #include "../msr/msr.hpp"
 #include "../process/process_modules.hpp"
+#include "response_generated.h"
+#include <driver/ioctl.h>
 
 static nt_status complete_request(PIRP irp, const nt_status status, const ULONG_PTR information = 0)
 {
@@ -85,6 +85,10 @@ NTSTATUS ioctl::dispatch([[maybe_unused]] PDEVICE_OBJECT device, PIRP irp)
 
     case Anticheat::ResponseId_ProtectedProcessList:
         response_bytes = proc::get_protected_process_modules();
+        break;
+
+    case Anticheat::ResponseId_KernelDataPageExecCheck:
+        response_bytes = mem::data_page_exec_check();
         break;
 
     default:

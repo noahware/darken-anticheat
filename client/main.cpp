@@ -36,42 +36,6 @@ namespace
         LOG_INFO("sent ping (timestamp: {})", timestamp);
     }
 
-    void self_patch_test()
-    {
-        constexpr auto delay = std::chrono::seconds(60);
-        LOG_INFO("self-patch test scheduled in {} seconds", delay.count());
-        std::this_thread::sleep_for(delay);
-
-        const auto base = reinterpret_cast<std::uint8_t*>(GetModuleHandleW(nullptr));
-        const auto* dos = reinterpret_cast<const IMAGE_DOS_HEADER*>(base);
-        const auto* nt = reinterpret_cast<const IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
-        const auto* section = IMAGE_FIRST_SECTION(nt);
-
-        for (WORD i = 0; i < nt->FileHeader.NumberOfSections; ++i, ++section)
-        {
-            if (std::memcmp(section->Name, ".text\0\0\0", 8) == 0)
-            {
-                auto* target = base + section->VirtualAddress + section->Misc.VirtualSize - 1;
-                DWORD old_protect = 0;
-
-                if (VirtualProtect(target, 1, PAGE_READWRITE, &old_protect))
-                {
-                    *target ^= 0xCC;
-                    VirtualProtect(target, 1, old_protect, &old_protect);
-                    LOG_WARN("self-patch test: patched .text @ 0x{:x}", reinterpret_cast<std::uintptr_t>(target));
-                }
-                else
-                {
-                    LOG_ERR("self-patch test: VirtualProtect failed (error: {})", GetLastError());
-                }
-
-                return;
-            }
-        }
-
-        LOG_ERR("self-patch test: .text section not found");
-    }
-
     HANDLE shutdown_event = nullptr;
 
     void driver_thread(const std::shared_ptr<sl::session>& session)
@@ -180,7 +144,6 @@ std::int32_t main()
         shutdown_event = CreateEventW(nullptr, TRUE, FALSE, nullptr);
 
         std::thread event_thread;
-        std::thread patch_thread(self_patch_test);
 
         if (driver::is_open())
         {
@@ -204,11 +167,6 @@ std::int32_t main()
         if (event_thread.joinable())
         {
             event_thread.join();
-        }
-
-        if (patch_thread.joinable())
-        {
-            patch_thread.join();
         }
 
         driver::close();

@@ -52,6 +52,8 @@ namespace mem
 	using pd_t = paging_level_t<pde_64>;
 	using pt_t = paging_level_t<pte_64>;
 
+	cr3 curr_cr3();
+
 	cstd::optional<phys_addr_t> translate_virt_addr(cr3 cr3, virt_addr_t addr, page_flags* flags = nullptr);
 	page_flags virt_page_flags(cr3 cr3, virt_addr_t addr);
 
