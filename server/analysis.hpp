@@ -34,6 +34,11 @@ namespace analysis
         {
             return characteristics.mem_discardable;
         }
+
+        [[nodiscard]] bool contains_rva(const std::uint32_t rva) const noexcept
+        {
+            return rva >= virtual_address && rva < virtual_address + virtual_size;
+        }
     };
 
     struct module_entry
@@ -46,6 +51,11 @@ namespace analysis
         std::string rwx_section;
         std::vector<section_entry> sections;
         std::chrono::steady_clock::time_point load_time;
+
+        [[nodiscard]] bool contains(const std::uint64_t address) const noexcept
+        {
+            return address >= base_address && address < base_address + size;
+        }
 
         [[nodiscard]] bool discardable_allowed() const noexcept
         {

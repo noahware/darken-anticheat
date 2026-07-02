@@ -146,7 +146,7 @@ namespace analysis
     {
         return std::ranges::any_of(modules, [address](const module_entry& mod)
         {
-            return address >= mod.base_address && address < mod.base_address + mod.size;
+            return mod.contains(address);
         });
     }
 
@@ -259,7 +259,7 @@ namespace analysis
 
                 for (const auto& mod : modules)
                 {
-                    if (rip < mod.base_address || rip >= mod.base_address + mod.size)
+                    if (!mod.contains(rip))
                     {
                         continue;
                     }
@@ -275,7 +275,7 @@ namespace analysis
                                 continue;
                             }
 
-                            if (rva >= sec.virtual_address && rva < sec.virtual_address + sec.virtual_size)
+                            if (sec.contains_rva(rva))
                             {
                                 LOG_WARN("nmi: core {} executing in discardable section {} of {} at 0x{:x}",
                                     i, sec.name, mod.name, rip);
