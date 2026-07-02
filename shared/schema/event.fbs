@@ -6,6 +6,7 @@ table KernelModuleLoad {
     name: string;
     hash: [ubyte];
     full_path: string;
+    rwx_section: string;
 }
 
 table ProcessModuleLoad {

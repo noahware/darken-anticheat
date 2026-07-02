@@ -6,5 +6,5 @@ table KernelDataPteExecEntry {
 }
 
 table KernelDataPteExecCheckResult {
-    entries: [StrippedHandleInfo];
+    entries: [KernelDataPteExecEntry];
 }

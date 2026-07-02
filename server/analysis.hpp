@@ -25,6 +25,7 @@ namespace analysis
         std::string name;
         std::vector<std::uint8_t> hash;
         std::string full_path;
+        std::string rwx_section;
     };
 
     struct process_entry

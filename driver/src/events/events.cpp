@@ -83,11 +83,20 @@ namespace
             );
         }
 
+        const auto rwx = krnl::find_rwx_section(image);
+
+        flatbuffers::Offset<flatbuffers::String> rwx_offset;
+
+        if (!rwx.empty())
+        {
+            rwx_offset = fbb.CreateString(rwx.data(), rwx.size());
+        }
+
         event_entry entry;
         entry.type = Anticheat::EventBody_KernelModuleLoad;
         entry.data = serialisation::serialise(
             fbb, serialisation::lift<Anticheat::CreateKernelModuleLoad>(),
-            base, size, name_offset, hash_offset, path_offset
+            base, size, name_offset, hash_offset, path_offset, rwx_offset
         );
 
         push_event(cstd::move(entry));
@@ -293,8 +302,15 @@ namespace events
                     hash_offset = fbb.CreateVector(load->hash()->data(), load->hash()->size());
                 }
 
+                flatbuffers::Offset<flatbuffers::String> rwx_offset;
+
+                if (load->rwx_section())
+                {
+                    rwx_offset = fbb.CreateString(load->rwx_section()->c_str(), load->rwx_section()->size());
+                }
+
                 auto load_offset = Anticheat::CreateKernelModuleLoad(
-                    fbb, load->base_address(), load->size(), name_offset, hash_offset, path_offset
+                    fbb, load->base_address(), load->size(), name_offset, hash_offset, path_offset, rwx_offset
                 );
                 auto event_offset = Anticheat::CreateEvent(fbb, Anticheat::EventBody_KernelModuleLoad, load_offset.Union());
                 event_offsets.push_back(event_offset);

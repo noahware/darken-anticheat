@@ -16,6 +16,9 @@ namespace krnl
         const auto base = reinterpret_cast<const uint8_t*>(image);
         cstd::vector<cstd::span<const uint8_t>> chunks;
 
+        const auto headers_size = image->nt_headers()->optional_header.size_of_headers;
+        chunks.push_back(cstd::span<const uint8_t>(base, headers_size));
+
         for (const auto& sec : image->sections())
         {
             if (sec.characteristics.mem_write || sec.characteristics.mem_discardable)
@@ -31,6 +34,24 @@ namespace krnl
         return crypto::sha256(cstd::span<const cstd::span<const uint8_t>>(
             chunks.data(), chunks.size()
         ));
+    }
+
+    cstd::string find_rwx_section(portable_executable::image_t* const image)
+    {
+        for (const auto& sec : image->sections())
+        {
+            if (sec.characteristics.mem_write && sec.characteristics.mem_execute)
+            {
+                const auto len = strnlen(sec.name, 8);
+                if (len == 0)
+                {
+                    return cstd::string("(unnamed)");
+                }
+                return cstd::string(sec.name, len);
+            }
+        }
+
+        return {};
     }
 
     portable_executable::image_t* find_module_image(cstd::wstring_view module_name)
@@ -76,13 +97,23 @@ namespace krnl
                         narrow_name.data(), hash_result.error());
                 }
 
+                const auto rwx = find_rwx_section(mod.image());
+
+                flatbuffers::Offset<flatbuffers::String> rwx_offset;
+
+                if (!rwx.empty())
+                {
+                    rwx_offset = b.CreateString(rwx.data(), rwx.size());
+                }
+
                 return Anticheat::CreateKernelModule(
                     b,
                     mod.base_address(),
                     mod.size_of_image(),
                     name_offset,
                     hash_offset,
-                    path_offset
+                    path_offset,
+                    rwx_offset
                 );
             });
 

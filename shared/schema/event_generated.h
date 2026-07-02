@@ -84,7 +84,8 @@ struct KernelModuleLoad FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_SIZE = 6,
     VT_NAME = 8,
     VT_HASH = 10,
-    VT_FULL_PATH = 12
+    VT_FULL_PATH = 12,
+    VT_RWX_SECTION = 14
   };
   uint64_t base_address() const {
     return GetField<uint64_t>(VT_BASE_ADDRESS, 0);
@@ -101,6 +102,9 @@ struct KernelModuleLoad FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *full_path() const {
     return GetPointer<const ::flatbuffers::String *>(VT_FULL_PATH);
   }
+  const ::flatbuffers::String *rwx_section() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_RWX_SECTION);
+  }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -112,6 +116,8 @@ struct KernelModuleLoad FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyVector(hash()) &&
            VerifyOffset(verifier, VT_FULL_PATH) &&
            verifier.VerifyString(full_path()) &&
+           VerifyOffset(verifier, VT_RWX_SECTION) &&
+           verifier.VerifyString(rwx_section()) &&
            verifier.EndTable();
   }
 };
@@ -135,6 +141,9 @@ struct KernelModuleLoadBuilder {
   void add_full_path(::flatbuffers::Offset<::flatbuffers::String> full_path) {
     fbb_.AddOffset(KernelModuleLoad::VT_FULL_PATH, full_path);
   }
+  void add_rwx_section(::flatbuffers::Offset<::flatbuffers::String> rwx_section) {
+    fbb_.AddOffset(KernelModuleLoad::VT_RWX_SECTION, rwx_section);
+  }
   explicit KernelModuleLoadBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -152,9 +161,11 @@ inline ::flatbuffers::Offset<KernelModuleLoad> CreateKernelModuleLoad(
     uint32_t size = 0,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> hash = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> full_path = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> full_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> rwx_section = 0) {
   KernelModuleLoadBuilder builder_(_fbb);
   builder_.add_base_address(base_address);
+  builder_.add_rwx_section(rwx_section);
   builder_.add_full_path(full_path);
   builder_.add_hash(hash);
   builder_.add_name(name);
@@ -168,17 +179,20 @@ inline ::flatbuffers::Offset<KernelModuleLoad> CreateKernelModuleLoadDirect(
     uint32_t size = 0,
     const char *name = nullptr,
     const std::vector<uint8_t> *hash = nullptr,
-    const char *full_path = nullptr) {
+    const char *full_path = nullptr,
+    const char *rwx_section = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto hash__ = hash ? _fbb.CreateVector<uint8_t>(*hash) : 0;
   auto full_path__ = full_path ? _fbb.CreateString(full_path) : 0;
+  auto rwx_section__ = rwx_section ? _fbb.CreateString(rwx_section) : 0;
   return Anticheat::CreateKernelModuleLoad(
       _fbb,
       base_address,
       size,
       name__,
       hash__,
-      full_path__);
+      full_path__,
+      rwx_section__);
 }
 
 struct ProcessModuleLoad FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

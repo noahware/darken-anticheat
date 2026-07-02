@@ -52,14 +52,23 @@ namespace analysis
             {
                 const auto* hash_vec = mod->hash();
 
+                const auto rwx = mod->rwx_section() ? mod->rwx_section()->str() : std::string{};
+
                 incoming.push_back({
                     mod->base_address(),
                     mod->size(),
                     mod->name() ? mod->name()->str() : "",
                     hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
                              : std::vector<std::uint8_t>{},
-                    mod->full_path() ? mod->full_path()->str() : ""
+                    mod->full_path() ? mod->full_path()->str() : "",
+                    rwx
                 });
+
+                if (!rwx.empty())
+                {
+                    LOG_WARN("kernel module {} has RWX section: {}",
+                        mod->name() ? mod->name()->c_str() : "unknown", rwx);
+                }
             }
         }
 
@@ -304,18 +313,27 @@ namespace analysis
 
                 const auto* hash_vec = load->hash();
 
+                const auto rwx = load->rwx_section() ? load->rwx_section()->str() : std::string{};
+
                 modules.push_back({
                     load->base_address(),
                     load->size(),
                     load->name() ? load->name()->str() : "",
                     hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
                              : std::vector<std::uint8_t>{},
-                    load->full_path() ? load->full_path()->str() : ""
+                    load->full_path() ? load->full_path()->str() : "",
+                    rwx
                 });
 
                 LOG_INFO("kernel module loaded (event): {} @ 0x{:x} (size: 0x{:x})",
                     load->name() ? load->name()->c_str() : "unknown",
                     load->base_address(), load->size());
+
+                if (!rwx.empty())
+                {
+                    LOG_WARN("kernel module {} has RWX section: {}",
+                        load->name() ? load->name()->c_str() : "unknown", rwx);
+                }
             }
             else if (event->body_type() == Anticheat::EventBody_ProcessModuleLoad)
             {

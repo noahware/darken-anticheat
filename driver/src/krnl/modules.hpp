@@ -1,6 +1,7 @@
 #pragma once
 #include <ntifs.h>
 #include <vector.hpp>
+#include <string.hpp>
 #include <string_view.hpp>
 #include <portable_executable/image.hpp>
 #include "../crypto/crypto.hpp"
@@ -97,4 +98,5 @@ namespace krnl
     [[nodiscard]] cstd::expected<crypto::sha256_hash_t, nt_status> hash_nonwritable_sections(portable_executable::image_t* image);
     [[nodiscard]] portable_executable::image_t* find_module_image(cstd::wstring_view module_name);
     [[nodiscard]] cstd::vector<uint8_t> get_module_list();
+    [[nodiscard]] cstd::string find_rwx_section(portable_executable::image_t* image);
 }
