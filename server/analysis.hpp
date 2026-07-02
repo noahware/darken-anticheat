@@ -16,6 +16,8 @@
 #include <unordered_set>
 #include <vector>
 
+class client_connection;
+
 namespace analysis
 {
     struct module_entry
@@ -46,8 +48,8 @@ namespace analysis
     std::string to_hex(std::span<const std::uint8_t> bytes);
 
     void process_client_timestamp(const Anticheat::ClientTimestampResult* result);
-    void process_kernel_module_list(std::vector<module_entry>& modules, const Anticheat::KernelModuleList* list);
-    void process_event_batch(std::vector<module_entry>& modules, std::vector<process_entry>& processes, const Anticheat::EventBatch* batch);
+    void process_kernel_module_list(client_connection& conn, std::vector<module_entry>& modules, const Anticheat::KernelModuleList* list);
+    void process_event_batch(client_connection& conn, std::vector<module_entry>& modules, std::vector<process_entry>& processes, const Anticheat::EventBatch* batch);
     void process_thread_list(std::vector<thread_entry>& threads, std::span<const module_entry> modules, const Anticheat::ThreadList* list);
     void process_nmi_result(std::span<const module_entry> modules, std::span<const process_entry> processes, const Anticheat::NmiResult* result);
     void process_handle_strip_result(const Anticheat::HandleStripResult* result);

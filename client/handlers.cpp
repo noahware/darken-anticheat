@@ -11,6 +11,8 @@
 #include <chrono>
 #include <thread>
 
+#include <Windows.h>
+
 namespace handlers
 {
     void handle_pong(
@@ -38,6 +40,17 @@ namespace handlers
         );
 
         LOG_INFO("sent client timestamp: {}ms", now);
+    }
+
+    void handle_popup_close(
+        [[maybe_unused]] const std::shared_ptr<sl::session>& sess,
+        const Anticheat::PopupCloseClientRequest* request)
+    {
+        const auto* msg = request && request->msg() && !request->msg()->empty()
+	                          ? request->msg()->c_str()
+	                          : "You have been disconnected.";
+        MessageBoxA(nullptr, msg, "Darken Anti-Cheat", MB_OK | MB_ICONWARNING);
+        ExitProcess(0);
     }
 
     void handle_image_signature_check(

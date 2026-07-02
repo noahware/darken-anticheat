@@ -60,7 +60,11 @@ namespace
         request::forward<Anticheat::ResponseId_KernelDataPageExecCheck, Anticheat::RequestId_KernelDataPageExecResult, Anticheat::KernelDataPageExecCheckRequest>
     };
 
-    using response_router = sl::message_router<pong_response, client_timestamp_request, kernel_module_list_request, thread_list_request, nmi_check_request, image_signature_check_request, handle_strip_check_request, reserved_msr_check_request, protected_process_list_request, kernel_data_page_exec_check_request>;
+    constexpr sl::message_info<Anticheat::PopupCloseClientRequest, sl::session> popup_close_request{
+        Anticheat::ResponseId_PopupCloseClient, handlers::handle_popup_close
+    };
+
+    using response_router = sl::message_router<pong_response, client_timestamp_request, kernel_module_list_request, thread_list_request, nmi_check_request, image_signature_check_request, handle_strip_check_request, reserved_msr_check_request, protected_process_list_request, kernel_data_page_exec_check_request, popup_close_request>;
 }
 
 void client_session::handle_message(const message_id_t id, const body_buffer_t body)

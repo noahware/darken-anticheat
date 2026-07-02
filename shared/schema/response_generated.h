@@ -18,6 +18,9 @@ namespace Anticheat {
 struct PongResponse;
 struct PongResponseBuilder;
 
+struct PopupCloseClientRequest;
+struct PopupCloseClientRequestBuilder;
+
 struct ClientTimestampRequest;
 struct ClientTimestampRequestBuilder;
 
@@ -53,11 +56,12 @@ enum ResponseId : uint8_t {
   ResponseId_ReservedMsrCheck = 7,
   ResponseId_ProtectedProcessList = 8,
   ResponseId_KernelDataPageExecCheck = 9,
+  ResponseId_PopupCloseClient = 10,
   ResponseId_MIN = ResponseId_Pong,
-  ResponseId_MAX = ResponseId_KernelDataPageExecCheck
+  ResponseId_MAX = ResponseId_PopupCloseClient
 };
 
-inline const ResponseId (&EnumValuesResponseId())[10] {
+inline const ResponseId (&EnumValuesResponseId())[11] {
   static const ResponseId values[] = {
     ResponseId_Pong,
     ResponseId_ClientTimestamp,
@@ -68,13 +72,14 @@ inline const ResponseId (&EnumValuesResponseId())[10] {
     ResponseId_HandleStripCheck,
     ResponseId_ReservedMsrCheck,
     ResponseId_ProtectedProcessList,
-    ResponseId_KernelDataPageExecCheck
+    ResponseId_KernelDataPageExecCheck,
+    ResponseId_PopupCloseClient
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseId() {
-  static const char * const names[11] = {
+  static const char * const names[12] = {
     "Pong",
     "ClientTimestamp",
     "KernelModuleList",
@@ -85,13 +90,14 @@ inline const char * const *EnumNamesResponseId() {
     "ReservedMsrCheck",
     "ProtectedProcessList",
     "KernelDataPageExecCheck",
+    "PopupCloseClient",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameResponseId(ResponseId e) {
-  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_KernelDataPageExecCheck)) return "";
+  if (::flatbuffers::IsOutRange(e, ResponseId_Pong, ResponseId_PopupCloseClient)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseId()[index];
 }
@@ -146,6 +152,58 @@ inline ::flatbuffers::Offset<PongResponse> CreatePongResponse(
   builder_.add_server_timestamp(server_timestamp);
   builder_.add_client_timestamp(client_timestamp);
   return builder_.Finish();
+}
+
+struct PopupCloseClientRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef PopupCloseClientRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_MSG = 4
+  };
+  const ::flatbuffers::String *msg() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_MSG);
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_MSG) &&
+           verifier.VerifyString(msg()) &&
+           verifier.EndTable();
+  }
+};
+
+struct PopupCloseClientRequestBuilder {
+  typedef PopupCloseClientRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_msg(::flatbuffers::Offset<::flatbuffers::String> msg) {
+    fbb_.AddOffset(PopupCloseClientRequest::VT_MSG, msg);
+  }
+  explicit PopupCloseClientRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<PopupCloseClientRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<PopupCloseClientRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<PopupCloseClientRequest> CreatePopupCloseClientRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> msg = 0) {
+  PopupCloseClientRequestBuilder builder_(_fbb);
+  builder_.add_msg(msg);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<PopupCloseClientRequest> CreatePopupCloseClientRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *msg = nullptr) {
+  auto msg__ = msg ? _fbb.CreateString(msg) : 0;
+  return Anticheat::CreatePopupCloseClientRequest(
+      _fbb,
+      msg__);
 }
 
 struct ClientTimestampRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

@@ -142,11 +142,13 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
 
+    <ClCompile Include="client_conn.cpp" />
     <ClCompile Include="analysis.cpp" />
     <ClCompile Include="sign.cpp" />
   </ItemGroup>
   <ItemGroup>
 
+    <ClInclude Include="client_conn.hpp" />
     <ClInclude Include="analysis.hpp" />
     <ClInclude Include="sign.hpp" />
   </ItemGroup>

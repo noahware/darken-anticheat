@@ -10,12 +10,18 @@ enum ResponseId : uint8 {
     HandleStripCheck = 6,
     ReservedMsrCheck = 7,
     ProtectedProcessList = 8,
-    KernelDataPageExecCheck = 9
+    KernelDataPageExecCheck = 9,
+    PopupCloseClient = 10
 }
 
 table PongResponse {
     client_timestamp: uint64;
     server_timestamp: uint64;
+}
+
+table PopupCloseClientRequest
+{
+    msg: string;
 }
 
 table ClientTimestampRequest {}

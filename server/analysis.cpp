@@ -8,6 +8,8 @@
 #include <span>
 #include <algorithm>
 
+#include "client_conn.hpp"
+
 namespace analysis
 {
     std::string to_hex(std::span<const std::uint8_t> bytes)
@@ -34,7 +36,7 @@ namespace analysis
         LOG_INFO("client timestamp: {}ms", result->timestamp());
     }
 
-    void process_kernel_module_list(std::vector<module_entry>& modules, const Anticheat::KernelModuleList* list)
+    void process_kernel_module_list(client_connection& conn, std::vector<module_entry>& modules, const Anticheat::KernelModuleList* list)
     {
         if (!list)
         {
@@ -66,8 +68,11 @@ namespace analysis
 
                 if (!rwx.empty())
                 {
-                    LOG_WARN("kernel module {} has RWX section: {}",
-                        mod->name() ? mod->name()->c_str() : "unknown", rwx);
+                    const std::string_view driver_name = mod->name() ? mod->name()->c_str() : "unknown";
+
+                    LOG_WARN("kernel module {} has RWX section: {}", driver_name, rwx);
+
+                    conn.popup_close_client(std::format("Unload the kernel driver '{}'", driver_name));
                 }
             }
         }
@@ -285,7 +290,7 @@ namespace analysis
         }
     }
 
-    void process_event_batch(std::vector<module_entry>& modules, std::vector<process_entry>& processes, const Anticheat::EventBatch* batch)
+    void process_event_batch(client_connection& conn, std::vector<module_entry>& modules, std::vector<process_entry>& processes, const Anticheat::EventBatch* batch)
     {
         if (!batch)
         {
@@ -331,8 +336,11 @@ namespace analysis
 
                 if (!rwx.empty())
                 {
-                    LOG_WARN("kernel module {} has RWX section: {}",
-                        load->name() ? load->name()->c_str() : "unknown", rwx);
+                    const std::string_view driver_name = load->name() ? load->name()->c_str() : "unknown";
+
+                    LOG_WARN("kernel module {} has RWX section: {}", driver_name, rwx);
+
+                    conn.popup_close_client(std::format("unload kernel driver {}", driver_name));
                 }
             }
             else if (event->body_type() == Anticheat::EventBody_ProcessModuleLoad)
