@@ -31,11 +31,11 @@ static void collect_exec_data_pages(cstd::vector<data_page_exec_info>& infos, co
         {
             const auto page_flags = mem::virt_page_flags(mem::curr_cr3(), base_addr + i);
 
-            /*// todo: maybe communicate page flags==none to server
-            if (page_flags == page_none)
+            // todo: maybe communicate page flags==none to server
+            if (sec.characteristics.mem_not_paged && page_flags == page_none)
             {
                 DBG_LOG("unable to get page flags for kernel virt addr 0x%llx\n", base_addr + i);
-            }*/
+            }
 
             if (page_flags & page_execute)
             {
