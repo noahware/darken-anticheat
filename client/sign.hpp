@@ -9,6 +9,7 @@ namespace sign
     struct embedded_data
     {
         std::vector<std::uint8_t> pkcs7;
+        std::vector<std::uint8_t> authenticode_hash;
     };
 
     struct catalog_data

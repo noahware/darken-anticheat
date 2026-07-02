@@ -80,16 +80,22 @@ bool VerifySignatureDataVector(::flatbuffers::VerifierTemplate<B> &verifier, con
 struct EmbeddedSignature FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef EmbeddedSignatureBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_PKCS7 = 4
+    VT_PKCS7 = 4,
+    VT_AUTHENTICODE_HASH = 6
   };
   const ::flatbuffers::Vector<uint8_t> *pkcs7() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_PKCS7);
+  }
+  const ::flatbuffers::Vector<uint8_t> *authenticode_hash() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_AUTHENTICODE_HASH);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_PKCS7) &&
            verifier.VerifyVector(pkcs7()) &&
+           VerifyOffset(verifier, VT_AUTHENTICODE_HASH) &&
+           verifier.VerifyVector(authenticode_hash()) &&
            verifier.EndTable();
   }
 };
@@ -100,6 +106,9 @@ struct EmbeddedSignatureBuilder {
   ::flatbuffers::uoffset_t start_;
   void add_pkcs7(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> pkcs7) {
     fbb_.AddOffset(EmbeddedSignature::VT_PKCS7, pkcs7);
+  }
+  void add_authenticode_hash(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> authenticode_hash) {
+    fbb_.AddOffset(EmbeddedSignature::VT_AUTHENTICODE_HASH, authenticode_hash);
   }
   explicit EmbeddedSignatureBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -114,19 +123,24 @@ struct EmbeddedSignatureBuilder {
 
 inline ::flatbuffers::Offset<EmbeddedSignature> CreateEmbeddedSignature(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> pkcs7 = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> pkcs7 = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> authenticode_hash = 0) {
   EmbeddedSignatureBuilder builder_(_fbb);
+  builder_.add_authenticode_hash(authenticode_hash);
   builder_.add_pkcs7(pkcs7);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<EmbeddedSignature> CreateEmbeddedSignatureDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<uint8_t> *pkcs7 = nullptr) {
+    const std::vector<uint8_t> *pkcs7 = nullptr,
+    const std::vector<uint8_t> *authenticode_hash = nullptr) {
   auto pkcs7__ = pkcs7 ? _fbb.CreateVector<uint8_t>(*pkcs7) : 0;
+  auto authenticode_hash__ = authenticode_hash ? _fbb.CreateVector<uint8_t>(*authenticode_hash) : 0;
   return Anticheat::CreateEmbeddedSignature(
       _fbb,
-      pkcs7__);
+      pkcs7__,
+      authenticode_hash__);
 }
 
 struct CatalogSignature FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

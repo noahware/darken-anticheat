@@ -2,6 +2,7 @@ namespace Anticheat;
 
 table EmbeddedSignature {
     pkcs7: [ubyte];
+    authenticode_hash: [ubyte];
 }
 
 table CatalogSignature {

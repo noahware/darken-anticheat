@@ -81,7 +81,8 @@ namespace handlers
             {
                 const auto& emb = std::get<sign::embedded_data>(result);
                 auto pkcs7_offset = fbb.CreateVector(emb.pkcs7.data(), emb.pkcs7.size());
-                auto emb_offset = Anticheat::CreateEmbeddedSignature(fbb, pkcs7_offset);
+                auto hash_offset = fbb.CreateVector(emb.authenticode_hash.data(), emb.authenticode_hash.size());
+                auto emb_offset = Anticheat::CreateEmbeddedSignature(fbb, pkcs7_offset, hash_offset);
                 result_offset = Anticheat::CreateImageSignatureCheckResult(
                     fbb, path_offset,
                     Anticheat::SignatureData_EmbeddedSignature,

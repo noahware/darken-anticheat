@@ -3,6 +3,7 @@
 
 #include <openssl/bio.h>
 #include <openssl/err.h>
+#include <openssl/objects.h>
 #include <openssl/pem.h>
 #include <openssl/pkcs7.h>
 #include <openssl/x509.h>
@@ -128,17 +129,114 @@ namespace
     }
 }
 
+namespace
+{
+    bool extract_signed_hash(PKCS7* p7, std::vector<std::uint8_t>& out_hash)
+    {
+        const auto* signed_data = p7->d.sign;
+        if (!signed_data || !signed_data->contents)
+        {
+            return false;
+        }
+
+        const auto* content_type = signed_data->contents->type;
+        if (!content_type)
+        {
+            return false;
+        }
+
+        const auto* content_value = signed_data->contents->d.other;
+        if (!content_value)
+        {
+            return false;
+        }
+
+        const auto* octet = content_value->value.octet_string;
+        if (!octet || !octet->data || octet->length <= 0)
+        {
+            return false;
+        }
+
+        const auto* p = octet->data;
+        const auto* end = p + octet->length;
+
+        auto* seq = d2i_ASN1_SEQUENCE_ANY(nullptr, &p, octet->length);
+        if (!seq)
+        {
+            return false;
+        }
+
+        if (sk_ASN1_TYPE_num(seq) >= 2)
+        {
+            auto* digest_info = sk_ASN1_TYPE_value(seq, 1);
+
+            if (digest_info && digest_info->type == V_ASN1_SEQUENCE)
+            {
+                const auto* inner_data = digest_info->value.sequence->data;
+                auto inner_len = digest_info->value.sequence->length;
+
+                auto* inner_seq = d2i_ASN1_SEQUENCE_ANY(nullptr, &inner_data, inner_len);
+                if (inner_seq)
+                {
+                    for (int i = 0; i < sk_ASN1_TYPE_num(inner_seq); ++i)
+                    {
+                        auto* item = sk_ASN1_TYPE_value(inner_seq, i);
+                        if (item && item->type == V_ASN1_OCTET_STRING && item->value.octet_string)
+                        {
+                            const auto* hash_str = item->value.octet_string;
+                            out_hash.assign(hash_str->data, hash_str->data + hash_str->length);
+                            sk_ASN1_TYPE_pop_free(inner_seq, ASN1_TYPE_free);
+                            sk_ASN1_TYPE_pop_free(seq, ASN1_TYPE_free);
+                            return true;
+                        }
+                    }
+                    sk_ASN1_TYPE_pop_free(inner_seq, ASN1_TYPE_free);
+                }
+            }
+        }
+
+        sk_ASN1_TYPE_pop_free(seq, ASN1_TYPE_free);
+        return false;
+    }
+}
+
 namespace sign
 {
-    bool verify_embedded(std::span<const std::uint8_t> pkcs7_der)
+    bool verify_embedded(std::span<const std::uint8_t> pkcs7_der,
+                         std::span<const std::uint8_t> authenticode_hash)
     {
+        if (authenticode_hash.empty())
+        {
+            LOG_WARN("embedded verify: no authenticode hash provided");
+            return false;
+        }
+
         auto p7 = parse_pkcs7(pkcs7_der);
         if (!p7)
         {
             return false;
         }
 
-        return verify_pkcs7_chain(p7.get());
+        if (!verify_pkcs7_chain(p7.get()))
+        {
+            return false;
+        }
+
+        std::vector<std::uint8_t> signed_hash;
+        if (!extract_signed_hash(p7.get(), signed_hash))
+        {
+            LOG_WARN("embedded verify: could not extract hash from SPC_INDIRECT_DATA");
+            return false;
+        }
+
+        if (signed_hash.size() != authenticode_hash.size() ||
+            std::memcmp(signed_hash.data(), authenticode_hash.data(), signed_hash.size()) != 0)
+        {
+            LOG_WARN("embedded verify: authenticode hash mismatch");
+            return false;
+        }
+
+        return true;
     }
 
     bool verify_catalog(std::span<const std::uint8_t> catalog_pkcs7,

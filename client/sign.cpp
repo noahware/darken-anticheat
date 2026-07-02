@@ -108,13 +108,57 @@ namespace
         };
     }
 
-    std::optional<sign::catalog_data> find_matching_catalog(const std::string& file_path)
+    std::vector<std::uint8_t> compute_authenticode_hash(const std::string& file_path)
     {
         auto* file_handle = CreateFileA(
             file_path.c_str(), GENERIC_READ, FILE_SHARE_READ,
             nullptr, OPEN_EXISTING, 0, nullptr);
 
         if (file_handle == INVALID_HANDLE_VALUE)
+        {
+            return {};
+        }
+
+        HCATADMIN admin = nullptr;
+
+        if (!CryptCATAdminAcquireContext2(&admin, nullptr,
+                BCRYPT_SHA256_ALGORITHM, nullptr, 0))
+        {
+            if (!CryptCATAdminAcquireContext(&admin, nullptr, 0))
+            {
+                CloseHandle(file_handle);
+                return {};
+            }
+        }
+
+        DWORD hash_size = 0;
+        CryptCATAdminCalcHashFromFileHandle2(admin, file_handle, &hash_size, nullptr, 0);
+
+        std::vector<BYTE> hash(hash_size);
+        if (!CryptCATAdminCalcHashFromFileHandle2(
+                admin, file_handle, &hash_size, hash.data(), 0))
+        {
+            CryptCATAdminCalcHashFromFileHandle(file_handle, &hash_size, nullptr, 0);
+            hash.resize(hash_size);
+            if (!CryptCATAdminCalcHashFromFileHandle(
+                    file_handle, &hash_size, hash.data(), 0))
+            {
+                CloseHandle(file_handle);
+                CryptCATAdminReleaseContext(admin, 0);
+                return {};
+            }
+        }
+
+        CloseHandle(file_handle);
+        CryptCATAdminReleaseContext(admin, 0);
+
+        return hash;
+    }
+
+    std::optional<sign::catalog_data> find_matching_catalog(
+        const std::string& file_path, const std::vector<std::uint8_t>& authenticode_hash)
+    {
+        if (authenticode_hash.empty())
         {
             return std::nullopt;
         }
@@ -126,33 +170,14 @@ namespace
         {
             if (!CryptCATAdminAcquireContext(&admin, nullptr, 0))
             {
-                CloseHandle(file_handle);
                 return std::nullopt;
             }
         }
 
-        DWORD hash_size = 0;
-        CryptCATAdminCalcHashFromFileHandle2(admin, file_handle, &hash_size, nullptr, 0);
-
-        std::vector<BYTE> cat_hash(hash_size);
-        if (!CryptCATAdminCalcHashFromFileHandle2(
-                admin, file_handle, &hash_size, cat_hash.data(), 0))
-        {
-            CryptCATAdminCalcHashFromFileHandle(file_handle, &hash_size, nullptr, 0);
-            cat_hash.resize(hash_size);
-            if (!CryptCATAdminCalcHashFromFileHandle(
-                    file_handle, &hash_size, cat_hash.data(), 0))
-            {
-                CloseHandle(file_handle);
-                CryptCATAdminReleaseContext(admin, 0);
-                return std::nullopt;
-            }
-        }
-
-        CloseHandle(file_handle);
+        auto hash_copy = authenticode_hash;
 
         auto* cat_info = CryptCATAdminEnumCatalogFromHash(
-            admin, cat_hash.data(), hash_size, 0, nullptr);
+            admin, hash_copy.data(), static_cast<DWORD>(hash_copy.size()), 0, nullptr);
 
         if (!cat_info)
         {
@@ -175,7 +200,7 @@ namespace
             if (!cat_bytes.empty())
             {
                 result = sign::catalog_data{
-                    std::vector<std::uint8_t>(cat_hash.begin(), cat_hash.end()),
+                    authenticode_hash,
                     std::move(cat_bytes)
                 };
             }
@@ -201,7 +226,9 @@ namespace sign
             return std::monostate{};
         }
 
-        auto catalog = find_matching_catalog(resolved);
+        const auto authenticode_hash = compute_authenticode_hash(resolved);
+
+        auto catalog = find_matching_catalog(resolved, authenticode_hash);
         if (catalog)
         {
             return std::move(*catalog);
@@ -210,6 +237,7 @@ namespace sign
         auto embedded = extract_embedded(file_data);
         if (embedded)
         {
+            embedded->authenticode_hash = authenticode_hash;
             return std::move(*embedded);
         }
 

@@ -190,9 +190,12 @@ namespace
         if (result->data_type() == Anticheat::SignatureData_EmbeddedSignature)
         {
             const auto* emb = result->data_as_EmbeddedSignature();
-            if (emb && emb->pkcs7())
+            if (emb && emb->pkcs7() && emb->authenticode_hash())
             {
-                valid = sign::verify_embedded({emb->pkcs7()->data(), emb->pkcs7()->size()});
+                valid = sign::verify_embedded(
+                    {emb->pkcs7()->data(), emb->pkcs7()->size()},
+                    {emb->authenticode_hash()->data(), emb->authenticode_hash()->size()}
+                );
             }
         }
         else if (result->data_type() == Anticheat::SignatureData_CatalogSignature)
