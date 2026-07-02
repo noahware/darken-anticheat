@@ -15,11 +15,102 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
 
 namespace Anticheat {
 
+struct SectionInfo;
+struct SectionInfoBuilder;
+
 struct KernelModule;
 struct KernelModuleBuilder;
 
 struct KernelModuleList;
 struct KernelModuleListBuilder;
+
+struct SectionInfo FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef SectionInfoBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_VIRTUAL_ADDRESS = 6,
+    VT_VIRTUAL_SIZE = 8,
+    VT_CHARACTERISTICS = 10
+  };
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
+  }
+  uint32_t virtual_address() const {
+    return GetField<uint32_t>(VT_VIRTUAL_ADDRESS, 0);
+  }
+  uint32_t virtual_size() const {
+    return GetField<uint32_t>(VT_VIRTUAL_SIZE, 0);
+  }
+  uint32_t characteristics() const {
+    return GetField<uint32_t>(VT_CHARACTERISTICS, 0);
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyField<uint32_t>(verifier, VT_VIRTUAL_ADDRESS, 4) &&
+           VerifyField<uint32_t>(verifier, VT_VIRTUAL_SIZE, 4) &&
+           VerifyField<uint32_t>(verifier, VT_CHARACTERISTICS, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct SectionInfoBuilder {
+  typedef SectionInfo Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
+    fbb_.AddOffset(SectionInfo::VT_NAME, name);
+  }
+  void add_virtual_address(uint32_t virtual_address) {
+    fbb_.AddElement<uint32_t>(SectionInfo::VT_VIRTUAL_ADDRESS, virtual_address, 0);
+  }
+  void add_virtual_size(uint32_t virtual_size) {
+    fbb_.AddElement<uint32_t>(SectionInfo::VT_VIRTUAL_SIZE, virtual_size, 0);
+  }
+  void add_characteristics(uint32_t characteristics) {
+    fbb_.AddElement<uint32_t>(SectionInfo::VT_CHARACTERISTICS, characteristics, 0);
+  }
+  explicit SectionInfoBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<SectionInfo> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<SectionInfo>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<SectionInfo> CreateSectionInfo(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    uint32_t virtual_address = 0,
+    uint32_t virtual_size = 0,
+    uint32_t characteristics = 0) {
+  SectionInfoBuilder builder_(_fbb);
+  builder_.add_characteristics(characteristics);
+  builder_.add_virtual_size(virtual_size);
+  builder_.add_virtual_address(virtual_address);
+  builder_.add_name(name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<SectionInfo> CreateSectionInfoDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    uint32_t virtual_address = 0,
+    uint32_t virtual_size = 0,
+    uint32_t characteristics = 0) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  return Anticheat::CreateSectionInfo(
+      _fbb,
+      name__,
+      virtual_address,
+      virtual_size,
+      characteristics);
+}
 
 struct KernelModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef KernelModuleBuilder Builder;
@@ -29,7 +120,8 @@ struct KernelModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_NAME = 8,
     VT_HASH = 10,
     VT_FULL_PATH = 12,
-    VT_RWX_SECTION = 14
+    VT_RWX_SECTION = 14,
+    VT_SECTIONS = 16
   };
   uint64_t base_address() const {
     return GetField<uint64_t>(VT_BASE_ADDRESS, 0);
@@ -49,6 +141,9 @@ struct KernelModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *rwx_section() const {
     return GetPointer<const ::flatbuffers::String *>(VT_RWX_SECTION);
   }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Anticheat::SectionInfo>> *sections() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Anticheat::SectionInfo>> *>(VT_SECTIONS);
+  }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -62,6 +157,9 @@ struct KernelModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyString(full_path()) &&
            VerifyOffset(verifier, VT_RWX_SECTION) &&
            verifier.VerifyString(rwx_section()) &&
+           VerifyOffset(verifier, VT_SECTIONS) &&
+           verifier.VerifyVector(sections()) &&
+           verifier.VerifyVectorOfTables(sections()) &&
            verifier.EndTable();
   }
 };
@@ -88,6 +186,9 @@ struct KernelModuleBuilder {
   void add_rwx_section(::flatbuffers::Offset<::flatbuffers::String> rwx_section) {
     fbb_.AddOffset(KernelModule::VT_RWX_SECTION, rwx_section);
   }
+  void add_sections(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Anticheat::SectionInfo>>> sections) {
+    fbb_.AddOffset(KernelModule::VT_SECTIONS, sections);
+  }
   explicit KernelModuleBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -106,9 +207,11 @@ inline ::flatbuffers::Offset<KernelModule> CreateKernelModule(
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> hash = 0,
     ::flatbuffers::Offset<::flatbuffers::String> full_path = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> rwx_section = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> rwx_section = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Anticheat::SectionInfo>>> sections = 0) {
   KernelModuleBuilder builder_(_fbb);
   builder_.add_base_address(base_address);
+  builder_.add_sections(sections);
   builder_.add_rwx_section(rwx_section);
   builder_.add_full_path(full_path);
   builder_.add_hash(hash);
@@ -124,11 +227,13 @@ inline ::flatbuffers::Offset<KernelModule> CreateKernelModuleDirect(
     const char *name = nullptr,
     const std::vector<uint8_t> *hash = nullptr,
     const char *full_path = nullptr,
-    const char *rwx_section = nullptr) {
+    const char *rwx_section = nullptr,
+    const std::vector<::flatbuffers::Offset<Anticheat::SectionInfo>> *sections = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto hash__ = hash ? _fbb.CreateVector<uint8_t>(*hash) : 0;
   auto full_path__ = full_path ? _fbb.CreateString(full_path) : 0;
   auto rwx_section__ = rwx_section ? _fbb.CreateString(rwx_section) : 0;
+  auto sections__ = sections ? _fbb.CreateVector<::flatbuffers::Offset<Anticheat::SectionInfo>>(*sections) : 0;
   return Anticheat::CreateKernelModule(
       _fbb,
       base_address,
@@ -136,7 +241,8 @@ inline ::flatbuffers::Offset<KernelModule> CreateKernelModuleDirect(
       name__,
       hash__,
       full_path__,
-      rwx_section__);
+      rwx_section__,
+      sections__);
 }
 
 struct KernelModuleList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

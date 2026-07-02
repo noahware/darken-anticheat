@@ -9,6 +9,9 @@
 #include <schema/reserved_msr_result_generated.h>
 #include <schema/protected_process_generated.h>
 
+#include <portable_executable/section_header.hpp>
+
+#include <chrono>
 #include <cstdint>
 #include <mutex>
 #include <span>
@@ -20,6 +23,19 @@ class client_connection;
 
 namespace analysis
 {
+    struct section_entry
+    {
+        std::string name;
+        std::uint32_t virtual_address;
+        std::uint32_t virtual_size;
+        portable_executable::section_characteristics_t characteristics;
+
+        [[nodiscard]] bool is_discardable() const noexcept
+        {
+            return characteristics.mem_discardable;
+        }
+    };
+
     struct module_entry
     {
         std::uint64_t base_address;
@@ -28,6 +44,14 @@ namespace analysis
         std::vector<std::uint8_t> hash;
         std::string full_path;
         std::string rwx_section;
+        std::vector<section_entry> sections;
+        std::chrono::steady_clock::time_point load_time;
+
+        [[nodiscard]] bool discardable_allowed() const noexcept
+        {
+            constexpr auto grace_period = std::chrono::seconds(5);
+            return std::chrono::steady_clock::now() - load_time < grace_period;
+        }
     };
 
     struct process_entry

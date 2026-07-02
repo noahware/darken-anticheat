@@ -106,6 +106,21 @@ namespace krnl
                     rwx_offset = b.CreateString(rwx.data(), rwx.size());
                 }
 
+                auto sections_vec = serialisation::collect<Anticheat::SectionInfo>(b, mod.image()->sections(),
+                    [](auto& sb, const auto& sec)
+                    {
+                        const auto sec_name_len = strnlen(sec.name, 8);
+                        auto sec_name_offset = sb.CreateString(sec.name, sec_name_len);
+
+                        return Anticheat::CreateSectionInfo(
+                            sb,
+                            sec_name_offset,
+                            sec.virtual_address,
+                            sec.virtual_size,
+                            sec.characteristics.flags
+                        );
+                    });
+
                 return Anticheat::CreateKernelModule(
                     b,
                     mod.base_address(),
@@ -113,7 +128,8 @@ namespace krnl
                     name_offset,
                     hash_offset,
                     path_offset,
-                    rwx_offset
+                    rwx_offset,
+                    sections_vec
                 );
             });
 

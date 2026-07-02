@@ -56,6 +56,23 @@ namespace analysis
 
                 const auto rwx = mod->rwx_section() ? mod->rwx_section()->str() : std::string{};
 
+                std::vector<section_entry> sections;
+
+                if (const auto* fb_sections = mod->sections())
+                {
+                    sections.reserve(fb_sections->size());
+
+                    for (const auto* sec : *fb_sections)
+                    {
+                        sections.push_back({
+                            sec->name() ? sec->name()->str() : "",
+                            sec->virtual_address(),
+                            sec->virtual_size(),
+                            {.flags = sec->characteristics()}
+                        });
+                    }
+                }
+
                 incoming.push_back({
                     mod->base_address(),
                     mod->size(),
@@ -63,7 +80,9 @@ namespace analysis
                     hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
                              : std::vector<std::uint8_t>{},
                     mod->full_path() ? mod->full_path()->str() : "",
-                    rwx
+                    rwx,
+                    std::move(sections),
+                    std::chrono::steady_clock::now()
                 });
 
                 if (!rwx.empty())
@@ -101,7 +120,14 @@ namespace analysis
             {
                 const auto it = std::ranges::find(incoming, old_mod.base_address, &module_entry::base_address);
 
-                if (it != incoming.end() && it->hash != old_mod.hash)
+                if (it == incoming.end())
+                {
+                    continue;
+                }
+
+                it->load_time = old_mod.load_time;
+
+                if (it->hash != old_mod.hash)
                 {
                     LOG_WARN("module integrity mismatch: {} @ 0x{:x} (hash: {} -> {})",
                         old_mod.name, old_mod.base_address, to_hex(old_mod.hash), to_hex(it->hash));
@@ -229,9 +255,40 @@ namespace analysis
 
             if (!is_usermode)
             {
-                if (!modules.empty() && !is_address_backed(cap->rip(), modules))
+                const auto rip = cap->rip();
+
+                for (const auto& mod : modules)
                 {
-                    LOG_WARN("nmi: core {} executing unbacked kernel code at 0x{:x}", i, cap->rip());
+                    if (rip < mod.base_address || rip >= mod.base_address + mod.size)
+                    {
+                        continue;
+                    }
+
+                    if (!mod.discardable_allowed())
+                    {
+                        const auto rva = static_cast<std::uint32_t>(rip - mod.base_address);
+
+                        for (const auto& sec : mod.sections)
+                        {
+                            if (!sec.is_discardable())
+                            {
+                                continue;
+                            }
+
+                            if (rva >= sec.virtual_address && rva < sec.virtual_address + sec.virtual_size)
+                            {
+                                LOG_WARN("nmi: core {} executing in discardable section {} of {} at 0x{:x}",
+                                    i, sec.name, mod.name, rip);
+                            }
+                        }
+                    }
+
+                    break;
+                }
+
+                if (!modules.empty() && !is_address_backed(rip, modules))
+                {
+                    LOG_WARN("nmi: core {} executing unbacked kernel code at 0x{:x}", i, rip);
                 }
 
                 continue;
@@ -320,6 +377,23 @@ namespace analysis
 
                 const auto rwx = load->rwx_section() ? load->rwx_section()->str() : std::string{};
 
+                std::vector<section_entry> sections;
+
+                if (const auto* fb_sections = load->sections())
+                {
+                    sections.reserve(fb_sections->size());
+
+                    for (const auto* sec : *fb_sections)
+                    {
+                        sections.push_back({
+                            sec->name() ? sec->name()->str() : "",
+                            sec->virtual_address(),
+                            sec->virtual_size(),
+                            {.flags = sec->characteristics()}
+                        });
+                    }
+                }
+
                 modules.push_back({
                     load->base_address(),
                     load->size(),
@@ -327,7 +401,9 @@ namespace analysis
                     hash_vec ? std::vector<std::uint8_t>(hash_vec->begin(), hash_vec->end())
                              : std::vector<std::uint8_t>{},
                     load->full_path() ? load->full_path()->str() : "",
-                    rwx
+                    rwx,
+                    std::move(sections),
+                    std::chrono::steady_clock::now()
                 });
 
                 LOG_INFO("kernel module loaded (event): {} @ 0x{:x} (size: 0x{:x})",

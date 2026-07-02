@@ -92,11 +92,26 @@ namespace
             rwx_offset = fbb.CreateString(rwx.data(), rwx.size());
         }
 
+        auto sections_vec = serialisation::collect<Anticheat::SectionInfo>(fbb, image->sections(),
+            [](auto& sb, const auto& sec)
+            {
+                const auto sec_name_len = strnlen(sec.name, 8);
+                auto sec_name_offset = sb.CreateString(sec.name, sec_name_len);
+
+                return Anticheat::CreateSectionInfo(
+                    sb,
+                    sec_name_offset,
+                    sec.virtual_address,
+                    sec.virtual_size,
+                    sec.characteristics.flags
+                );
+            });
+
         event_entry entry;
         entry.type = Anticheat::EventBody_KernelModuleLoad;
         entry.data = serialisation::serialise(
             fbb, serialisation::lift<Anticheat::CreateKernelModuleLoad>(),
-            base, size, name_offset, hash_offset, path_offset, rwx_offset
+            base, size, name_offset, hash_offset, path_offset, rwx_offset, sections_vec
         );
 
         push_event(cstd::move(entry));
@@ -309,8 +324,25 @@ namespace events
                     rwx_offset = fbb.CreateString(load->rwx_section()->c_str(), load->rwx_section()->size());
                 }
 
+                flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Anticheat::SectionInfo>>> sections_offset;
+
+                if (load->sections())
+                {
+                    cstd::vector<flatbuffers::Offset<Anticheat::SectionInfo>> sec_offsets;
+
+                    for (const auto* sec : *load->sections())
+                    {
+                        auto sec_name = fbb.CreateString(sec->name()->c_str(), sec->name()->size());
+                        sec_offsets.push_back(Anticheat::CreateSectionInfo(
+                            fbb, sec_name, sec->virtual_address(), sec->virtual_size(), sec->characteristics()
+                        ));
+                    }
+
+                    sections_offset = fbb.CreateVector(sec_offsets.data(), sec_offsets.size());
+                }
+
                 auto load_offset = Anticheat::CreateKernelModuleLoad(
-                    fbb, load->base_address(), load->size(), name_offset, hash_offset, path_offset, rwx_offset
+                    fbb, load->base_address(), load->size(), name_offset, hash_offset, path_offset, rwx_offset, sections_offset
                 );
                 auto event_offset = Anticheat::CreateEvent(fbb, Anticheat::EventBody_KernelModuleLoad, load_offset.Union());
                 event_offsets.push_back(event_offset);

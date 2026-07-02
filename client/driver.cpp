@@ -60,7 +60,7 @@ namespace driver
             return std::nullopt;
         }
 
-        constexpr DWORD output_buffer_size = 65536;
+        constexpr DWORD output_buffer_size = 262144;
         std::vector<std::uint8_t> output(output_buffer_size);
         DWORD bytes_returned = 0;
 
@@ -154,7 +154,7 @@ namespace driver
             return std::nullopt;
         }
 
-        constexpr DWORD output_buffer_size = 65536;
+        constexpr DWORD output_buffer_size = 262144;
         std::vector<std::uint8_t> output(output_buffer_size);
         DWORD bytes_returned = 0;
 
