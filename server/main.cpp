@@ -1,17 +1,7 @@
 #include "client_conn.hpp"
+#include "log.hpp"
 
 #include <connection/session_manager.hpp>
-#include <message/message.hpp>
-#include <schema/response_generated.h>
-#include <schema/client_timestamp_generated.h>
-#include <schema/kernel_modules_generated.h>
-#include <schema/thread_generated.h>
-#include <schema/nmi_result_generated.h>
-#include <schema/handle_strip_generated.h>
-#include <schema/protected_process_generated.h>
-#include <schema/kernel_data_page_exec_result_generated.h>
-
-#include "log.hpp"
 
 namespace
 {
@@ -40,37 +30,16 @@ namespace
 
             manager->for_each_session([](const std::shared_ptr<sl::session>& sess)
             {
-                sl::msg::async_send<Anticheat::CreateClientTimestampRequest>(
-                    sess->socket(), Anticheat::ResponseId_ClientTimestamp
-                );
+                auto conn = std::static_pointer_cast<client_connection>(sess);
 
-                sl::msg::async_send<Anticheat::CreateKernelModuleListRequest>(
-                    sess->socket(), Anticheat::ResponseId_KernelModuleList
-                );
-
-                sl::msg::async_send<Anticheat::CreateThreadListRequest>(
-                    sess->socket(), Anticheat::ResponseId_ThreadList
-                );
-
-                sl::msg::async_send<Anticheat::CreateNmiCheckRequest>(
-                    sess->socket(), Anticheat::ResponseId_NmiCheck
-                );
-
-                sl::msg::async_send<Anticheat::CreateHandleStripCheckRequest>(
-                    sess->socket(), Anticheat::ResponseId_HandleStripCheck
-                );
-
-                sl::msg::async_send<Anticheat::CreateReservedMsrCheckRequest>(
-                    sess->socket(), Anticheat::ResponseId_ReservedMsrCheck
-                );
-
-                sl::msg::async_send<Anticheat::CreateProtectedProcessListRequest>(
-                    sess->socket(), Anticheat::ResponseId_ProtectedProcessList
-                );
-
-                sl::msg::async_send<Anticheat::CreateKernelDataPageExecCheckRequest>(
-                    sess->socket(), Anticheat::ResponseId_KernelDataPageExecCheck
-                );
+                conn->send_timestamp_request();
+                conn->send_kernel_module_list_request();
+                conn->send_thread_list_request();
+                conn->send_nmi_check_request();
+                conn->send_handle_strip_check_request();
+                conn->send_reserved_msr_check_request();
+                conn->send_protected_process_list_request();
+                conn->send_kernel_data_page_exec_check_request();
             });
 
             LOG_INFO("sent check requests to {} client(s)", manager->session_count());
@@ -116,8 +85,8 @@ std::int32_t main()
         manager->async_wait_for_connection();
 
         boost::asio::steady_timer check_timer(pool.get_executor());
-        broadcast_check_requests(check_timer, manager, std::chrono::seconds(5));
-        LOG_INFO("check request broadcast started (interval: 5s)");
+        broadcast_check_requests(check_timer, manager, std::chrono::seconds(10));
+        LOG_INFO("check request broadcast started (interval: 10s)");
 
         boost::asio::signal_set signals(pool.get_executor(), SIGINT, SIGTERM);
         signals.async_wait([&](const boost::system::error_code&, int)

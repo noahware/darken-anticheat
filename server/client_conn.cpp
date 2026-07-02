@@ -286,6 +286,46 @@ namespace
     }
 }
 
+void client_connection::send_timestamp_request()
+{
+    send_round_request<Anticheat::CreateClientTimestampRequest, Anticheat::ResponseId_ClientTimestamp, Anticheat::RequestId_ClientTimestampResult>();
+}
+
+void client_connection::send_kernel_module_list_request()
+{
+    send_round_request<Anticheat::CreateKernelModuleListRequest, Anticheat::ResponseId_KernelModuleList, Anticheat::RequestId_KernelModuleListResult>();
+}
+
+void client_connection::send_thread_list_request()
+{
+    send_round_request<Anticheat::CreateThreadListRequest, Anticheat::ResponseId_ThreadList, Anticheat::RequestId_ThreadListResult>();
+}
+
+void client_connection::send_nmi_check_request()
+{
+    send_round_request<Anticheat::CreateNmiCheckRequest, Anticheat::ResponseId_NmiCheck, Anticheat::RequestId_NmiResultData>();
+}
+
+void client_connection::send_handle_strip_check_request()
+{
+    send_round_request<Anticheat::CreateHandleStripCheckRequest, Anticheat::ResponseId_HandleStripCheck, Anticheat::RequestId_HandleStripData>();
+}
+
+void client_connection::send_reserved_msr_check_request()
+{
+    send_round_request<Anticheat::CreateReservedMsrCheckRequest, Anticheat::ResponseId_ReservedMsrCheck, Anticheat::RequestId_ReservedMsrData>();
+}
+
+void client_connection::send_protected_process_list_request()
+{
+    send_round_request<Anticheat::CreateProtectedProcessListRequest, Anticheat::ResponseId_ProtectedProcessList, Anticheat::RequestId_ProtectedProcessListResult>();
+}
+
+void client_connection::send_kernel_data_page_exec_check_request()
+{
+    send_round_request<Anticheat::CreateKernelDataPageExecCheckRequest, Anticheat::ResponseId_KernelDataPageExecCheck, Anticheat::RequestId_KernelDataPageExecResult>();
+}
+
 void client_connection::popup_close_client(const std::string& msg)
 {
     flatbuffers::FlatBufferBuilder fbb;
@@ -309,5 +349,9 @@ void client_connection::handle_message(const message_id_t id, const body_buffer_
     if (!request_router::dispatch(id, shared_as<client_connection>(), *body))
     {
         LOG_ERR("unknown request type: {}", id);
+        return;
     }
+
+    std::lock_guard lock(pending_responses_mutex_);
+    pending_responses_.erase(static_cast<std::uint8_t>(id));
 }
